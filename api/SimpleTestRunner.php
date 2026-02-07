@@ -13,12 +13,22 @@ class SimpleTestRunner
         foreach ($methods as $method) {
             if (strpos($method, 'test') === 0) {
                 try {
+                    // Hook: setUp() vor jedem Test ausführen, falls vorhanden
+                    if (method_exists($testClass, 'setUp')) {
+                        $testClass->setUp();
+                    }
+
                     $testClass->$method();
                     echo "✅ $method: OK\n";
                     $this->passed++;
                 } catch (Exception $e) {
                     echo "❌ $method: FEHLGESCHLAGEN - " . $e->getMessage() . "\n";
                     $this->failed++;
+                } finally {
+                    // Hook: tearDown() nach jedem Test ausführen, falls vorhanden
+                    if (method_exists($testClass, 'tearDown')) {
+                        $testClass->tearDown();
+                    }
                 }
             }
         }
