@@ -46,6 +46,9 @@ class ApiTest
         Assert::equals(200, $response['code'], '/me sollte 200 zurückgeben');
         Assert::equals($this->testUser, $response['body']['username'] ?? '', 'Benutzername in /me prüfen');
         Assert::equals('parent', $response['body']['role'] ?? '', 'Rolle sollte parent sein');
+        // Zu Beginn sollten keine Daten vorhanden sein
+        Assert::equals(false, $response['body']['has_medications'] ?? null, '/me: has_medications sollte anfangs false sein');
+        Assert::equals(false, $response['body']['has_entries'] ?? null, '/me: has_entries sollte anfangs false sein');
     }
 
     public function testCreateMedication()
@@ -84,6 +87,16 @@ class ApiTest
         Assert::equals(200, $response['code'], 'Einträge abrufen sollte 200 sein');
         Assert::true(is_array($response['body']['entries']), 'Entries sollte ein Array sein');
         Assert::true(count($response['body']['entries']) > 0, 'Sollte mindestens den eben erstellten Eintrag enthalten');
+    }
+
+    public function testMeWithData()
+    {
+        // Nach dem Erstellen von Einträgen und Meds sollte /me das widerspiegeln
+        $response = $this->client->get('/me');
+        
+        Assert::equals(200, $response['code'], '/me sollte auch mit Daten 200 zurückgeben');
+        Assert::equals(true, $response['body']['has_medications'] ?? null, '/me: has_medications sollte nach Erstellung true sein');
+        Assert::equals(true, $response['body']['has_entries'] ?? null, '/me: has_entries sollte nach Erstellung true sein');
     }
 
     public function testLogout()

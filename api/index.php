@@ -494,6 +494,15 @@ function handleMe(PDO $pdo): void
         $stmtFamily->execute([$user['family_id']]);
         $familyCount = $stmtFamily->fetchColumn();
 
+        // Prüfen, ob bereits Einträge oder Medikamente in der Familie existieren
+        $stmtEntries = $pdo->prepare('SELECT 1 FROM entries e JOIN users u ON e.user_id = u.id WHERE u.family_id = ? LIMIT 1');
+        $stmtEntries->execute([$user['family_id']]);
+        $hasEntries = $stmtEntries->fetch() !== false;
+
+        $stmtMeds = $pdo->prepare('SELECT 1 FROM medications WHERE family_id = ? LIMIT 1');
+        $stmtMeds->execute([$user['family_id']]);
+        $hasMedications = $stmtMeds->fetch() !== false;
+
         respond(200, [
             'id'        => (int)$user['id'],
             'username'  => $user['username'],
@@ -502,7 +511,9 @@ function handleMe(PDO $pdo): void
             'family_member_count' => (int)$familyCount,
             'points'    => (int)($user['points'] ?? 0),
             'streak_current' => (int)($user['streak_current'] ?? 0),
-            'badges'    => $badges
+            'badges'    => $badges,
+            'has_entries' => $hasEntries,
+            'has_medications' => $hasMedications
         ]);
     } catch (Throwable $e) {
         app_log('ERROR', 'me_failed', [
