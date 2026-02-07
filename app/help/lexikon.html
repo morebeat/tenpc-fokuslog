@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHS Lexikon – FokusLog</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Spezifische Styles für das Lexikon */
+        .search-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        #search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        #search-input:focus {
+            border-color: var(--primary-color, #2563eb);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
+        }
+
+        .glossary-list {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .glossary-item {
+            background: #fff;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .glossary-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-color: #e5e7eb;
+        }
+
+        .glossary-item summary {
+            padding: 1.5rem;
+            cursor: pointer;
+            list-style: none;
+            position: relative;
+            outline: none;
+        }
+
+        .glossary-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .glossary-item summary::after {
+            content: '+';
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color, #2563eb);
+        }
+
+        .glossary-item[open] summary::after {
+            content: '−';
+        }
+
+        .glossary-item h2 {
+            margin-top: 0;
+            color: var(--primary-color, #2563eb);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .glossary-content {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .glossary-content p {
+            color: #4b5563;
+            line-height: 1.6;
+            margin: 0 0 1rem 0;
+        }
+
+        .glossary-item a {
+            display: inline-block;
+            color: var(--primary-color, #2563eb);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .glossary-item a:hover {
+            text-decoration: underline;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 2rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 8px;
+        }
+
+        /* Filter Buttons */
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .filter-btn {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: #4b5563;
+        }
+        .filter-btn:hover { background: #f3f4f6; }
+        .filter-btn.active {
+            background: var(--primary-color, #2563eb);
+            color: #fff;
+            border-color: var(--primary-color, #2563eb);
+        }
+        .category-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            border-radius: 99px;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        /* Modal Anpassungen für lange Artikel */
+        .modal-content {
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="app-page">
+    <header class="app-header">
+        <div class="logo">
+            <h1><a href="index.html" style="text-decoration:none; color:inherit;">FokusLog</a></h1>
+        </div>
+        <nav>
+            <a href="dashboard.html" class="button button-secondary">Zum Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-main">
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <h1 style="margin-bottom: 0.5rem; color: #1f2937;">ADHS Lexikon</h1>
+            <p style="color: #6b7280;">Begriffe, Wirkweisen und Zusammenhänge einfach erklärt.</p>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="🔍 Begriff suchen (z.B. Rebound, Fokus)..." autofocus>
+        </div>
+
+        <div id="filter-container" class="filter-container"></div>
+
+        <div id="glossary-container" class="glossary-list">
+            <p style="text-align:center; grid-column: 1/-1;">Lade Lexikon...</p>
+        </div>
+
+        <!-- Modal für Artikel-Details -->
+        <div id="article-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Wir nutzen das vorhandene help.js, da es bereits die Logik zum Laden enthält, 
+         oder schreiben hier ein kleines Inline-Script für die spezifische Listen-Darstellung -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('glossary-container');
+            const searchInput = document.getElementById('search-input');
+            const filterContainer = document.getElementById('filter-container');
+            const modal = document.getElementById('article-modal');
+            const modalBody = document.getElementById('modal-body');
+            const closeButton = document.querySelector('.close-button');
+            let glossaryData = [];
+            let activeCategory = 'Alle';
+
+            // 1. Daten von der API laden
+            fetch('/api/glossary')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.glossary) {
+                        glossaryData = data.glossary;
+                        filterAndRender();
+                    } else {
+                        container.innerHTML = '<p class="no-results">Keine Einträge gefunden.</p>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    container.innerHTML = '<p class="no-results">Fehler beim Laden der Daten. Bitte prüfen Sie Ihre Verbindung.</p>';
+                });
+
+            // 2. Suchfunktion (Echtzeit-Filter)
+            searchInput.addEventListener('input', (e) => {
+                filterAndRender();
+            });
+
+            // 3. Modal Logik
+            // Schließen-Button
+            if (closeButton) {
+                closeButton.addEventListener('click', () => modal.style.display = 'none');
+            }
+
+            // Event Delegation für "Mehr dazu" Links
+            container.addEventListener('click', (e) => {
+                if (e.target.classList.contains('read-more-btn')) {
+                    e.preventDefault();
+                    const slug = e.target.dataset.slug;
+                    loadArticle(slug);
+                }
+            });
+
+            function loadArticle(slug) {
+                modal.style.display = 'flex';
+                modalBody.innerHTML = '<div style="text-align:center; padding: 2rem; color:#666;">Lade Inhalte...</div>';
+                
+                fetch(`/api/glossary/${slug}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.entry) {
+                            // Nutze full_content (HTML) oder Fallback auf Zusammenfassung
+                            modalBody.innerHTML = data.entry.full_content || `<h2>${escapeHtml(data.entry.title)}</h2><p>${escapeHtml(data.entry.content)}</p>`;
+                        } else {
+                            modalBody.innerHTML = '<p>Artikel konnte nicht geladen werden.</p>';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        modalBody.innerHTML = '<p>Fehler bei der Verbindung.</p>';
+                    });
+            }
+
+            // Filter initialisieren
+            function initFilters(items) {
+                // Kategorien extrahieren
+                const categories = ['Alle', ...new Set(items.map(item => item.category || 'Allgemein'))].sort();
+                
+                filterContainer.innerHTML = categories.map(cat => 
+                    `<button class="filter-btn ${cat === 'Alle' ? 'active' : ''}" data-cat="${cat}">${cat}</button>`
+                ).join('');
+
+                // Click Listener
+                filterContainer.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Buttons umschalten
+                        filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        activeCategory = btn.dataset.cat;
+                        filterAndRender();
+                    });
+                });
+            }
+
+            function filterAndRender() {
+                const term = searchInput.value.toLowerCase();
+                const filtered = glossaryData.filter(item => {
+                    const matchesSearch = item.title.toLowerCase().includes(term) || item.content.toLowerCase().includes(term);
+                    const matchesCategory = activeCategory === 'Alle' || (item.category || 'Allgemein') === activeCategory;
+                    return matchesSearch && matchesCategory;
+                });
+                renderGlossary(filtered);
+            }
+
+            // 3. Rendering-Funktion
+            function renderGlossary(items) {
+                if (items.length === 0) {
+                    container.innerHTML = '<div class="no-results">Keine passenden Begriffe gefunden.</div>';
+                    return;
+                }
+
+                container.innerHTML = items.map(item => `
+                    <details class="glossary-item">
+                        <summary>
+                            <span class="category-badge">${escapeHtml(item.category || 'Allgemein')}</span>
+                            <h2>${escapeHtml(item.title)}</h2>
+                        </summary>
+                        <div class="glossary-content">
+                            <p>${escapeHtml(item.content)}</p>
+                            ${item.slug ? `<a href="#" class="read-more-btn" data-slug="${escapeHtml(item.slug)}">Mehr dazu &rarr;</a>` : ''}
+                        </div>
+                    </details>
+                `).join('');
+            }
+
+            // XSS-Schutz Helper
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        });
+    </script>
+</body>
+</html>

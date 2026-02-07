@@ -1,0 +1,28 @@
+# Verhindert Caching des Service Workers, damit Updates sofort erkannt werden
+<IfModule mod_headers.c>
+    <Files "service-worker.js">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </Files>
+</IfModule>
+
+# Aktiviere die Rewrite Engine
+RewriteEngine On
+
+# Stelle sicher, dass index.html als Standard-Datei für Verzeichnisse geladen wird
+DirectoryIndex index.html index.php
+
+# Regel 1: Leite die Anfrage für das Root-Verzeichnis (z.B. "domain.com/")
+# intern auf /app/ um, ABER NUR, wenn es im Root-Verzeichnis keine `index.html` gibt.
+# Wenn eine `index.html` (die Landing Page) existiert, wird diese stattdessen angezeigt.
+RewriteCond %{REQUEST_URI} =/
+RewriteCond %{DOCUMENT_ROOT}/index.html !-f
+RewriteRule ^$ /app/ [L]
+
+# Regel 2: Leite alle anderen Anfragen, die keine echten Dateien oder Verzeichnisse sind,
+# und nicht bereits auf /app/ zeigen, intern auf /app/ um.
+RewriteCond %{REQUEST_URI} !^/app/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /app/$1 [L]

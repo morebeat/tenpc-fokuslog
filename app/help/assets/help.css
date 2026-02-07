@@ -1,0 +1,455 @@
+/* ================================
+   Basis & Reset
+================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+               "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  background: #f6f7f8;
+  color: #222;
+}
+
+a {
+  color: #1a6fb3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ================================
+   Header & Navigation
+================================ */
+
+.help-header {
+  background: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 0.75rem 1rem;
+}
+
+.breadcrumbs {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+/* ================================
+   Mode Toggle
+================================ */
+
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mode-toggle button {
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.mode-toggle button.active {
+  background: #2f7d5c;
+  color: #fff;
+  border-color: #2f7d5c;
+}
+
+.mode-toggle button[data-mode="wissen"].active {
+  background: #4a4a4a;
+  border-color: #4a4a4a;
+}
+
+/* ================================
+   Main Layout
+================================ */
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* ================================
+   Sections
+================================ */
+
+.help-section {
+  margin-bottom: 3rem;
+}
+
+.help-section.hidden {
+  display: none;
+}
+
+.help-section h1 {
+  font-size: 1.6rem;
+  margin-top: 0;
+}
+
+.help-section h2 {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  border-left: 4px solid #2f7d5c;
+  padding-left: 0.5rem;
+}
+
+.help-section.wissen h2 {
+  border-color: #555;
+}
+
+.lead {
+  font-size: 1.05rem;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #2f7d5c;
+}
+
+/* ================================
+   Info & Notes
+================================ */
+
+.info-box {
+  background: #e9f3ef;
+  border-left: 4px solid #2f7d5c;
+  padding: 0.75rem 1rem;
+  margin: 1.5rem 0;
+  border-radius: 6px;
+}
+
+.note {
+  background: #fff7e6;
+  border-left: 4px solid #e6a700;
+  padding: 0.75rem 1rem;
+  margin: 1.5rem 0;
+  border-radius: 6px;
+}
+
+/* ================================
+   Lists
+================================ */
+
+ul {
+  padding-left: 1.2rem;
+}
+
+li {
+  margin-bottom: 0.4rem;
+}
+
+/* ================================
+   Scale Table
+================================ */
+
+.scale-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background: #ffffff;
+}
+
+.scale-table th,
+.scale-table td {
+  border: 1px solid #ddd;
+  padding: 0.6rem;
+  text-align: left;
+}
+
+.scale-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+.scale-table td:first-child {
+  width: 60px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ================================
+   Help Icon
+================================ */
+
+.help-icon {
+  display: inline-block;
+  margin-left: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #1a6fb3;
+}
+
+.help-icon:hover {
+  text-decoration: underline;
+}
+
+/* ================================
+   Overlay
+================================ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay-content {
+  background: #ffffff;
+  max-width: 420px;
+  padding: 1.2rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.overlay-content p {
+  margin-top: 0;
+}
+
+.overlay-content button {
+  margin-top: 1rem;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  background: #2f7d5c;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.overlay-content a {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 600px) {
+  main {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .help-header {
+    padding: 0.75rem;
+  }
+
+  .mode-toggle {
+    flex-wrap: wrap;
+  }
+
+  .help-section h1 {
+    font-size: 1.4rem;
+  }
+}
+/* ================================
+   Situation List
+================================ */
+
+.situation-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.situation-list li {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.situation-list li a {
+  display: block;
+  color: inherit;
+}
+
+.situation-list li:hover {
+  background: #f2f7f5;
+  border-color: #2f7d5c;
+}
+
+/* ================================
+   Help Overview Grid
+================================ */
+
+.help-overview h2 {
+  border-left: none;
+  border-bottom: 2px solid #e5e7eb;
+  padding-left: 0;
+  padding-bottom: 0.5rem;
+}
+
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.grid-item {
+  background: #f9fafb;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.grid-item h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.grid-item h3 a {
+  color: inherit;
+}
+
+.grid-item-desc {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0.5rem 0 0;
+}
+
+/* ================================
+   Hierarchical Navigation
+================================ */
+
+.help-tree {
+  margin: 2rem 0 3rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f4faf6 100%);
+  border: 1px solid #dfe7e1;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+}
+
+.help-tree-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.help-tree-header h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 1.3rem;
+}
+
+.help-tree-header p {
+  margin: 0;
+  color: #4b5563;
+  max-width: 520px;
+}
+
+.tree-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tree-controls button {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tree-controls button[data-tree-action="expand"] {
+  background: #2f7d5c;
+  color: #fff;
+  border-color: #2f7d5c;
+}
+
+.tree-controls button[data-tree-action="collapse"] {
+  background: #ffffff;
+  color: #2f3e32;
+  border-color: #c8d5cd;
+}
+
+.help-tree details {
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.help-tree details[open] {
+  border-color: #c8d5cd;
+  box-shadow: 0 10px 35px rgba(31, 125, 92, 0.08);
+}
+
+.help-tree summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #1f352c;
+}
+
+.tree-level-body {
+  margin-top: 0.75rem;
+}
+
+.tree-branch {
+  margin-top: 0.6rem;
+  border-style: dashed;
+  border-color: #e0e7e2;
+  box-shadow: none;
+}
+
+.tree-branch summary {
+  font-size: 0.95rem;
+  color: #2f3e32;
+}
+
+.tree-links {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.tree-links li {
+  margin-bottom: 0.4rem;
+}
+
+.tree-links a {
+  color: #1a6fb3;
+  font-weight: 500;
+}
+
+.tree-links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .help-tree {
+    padding: 1.25rem;
+  }
+
+  .tree-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

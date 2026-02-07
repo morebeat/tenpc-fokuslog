@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzer verwalten - FokusLog</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body data-page="manage_users">
+    <header>
+        <h1>Benutzer verwalten</h1>
+        <nav>
+            <a href="dashboard.html" class="btn">Dashboard</a>
+            <button id="logout-btn" class="btn">Abmelden</button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Familienmitglieder</h2>
+                <a href="edit_user.html" class="btn">Neuen Benutzer anlegen</a>
+            </div>
+            <div id="users-list">
+                <p>Lade Daten...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

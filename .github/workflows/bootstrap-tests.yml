@@ -1,0 +1,81 @@
+name: Bootstrap Smoke Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  bootstrap-tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: fokuslog_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mysqli
+          coverage: none
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+
+      - name: Write CI environment file
+        run: |
+          cat <<'EOF' > .env
+          DB_HOST=127.0.0.1
+          DB_NAME=fokuslog_ci
+          DB_USER=root
+          DB_PASS=root
+          APP_ENV=ci
+          MIGRATION_TOKEN=ci-migration-token
+          BACKUP_TOKEN=ci-backup-token
+          EOF
+
+      - name: Bootstrap schema & seed data
+        run: php scripts/bootstrap.php --create-db --with-seed --skip-help
+
+      - name: Start PHP development server
+        run: |
+          php -S 127.0.0.1:8000 router.php > /tmp/php-server.log 2>&1 &
+          echo $! > /tmp/php-server.pid
+          sleep 2
+
+      - name: Run API regression tests
+        env:
+          API_URL: http://127.0.0.1:8000/api
+        run: php api/run_tests.php
+
+      - name: Show PHP server log
+        if: always()
+        run: |
+          echo "---- php -S output ----"
+          cat /tmp/php-server.log || true
+
+      - name: Stop PHP development server
+        if: always()
+        run: |
+          if [ -f /tmp/php-server.pid ]; then
+            kill $(cat /tmp/php-server.pid) || true
+          fi

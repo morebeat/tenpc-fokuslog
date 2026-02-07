@@ -1,0 +1,8 @@
+# Sensible Daten / Konfiguration
+.env
+
+# Systemdateien
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

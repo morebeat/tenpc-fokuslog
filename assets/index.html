@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hilfe-Übersicht - FokusLog</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Hilfe-Übersicht</h1>
+        <a href="../dashboard.html">Zurück zum Dashboard</a>
+    </header>
+    <main>
+        <article>
+            <form id="help-search-form" role="search" class="search-form">
+                <label for="help-search-input" class="sr-only">Hilfethemen durchsuchen</label>
+                <input type="search" id="help-search-input" placeholder="Themen durchsuchen...">
+            </form>
+
+            <h2>Themenübersicht</h2>
+            <p>Hier finden Sie weiterführende Informationen zu wichtigen Themen rund um ADHS und die Nutzung der App. Wählen Sie ein Thema, um mehr zu erfahren.</p>
+            
+            <ul class="link-list" id="help-topic-list">
+                <li><a href="nebenwirkungen.html">Nebenwirkungen von ADHS-Medikamenten</a></li>
+                <li><a href="reisebestimmungen.html">Reisebestimmungen für Medikamente</a></li>
+                <li><a href="trauma-rsd.html">Zusammenhang von ADHS, Trauma und RSD</a></li>
+                <li><a href="ernaehrung.html">Ernährung bei ADHS</a></li>
+            </ul>
+            <p id="no-results" class="hidden">Keine passenden Themen gefunden.</p>
+        </article>
+    </main>
+    <script src="help-search.js"></script>
+</body>
+</html>

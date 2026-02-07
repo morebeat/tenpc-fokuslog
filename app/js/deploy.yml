@@ -1,0 +1,47 @@
+name: Deploy to Netcup
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      # Deployment für PRODUCTION (wenn Branch = main)
+      - name: 📂 Sync files (Production)
+        if: github.ref == 'refs/heads/main'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USER_PROD }}
+          password: ${{ secrets.FTP_PASSWORD_PROD }}
+          server-dir: /httpdocs/prod/  # Pfad auf dem Server anpassen
+          exclude: |
+            **/.git*
+            **/.github*
+            .env.example
+            .gitignore
+            README.md
+
+      # Deployment für DEVELOPMENT (wenn Branch = develop)
+      - name: 📂 Sync files (Development)
+        if: github.ref == 'refs/heads/develop'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USER_DEV }}
+          password: ${{ secrets.FTP_PASSWORD_DEV }}
+          server-dir: /httpdocs/dev/   # Pfad auf dem Server anpassen
+          exclude: |
+            **/.git*
+            **/.github*
+            .env.example
+            .gitignore
+            README.md

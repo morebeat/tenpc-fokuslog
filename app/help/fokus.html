@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Fokus im Alltag – Hilfe | FokusLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="assets/help.css">
+</head>
+<body>
+
+<header class="help-header">
+  <nav class="breadcrumbs">
+    <a href="index.html">Hilfe</a> › Alltag › Skalen › Fokus
+  </nav>
+
+  <div class="mode-toggle">
+    <button data-mode="alltag" class="active">🧭 Alltag</button>
+    <button data-mode="wissen">🧠 Wissen</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ===================== -->
+<!-- 🧭 ALLTAG            -->
+<!-- ===================== -->
+
+<section class="help-section alltag">
+
+  <h1>🧭 Fokus im Alltag</h1>
+
+  <p class="lead">
+    Diese Skala beschreibt, wie gut deine Aufmerksamkeit heute steuerbar war –
+    <strong>nicht</strong> wie leistungsfähig, motiviert oder „brav“ du warst.
+  </p>
+
+  <div class="info-box">
+    <strong>Merksatz:</strong><br>
+    Fokus ≠ Leistung. Fokus = Steuerbarkeit.
+  </div>
+
+  <h2>Wann nutze ich diese Skala?</h2>
+  <ul>
+    <li>Wenn Aufgaben schwer begonnen oder durchgehalten wurden</li>
+    <li>Wenn Ablenkbarkeit besonders auffällig war</li>
+    <li>Wenn sich der Tag „anstrengend im Kopf“ angefühlt hat</li>
+  </ul>
+
+  <h2>Wie entscheide ich mich für einen Wert?</h2>
+  <p>
+    Frage dich:
+    <em>„Wie gut konnte ich meine Aufmerksamkeit heute steuern?“</em>
+    <span class="help-icon" data-help="steuerbarkeit">❓</span>
+  </p>
+
+  <table class="scale-table">
+    <tr>
+      <th>Wert</th>
+      <th>Alltagsbeschreibung</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>Kaum Konzentration möglich, Aufgaben fast unmöglich</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Kurze Konzentrationsphasen, sehr anstrengend</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Alltag machbar, aber deutlich erschöpfend</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Aufgaben gut durchhaltbar</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Sehr stabile Aufmerksamkeit</td>
+    </tr>
+  </table>
+
+  <p class="note">
+    <strong>Hinweis:</strong>  
+    Ein Wert von <strong>3</strong> ist für viele bereits eine deutliche Verbesserung.
+  </p>
+
+  <h2>Typische Muster im Alltag</h2>
+  <ul>
+    <li>
+      Morgens gut, mittags schlecht
+      <span class="help-icon" data-help="wirkdauer">❓</span>
+    </li>
+    <li>
+      Fokus gut, Stimmung schlecht
+      <span class="help-icon" data-help="widerspruch">❓</span>
+    </li>
+    <li>
+      Starke Schwankungen von Tag zu Tag
+      <span class="help-icon" data-help="schwankungen">❓</span>
+    </li>
+  </ul>
+
+  <h2>Was dich nicht verunsichern sollte</h2>
+  <ul>
+    <li>Einzelne schlechte Tage</li>
+    <li>Unterschiede zwischen Schule und Zuhause</li>
+    <li>Schwankungen bei Stress, Schlaf oder besonderen Ereignissen</li>
+  </ul>
+
+  <p class="note">
+    Einzelne Ausreißer sind normal.
+    <span class="help-icon" data-help="einzeltage">❓</span>
+  </p>
+
+  <h2>Wann wird Fokus ärztlich relevant?</h2>
+  <ul>
+    <li>Fokus dauerhaft ≤ 2 trotz Medikation</li>
+    <li>Deutliche Einbrüche nach Wirkende (Rebound)</li>
+    <li>Guter Fokus bei gleichzeitig deutlicher emotionaler Belastung</li>
+  </ul>
+
+</section>
+
+<!-- ===================== -->
+<!-- 🧠 WISSEN             -->
+<!-- ===================== -->
+
+<section class="help-section wissen hidden">
+
+  <h2>🧠 Hintergrund: Fokus & ADHS</h2>
+
+  <p>
+    Aufmerksamkeit ist eine exekutive Funktion. Bei ADHS ist weniger die
+    Fähigkeit zur Konzentration betroffen, sondern deren Steuerung.
+  </p>
+
+  <p>
+    Medikamente können diese Steuerung verbessern, wirken jedoch zeitlich
+    begrenzt und unterschiedlich stark.
+  </p>
+
+</section>
+
+</main>
+
+<!-- ===================== -->
+<!-- ❓ OVERLAY            -->
+<!-- ===================== -->
+
+<div id="help-overlay" class="overlay hidden">
+  <div class="overlay-content">
+    <p id="overlay-text"></p>
+    <a id="overlay-more" href="#" class="hidden">Mehr wissen</a>
+    <button onclick="closeOverlay()">Schließen</button>
+  </div>
+</div>
+
+<script src="assets/help.js"></script>
+
+</body>
+</html>

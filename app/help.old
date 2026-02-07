@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hilfe - FokusLog</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        h3 {
+            color: #4e8cff;
+            border-bottom: 2px solid #4e8cff;
+            padding-bottom: 5px;
+            margin-top: 2rem;
+        }
+        .qa {
+            margin-bottom: 1.5rem;
+        }
+        .qa strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-radius: 5px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background-color: #e1f5fe;
+            color: #013c4a;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        blockquote {
+            border-left: 4px solid #4e8cff;
+            margin: 1rem 0;
+            padding-left: 1rem;
+            color: #555;
+            font-style: italic;
+        }
+        /* Neue Styles für Badges und Listen */
+        .badge-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .badge-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            min-width: 50px;
+            text-align: center;
+        }
+        code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #d63384;
+            font-family: monospace;
+        }
+        /* Styles für Changelog */
+        /* .changelog-item {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 20px;
+            border-left: 3px solid #e9ecef;
+        }
+        .changelog-item.future { border-left-color: #f59f00; } /* Orange für Geplant */
+        .changelog-item.current { border-left-color: #20c997; } /* Grün für Aktuell */
+        .changelog-meta { font-size: 0.85rem; color: #868e96; margin-bottom: 4px; }
+        .changelog-title { font-weight: bold; display: block; margin-bottom: 5px; color: #343a40; }
+         */
+        /* Styles für Kontaktformular */
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: 600; color: #495057; }
+        .form-input { 
+            width: 100%; padding: 10px; border: 1px solid #ced4da; 
+            border-radius: 6px; font-size: 1rem; box-sizing: border-box; 
+        }
+        .btn-submit { 
+            background-color: #4e8cff; color: white; border: none; 
+            padding: 10px 20px; border-radius: 6px; cursor: pointer; 
+            font-size: 1rem; transition: background 0.2s;
+        }
+        .btn-submit:hover { background-color: #3b73d9; }
+    </style>
+</head>
+<body data-page="help">
+    <header>Hilfe & Anleitung</header>
+    <main>
+        <h2>Willkommen im Hilfebereich</h2>
+        <p>Wähle einen Bereich aus, um mehr zu erfahren:</p>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="setup">Einrichtung</button>
+            <button class="tab-btn" data-tab="general">Allgemein</button>
+            <!-- <button class="tab-btn" data-tab="changelog">Changelog</button> -->
+            <button class="tab-btn" data-tab="badges">Badges & Ränge</button>
+            <button class="tab-btn" data-tab="children">Für Kinder</button>
+            <button class="tab-btn" data-tab="parents">Für Eltern</button>
+            <button class="tab-btn" data-tab="teachers">Für Lehrkräfte</button>
+        </div>
+
+        <!-- Tab: Einrichtung -->
+        <div id="setup" class="tab-content active">
+            <h3>Anleitung zur Einrichtung</h3>
+            
+            <div class="qa">
+                <strong>1. Familie & Mitglieder verwalten</strong>
+                <p>Sie können das Dashboard gemeinsam nutzen:</p>
+                <ul>
+                    <li>Gehen Sie zu <strong>Profil > Familie verwalten</strong>.</li>
+                    <li>Klicken Sie auf <strong>"Mitglied einladen"</strong> und geben Sie die E-Mail-Adresse ein.</li>
+                    <li>Legen Sie Berechtigungen fest (z.B. "Nur Lesen" oder "Bearbeiten").</li>
+                </ul>
+            </div>
+
+            <div class="qa">
+                <strong>2. Medikamente & Dosierung</strong>
+                <p>So richten Sie den Plan ein:</p>
+                <ul>
+                    <li>Klicken Sie auf der Kachel "Medikamente" auf das <strong>+</strong> Symbol (oder "Verwalten").</li>
+                    <li>Geben Sie den <strong>Namen</strong> (z.B. Medikinet) und die <strong>Dosis</strong> (z.B. 10mg) ein.</li>
+                    <li>Wählen Sie den <strong>Zeitplan</strong> (Täglich, Wöchentlich, Bei Bedarf) und die Uhrzeit.</li>
+                    <li>Tragen Sie optional die <strong>Packungsgröße</strong> ein, um rechtzeitig an Nachschub erinnert zu werden.</li>
+                </ul>
+            </div>
+
+            <div class="qa">
+                <strong>3. Nutzung von Tags</strong>
+                <p>Tags helfen beim Kategorisieren von Einträgen:</p>
+                <ul>
+                    <li>Tippen Sie <code>#</code> gefolgt vom Namen (z.B. <code>#Kopfschmerzen</code> oder <code>#Schule</code>).</li>
+                    <li>Nutzen Sie die Suche, um später nach diesen Tags zu filtern.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tab: Allgemein -->
+        <div id="general" class="tab-content">
+            <div class="qa">
+                <h3>Was ist FokusLog?</h3>
+                <p>FokusLog ist ein digitales Tagebuch zur Dokumentation von Beobachtungen im Zusammenhang mit ADHS-Medikation. Es unterstützt Eltern, Kinder und Fachpersonen dabei, Veränderungen über die Zeit nachvollziehbar zu machen.</p>
+            </div>
+            <div class="qa">
+                <h3>Wie mache ich einen Eintrag?</h3>
+                <p>
+                    <strong>1. Gehe zum Dashboard:</strong> Das ist deine Startseite nach dem Anmelden.<br>
+                    <strong>2. Klicke auf "Neuer Eintrag":</strong> Wähle das richtige Datum und die Tageszeit (Morgen, Mittag oder Abend).<br>
+                    <strong>3. Bewerte deinen Tag:</strong> Klicke auf die Smileys, um zu zeigen, wie du geschlafen hast, wie gut du dich konzentrieren konntest und wie deine Stimmung war.<br>
+                    <strong>4. Speichern:</strong> Klicke auf "Speichern" und fertig!
+                </p>
+            </div>
+        </div>
+
+        <!-- Tab: Changelog (NEU) -->
+        <!-- <div id="changelog" class="tab-content">
+            <h3>Änderungshistorie & Roadmap</h3>
+            
+            <h4 style="margin-top: 30px;">🚀 Geplante Änderungen (Roadmap)</h4>
+            <div class="changelog-item future">
+                <div class="changelog-meta">Q3 2026</div>
+                <span class="changelog-title">PDF-Export Erweiterung</span>
+                Detailliertere Diagramme und Zusammenfassungen für Arztbesuche direkt im PDF.
+            </div>
+            <div class="changelog-item future">
+                <div class="changelog-meta">Q4 2026</div>
+                <span class="changelog-title">Dunkelmodus (Dark Mode)</span>
+                Augenschonende Ansicht für die Nutzung am Abend.
+            </div>
+
+            <h4 style="margin-top: 30px;">📜 Bisherige Versionen</h4>
+            <div class="changelog-item current">
+                <div class="changelog-meta">v1.2.0 - Aktuell</div>
+                <span class="changelog-title">Gamification & Hilfe</span>
+                Einführung des Badge-Systems, Serien-Tracking und überarbeiteter Hilfebereich.
+            </div>
+            <div class="changelog-item">
+                <div class="changelog-meta">v1.0.0</div>
+                <span class="changelog-title">Initialer Release</span>
+                Grundfunktionen: Tagebuch, Medikamentenverwaltung und Benutzerrollen.
+            </div>
+        </div> -->
+
+        <!-- Tab: Badges (NEU) -->
+        <div id="badges" class="tab-content">
+            <h3>Das Badge-System</h3>
+            <p>Unser System belohnt regelmäßige Aktivität mit verschiedenen Rängen:</p>
+
+            <div class="badge-row">
+                <div class="badge-icon">🥉</div>
+                <div>
+                    <strong>Bronze (Einsteiger)</strong><br>
+                    Automatisch nach der Registrierung und dem ersten Login.
+                </div>
+            </div>
+
+            <div class="badge-row">
+                <div class="badge-icon">🥈</div>
+                <div>
+                    <strong>Silber (Fortgeschritten)</strong><br>
+                    Erreicht nach 10 abgeschlossenen Einträgen und 7 Tagen Aktivität.
+                </div>
+            </div>
+
+            <div class="badge-row">
+                <div class="badge-icon">🏆</div>
+                <div>
+                    <strong>Gold (Experte)</strong><br>
+                    Für Nutzer mit über 90% Aktivitätsrate im letzten Monat.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Für Kinder -->
+        <div id="children" class="tab-content">
+            <h3>Hilfe für Kinder</h3>
+            <div class="qa">
+                <strong>Du machst nichts falsch</strong>
+                <p>In FokusLog gibt es <em>keine richtigen oder falschen Antworten</em>. Du sollst nicht zeigen, wie „gut“ du warst, sondern wie es sich <strong>für dich</strong> angefühlt hat.</p>
+            </div>
+            <div class="qa">
+                <strong>Was soll ich eintragen?</strong>
+                <p>Das, was du gemerkt hast. Oder auch: <strong>„Weiß ich nicht“</strong>. Beides ist völlig okay.</p>
+            </div>
+            <div class="qa">
+                <strong>Ist das ein Test?</strong>
+                <p>Nein. Niemand bekommt Noten, niemand wird verglichen und niemand ist sauer, wenn etwas fehlt.</p>
+            </div>
+            <div class="qa">
+                <strong>Wofür ist das Tagebuch da?</strong>
+                <p>Das Tagebuch hilft Erwachsenen, <strong>dich besser zu verstehen</strong>. Es ist <strong>für dich</strong>, nicht gegen dich.</p>
+            </div>
+            
+            <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+            
+            <h3>Punkte, Serien & Abzeichen</h3>
+            <p>Damit das Eintragen mehr Spaß macht, gibt es ein Belohnungssystem!</p>
+            <ul>
+                <li><strong>Punkte (⭐):</strong> Für jeden Eintrag bekommst du 10 Punkte.</li>
+                <li><strong>Serien (🔥):</strong> Wenn du an mehreren Tagen hintereinander einen Eintrag machst, wächst deine Serie.</li>
+                <li><strong>Abzeichen (🏆):</strong> Für tolle Serien (z.B. 3, 7 oder 30 Tage) schaltest du Abzeichen frei. Schau sie dir auf der <a href="badges.html" style="color: #4e8cff;">Abzeichen-Seite</a> an!</li>
+            </ul>
+        </div>
+
+        <!-- Tab: Für Eltern -->
+        <div id="parents" class="tab-content">
+            <h3>Hilfe für Eltern</h3>
+            <div class="qa">
+                <strong>Worum geht es?</strong>
+                <p>FokusLog hilft Ihnen, <strong>Beobachtungen aus dem Alltag festzuhalten</strong> – nicht, Ihr Kind zu bewerten. Es geht darum, Veränderungen über die Zeit sichtbar zu machen.</p>
+            </div>
+            <div class="qa">
+                <strong>Wie oft eintragen?</strong>
+                <p>Regelmäßige Einträge sind hilfreich, aber <strong>Perfektion ist nicht notwendig</strong>. Auch unvollständige Einträge liefern wertvolle Hinweise.</p>
+            </div>
+            <div class="qa">
+                <strong>Was tun bei Unsicherheit?</strong>
+                <p>Wählen Sie eine neutrale Einschätzung oder lassen Sie den Eintrag offen. Auch „weiß ich nicht“ ist eine gültige Beobachtung.</p>
+            </div>
+            <div class="qa">
+                <strong>Wichtige Hinweise</strong>
+                <p>FokusLog gibt <strong>keine Empfehlungen</strong> zur Medikation. Änderungen an der Dosis dürfen nur in Absprache mit Ärzt:innen erfolgen.</p>
+            </div>
+        </div>
+
+        <!-- Tab: Für Lehrkräfte -->
+        <div id="teachers" class="tab-content">
+            <h3>Hilfe für Lehrkräfte</h3>
+            <div class="qa">
+                <strong>Ihre Rolle</strong>
+                <p>FokusLog ermöglicht es Ihnen, <strong>sachliche Beobachtungen aus dem schulischen Kontext</strong> zu dokumentieren (z.B. Aufmerksamkeit, Verhalten, Veränderungen). Es geht nicht um Bewertung, sondern um Ergänzung.</p>
+            </div>
+            <div class="qa">
+                <strong>Datenschutz & Verantwortung</strong>
+                <p>Sie sehen ausschließlich die Daten der Kinder, denen Sie zugewiesen sind. Ihre Einträge dienen der gemeinsamen Einordnung durch Eltern und Fachpersonen – <strong>nicht der Leistungsbewertung</strong>.</p>
+            </div>
+        </div>
+
+        <nav>
+            <a class="button" href="dashboard.html">Zum Dashboard</a>
+        </nav>
+    </main>
+    <script src="js/app.js"></script>
+</body>
+</html>

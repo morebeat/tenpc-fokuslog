@@ -1,0 +1,62 @@
+name: Bug Report
+description: Melde einen Fehler in FokusLog
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für deine Meldung! Bitte fülle die folgenden Felder so detailliert wie möglich aus, damit wir den Fehler schnell reproduzieren können.
+  - type: input
+    id: summary
+    attributes:
+      label: Kurzbeschreibung
+      description: Was ist passiert?
+      placeholder: "Das Speichern eines Eintrags schlägt mit 500 fehl"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zur Reproduktion
+      description: Liste die genauen Schritte auf.
+      placeholder: |
+        1. ...
+        2. ...
+        3. Fehler tritt auf
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Tatsächliches Verhalten / Fehlermeldung
+      placeholder: Fehlermeldungen oder Screenshots hier einfügen
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Auswirkung
+      options:
+        - Niedrig – Workaround möglich
+        - Mittel – Funktion teilweise blockiert
+        - Hoch – Feature nicht nutzbar
+        - Kritisch – Datenverlust oder Sicherheitsrisiko
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Umgebung
+      description: Browser, OS, PHP-Version oder Hosting-Setup
+      placeholder: "Safari 17 / iOS 17, PHP 8.2"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Weitere Informationen
+      description: Logs, Dumps, Links zu verwandten Issues

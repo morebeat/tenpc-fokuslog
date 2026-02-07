@@ -1,0 +1,48 @@
+name: Feature Request
+description: Schlage eine neue Funktion oder Verbesserung vor
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welche Verbesserung wünschst du dir? Bitte beschreibe den Nutzen für Nutzer:innen, Lehrkräfte oder Ärzt:innen.
+  - type: input
+    id: title
+    attributes:
+      label: Kurztitel
+      placeholder: "Badges im Dashboard hervorheben"
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem oder Bedarf
+      description: Welches Problem löst die Idee?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Vorgeschlagene Lösung
+      placeholder: Beschreibe den gewünschten Ablauf, API-Anpassungen oder UI-Änderungen.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativen
+      description: Gab es andere Lösungsansätze?
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Betroffene Zielgruppen
+      options:
+        - label: Familien / Nutzer:innen
+        - label: Lehrkräfte
+        - label: Ärzt:innen
+        - label: Entwickler:innen
+  - type: textarea
+    id: context
+    attributes:
+      label: Weitere Hinweise
+      description: Links, Mockups, bestehende Diskussionen

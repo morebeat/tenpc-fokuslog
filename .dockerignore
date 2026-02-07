@@ -1,0 +1,65 @@
+# .dockerignore - Files to exclude from Docker build
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+LICENSE
+CONTRIBUTING.md
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env
+.env.local
+.env.*.local
+
+# Build & Dependencies
+node_modules/
+vendor/
+composer.lock
+npm-debug.log
+yarn-error.log
+
+# Testing
+tests/
+phpunit.xml
+.phpunit.cache
+
+# Logs & Temp
+logs/
+*.log
+tmp/
+temp/
+cache/
+
+# Backups
+backups/
+backup.sql
+*.sql
+*.sqlite
+*.db
+
+# OS
+Thumbs.db
+.DS_Store
+*.swp
+.travis.yml
+.gitlab-ci.yml
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/

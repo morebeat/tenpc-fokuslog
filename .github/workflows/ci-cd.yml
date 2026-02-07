@@ -1,0 +1,364 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ develop, main, release/* ]
+  pull_request:
+    branches: [ develop, main ]
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: phpcs, phpstan
+
+      - name: Cache PHPStan
+        uses: actions/cache@v4
+        with:
+          path: .phpstan/cache
+          key: phpstan-${{ matrix.php-version }}-${{ hashFiles('api/**/*.php', 'app/**/*.php') }}
+          restore-keys: |
+            phpstan-${{ matrix.php-version }}-
+            phpstan-
+
+      - name: PHP Lint
+        run: |
+          find api app -name "*.php" -type f -exec php -l {} \;
+
+      - name: PHP CodeSniffer
+        run: |
+          phpcs --standard=PSR12 api/
+
+      - name: PHPStan Analysis
+        env:
+          PHPSTAN_CACHE_DIR: .phpstan/cache
+        run: |
+          phpstan analyse api/ --level=5
+
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Trivy database
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db
+
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  sbom:
+    name: Software Bill of Materials
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: fokuslog-sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fokuslog-sbom
+          path: fokuslog-sbom.json
+          retention-days: 30
+
+  database:
+    name: Database Schema Validation
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: fokuslog_test
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -u root -proot --silent; do
+            echo 'waiting for mysql...'
+            sleep 1
+          done
+
+      - name: Load schema v4
+        run: |
+          mysql -h 127.0.0.1 -u root -proot fokuslog_test < db/schema_v4.sql
+
+      - name: Validate schema integrity
+        run: |
+          mysql -h 127.0.0.1 -u root -proot fokuslog_test -e "SHOW TABLES;" | grep -q "users"
+
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    needs: database
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: fokuslog_test
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -u root -proot --silent; do
+            sleep 1
+          done
+
+      - name: Load test database
+        run: |
+          mysql -h 127.0.0.1 -u root -proot fokuslog_test < db/schema_v4.sql
+
+      - name: Run API tests
+        run: |
+          cd api
+          php ApiTest.php
+
+  frontend:
+    name: Frontend Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate HTML manifests
+        run: |
+          for file in app/*.html; do
+            tidy -errors "$file" || true
+          done
+
+      - name: Validate manifest.json
+        run: |
+          python3 -m json.tool app/manifest.json > /dev/null
+
+      - name: CSS sanity check
+        run: |
+          if command -v csslint &>/dev/null; then
+            csslint app/style.css || true
+          fi
+
+  build:
+    name: Build Artifact
+    runs-on: ubuntu-latest
+    needs: [lint, security, sbom, api-tests, frontend]
+    outputs:
+      artifact-name: ${{ steps.archive.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create build artifact
+        id: archive
+        run: |
+          VERSION=$(git describe --tags --always)
+          ARCHIVE="fokuslog-${VERSION}-${GITHUB_SHA::7}.tar.gz"
+          tar -czf "$ARCHIVE" \
+            --exclude='.git' \
+            --exclude='logs' \
+            --exclude='backups' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='.DS_Store' \
+            --exclude='node_modules' \
+            --exclude='vendor' \
+            .
+          echo "artifact=$ARCHIVE" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fokuslog-build
+          path: ${{ steps.archive.outputs.artifact }}
+          retention-days: 14
+
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    needs: build
+    environment: development
+    env:
+      HEALTHCHECK_URL: ${{ secrets.DEV_HEALTHCHECK_URL }}
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fokuslog-build
+          path: artifact
+
+      - name: Extract artifact
+        run: |
+          cd artifact
+          tar -xzf *.tar.gz
+
+      - name: Deploy to DEV via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.DEV_FTP_HOST }}
+          username: ${{ secrets.DEV_FTP_USER }}
+          password: ${{ secrets.DEV_FTP_PASS }}
+          server-dir: ${{ secrets.DEV_FTP_PATH }}
+          local-dir: artifact
+          protocol: ftp
+          exclude: |
+            .git/**
+            logs/**
+            backups/**
+            *.sql
+            *.tar.gz
+
+      - name: Health check (DEV)
+        if: ${{ env.HEALTHCHECK_URL != '' }}
+        run: |
+          curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
+
+  deploy-qa:
+    name: Deploy to QA
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    environment: qa
+    env:
+      HEALTHCHECK_URL: ${{ secrets.QA_HEALTHCHECK_URL }}
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fokuslog-build
+          path: artifact
+
+      - name: Extract artifact
+        run: |
+          cd artifact
+          tar -xzf *.tar.gz
+
+      - name: Deploy to QA via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.QA_FTP_HOST }}
+          username: ${{ secrets.QA_FTP_USER }}
+          password: ${{ secrets.QA_FTP_PASS }}
+          server-dir: ${{ secrets.QA_FTP_PATH }}
+          local-dir: artifact
+          protocol: ftp
+          exclude: |
+            .git/**
+            logs/**
+            backups/**
+            *.sql
+            *.tar.gz
+
+      - name: Health check (QA)
+        if: ${{ env.HEALTHCHECK_URL != '' }}
+        run: |
+          curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
+
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: build
+    environment: production
+    env:
+      HEALTHCHECK_URL: ${{ secrets.PROD_HEALTHCHECK_URL }}
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fokuslog-build
+          path: artifact
+
+      - name: Extract artifact
+        run: |
+          cd artifact
+          tar -xzf *.tar.gz
+
+      - name: Deploy to Production via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.PROD_FTP_HOST }}
+          username: ${{ secrets.PROD_FTP_USER }}
+          password: ${{ secrets.PROD_FTP_PASS }}
+          server-dir: ${{ secrets.PROD_FTP_PATH }}
+          local-dir: artifact
+          protocol: ftp
+          exclude: |
+            .git/**
+            logs/**
+            backups/**
+            *.sql
+            *.tar.gz
+
+      - name: Health check (Production)
+        if: ${{ env.HEALTHCHECK_URL != '' }}
+        run: |
+          curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
+
+      - name: Create Release Notes
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            Production deployment successful
+            Commit: ${{ github.sha }}
+          files: artifact/*.tar.gz

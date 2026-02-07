@@ -1,0 +1,157 @@
+# Git Ignore File for FokusLog
+# Exclude sensitive, temporary, and environment-specific files from version control
+
+# ================================================
+# ENVIRONMENT & CONFIGURATION
+# ================================================
+.env
+.env-prod
+.env.local
+.env.*.local
+.env.production.local
+.env.development.local
+.env.qa.local
+
+# ================================================
+# IDE & EDITOR
+# ================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+.c9/
+*.sublime-project
+*.sublime-workspace
+.netbeans/
+
+# ================================================
+# DEPENDENCY MANAGEMENT
+# ================================================
+vendor/
+node_modules/
+composer.lock
+package-lock.json
+yarn.lock
+
+# ================================================
+# LOGS & TEMPORARY FILES
+# ================================================
+logs/
+*.log
+*.sql.log
+php_error.log
+api/php_error.log
+*.pid
+
+# ================================================
+# DATABASE & BACKUPS
+# ================================================
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+backups/
+db/backups/
+*.backup
+*.dump
+
+# ================================================
+# CACHE & TEMPORARY
+# ================================================
+cache/
+tmp/
+temp/
+*.tmp
+.cache/
+__pycache__/
+*.pyc
+
+# ================================================
+# OS & SYSTEM FILES
+# ================================================
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+ehthumbs.db
+Desktop.ini
+
+# ================================================
+# BUILD & DISTRIBUTION
+# ================================================
+build/
+dist/
+*.tar.gz
+*.zip
+*.tgz
+
+# ================================================
+# TESTING
+# ================================================
+coverage/
+.phpunit.result.cache
+phpunit.xml
+
+# ================================================
+# PRIVATE & SENSITIVE
+# ================================================
+secrets/
+credentials/
+private/
+.ssh/
+keys/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ================================================
+# DEVELOPMENT ONLY
+# ================================================
+.localdev/
+docker-compose.override.yml
+.env.test
+test-results/
+debug/
+
+# ================================================
+# DOCUMENTATION BUILD OUTPUT
+# ================================================
+docs/_build/
+docs/.doctrees/
+site/
+
+# ================================================
+# GENERATED FILES
+# ================================================
+.code-workspace
+*.generated.*
+auto_generated/
+
+# ================================================
+# APPLICATION SPECIFIC
+# ================================================
+app/uploads/
+app/downloads/
+data/user-uploads/
+public/uploads/
+
+# ================================================
+# MISCELLANEOUS
+# ================================================
+.versionrc.json
+.husky/
+
+
+
+# ================================================
+# BUT DO TRACK
+# ================================================
+!.gitkeep
+!.env.example
+!.env.example.*
+!api/.env.example

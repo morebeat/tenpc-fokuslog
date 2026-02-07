@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Schule | FokusLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../assets/help.css">
+</head>
+<body>
+
+<header class="help-header">
+  <nav class="breadcrumbs">
+    Hilfe › Alltag › Situationen › Schule
+  </nav>
+  <div class="mode-toggle">
+    <button data-mode="alltag" class="active">🧭 Alltag</button>
+    <button data-mode="wissen">🧠 Wissen</button>
+  </div>
+</header>
+
+<main>
+
+<section class="help-section alltag">
+  <h1>🏫 Schule & Hausaufgaben</h1>
+  
+  <h2>Was beobachten?</h2>
+  <ul>
+    <li><strong>Rückmeldung der Lehrer:</strong> Gab es Einträge im Hausaufgabenheft?</li>
+    <li><strong>Hausaufgaben:</strong> Wie schwer fiel der Start? Wie lange hat es gedauert?</li>
+    <li><strong>Material:</strong> Wurde alles mitgebracht oder vergessen?</li>
+  </ul>
+
+  <div class="info-box">
+    <strong>Tipp:</strong> Frage nicht nur "Wie war's?", sondern konkreter: 
+    "War es heute laut in der Klasse?" oder "Konntest du gut zuhören?"
+  </div>
+</section>
+
+<section class="help-section wissen hidden">
+  <h2>🧠 Hintergrund</h2>
+  <p>
+    Die Schule ist für ADHS-Gehirne eine extreme Herausforderung:
+    Stillsitzen (Impulskontrolle), Zuhören (Fokus) und soziale Interaktion (Reizfilterung) gleichzeitig.
+  </p>
+  <p>
+    Medikamente decken oft den Vormittag gut ab. Probleme bei den Hausaufgaben können darauf hindeuten, 
+    dass die Wirkung bereits nachlässt (Rebound).
+  </p>
+</section>
+
+</main>
+
+<!-- Overlay Script -->
+<script src="../assets/help.js"></script>
+<script>
+const buttons = document.querySelectorAll('.mode-toggle button');
+const sections = document.querySelectorAll('.help-section');
+
+function setMode(mode) {
+  sections.forEach(sec => sec.classList.toggle('hidden', !sec.classList.contains(mode)));
+  buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+}
+
+buttons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+</script>
+</body>
+</html>

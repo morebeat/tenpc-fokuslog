@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # PHP Application with Apache
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fokuslog-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+      - "${APP_SSL_PORT:-8443}:443"
+    environment:
+      - PHP_INI_DATE_TIMEZONE=${PHP_TIMEZONE:-Europe/Berlin}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-fokuslog}
+      - DB_USER=${DB_USER:-fokuslog_user}
+      - DB_PASS=${DB_PASS:-fokuslog_password}
+      - APP_ENV=${APP_ENV:-development}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - APP_URL=${APP_URL:-http://localhost:8000}
+      - SESSION_SECURE=${SESSION_SECURE:-false}
+      - SESSION_HTTPONLY=${SESSION_HTTPONLY:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fokuslog-network
+    volumes:
+      - ./api:/var/www/html/api
+      - ./app:/var/www/html/app
+      - ./logs:/var/www/html/logs
+      - ./backups:/var/www/html/backups
+      - ./docker/apache.conf:/etc/apache2/sites-available/000-default.conf:ro
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/app.ini:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # MySQL Database
+  mysql:
+    image: mysql:5.7
+    container_name: fokuslog-mysql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-fokuslog}
+      MYSQL_USER: ${DB_USER:-fokuslog_user}
+      MYSQL_PASSWORD: ${DB_PASS:-fokuslog_password}
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+    networks:
+      - fokuslog-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-fokuslog_user}", "-p${DB_PASS:-fokuslog_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: PhpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: fokuslog-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PMA_PORT:-8080}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-fokuslog_user}
+      PMA_PASSWORD: ${DB_PASS:-fokuslog_password}
+      PMA_ABSOLUTE_URI: ${PMA_URL:-http://localhost:8080}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fokuslog-network
+    profiles:
+      - debug
+
+networks:
+  fokuslog-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local

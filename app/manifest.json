@@ -1,0 +1,20 @@
+{
+  "name": "FokusLog",
+  "short_name": "FokusLog",
+  "start_url": "/app/index.html",
+  "display": "standalone",
+  "background_color": "#013c4a",
+  "theme_color": "#013c4a",
+  "icons": [
+    {
+      "src": "/app/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

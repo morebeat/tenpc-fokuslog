@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Eskalation | FokusLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../assets/help.css">
+</head>
+<body>
+
+<header class="help-header">
+  <nav class="breadcrumbs">
+    Hilfe › Alltag › Situationen › Eskalation
+  </nav>
+  <div class="mode-toggle">
+    <button data-mode="alltag" class="active">🧭 Alltag</button>
+    <button data-mode="wissen">🧠 Wissen</button>
+  </div>
+</header>
+
+<main>
+
+<section class="help-section alltag">
+  <h1>😡 Eskalation & Meltdowns</h1>
+  
+  <h2>Was tun im Notfall?</h2>
+  <p>Wenn gar nichts mehr geht (Wutanfall, Schreien, Werfen):</p>
+  <ul>
+    <li>Sicherheit herstellen.</li>
+    <li>Reize reduzieren (Licht, Lärm, Fragen).</li>
+    <li>Nicht diskutieren.</li>
+  </ul>
+
+  <h2>Dokumentation</h2>
+  <p>Notiere im Logbuch: <strong>Wann</strong> passierte es? (Wirkende?) <strong>Was</strong> war der Auslöser? (Hunger, Überforderung?)</p>
+</section>
+
+<section class="help-section wissen hidden">
+  <h2>🧠 Hintergrund: Reizüberflutung</h2>
+  <p>
+    Ein Meltdown ist oft keine "Bockigkeit", sondern ein neurologischer Absturz. 
+    Das Gehirn kann Reize nicht mehr verarbeiten und schaltet auf Notprogramm (Kampf oder Flucht).
+  </p>
+</section>
+
+</main>
+
+<script src="../assets/help.js"></script>
+<script>
+const buttons = document.querySelectorAll('.mode-toggle button');
+const sections = document.querySelectorAll('.help-section');
+function setMode(mode) {
+  sections.forEach(sec => sec.classList.toggle('hidden', !sec.classList.contains(mode)));
+  buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+}
+buttons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+</script>
+</body>
+</html>

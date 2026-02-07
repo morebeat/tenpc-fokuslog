@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Zuhause | FokusLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../assets/help.css">
+</head>
+<body>
+
+<header class="help-header">
+  <nav class="breadcrumbs">
+    Hilfe › Alltag › Situationen › Zuhause
+  </nav>
+  <div class="mode-toggle">
+    <button data-mode="alltag" class="active">🧭 Alltag</button>
+    <button data-mode="wissen">🧠 Wissen</button>
+  </div>
+</header>
+
+<main>
+
+<section class="help-section alltag">
+  <h1>🏠 Zuhause & Routine</h1>
+  
+  <h2>Kritische Momente</h2>
+  <ul>
+    <li><strong>Morgens:</strong> Aufstehen, Anziehen, Losgehen (oft vor Wirkungseintritt).</li>
+    <li><strong>Mahlzeiten:</strong> Streit am Tisch oder Appetitlosigkeit?</li>
+    <li><strong>Abends:</strong> "Runterkommen" und Einschlafen.</li>
+  </ul>
+
+  <h2>Beobachtungstipp</h2>
+  <p>
+    Unterscheide zwischen <em>"Kind ist anstrengend"</em> und <em>"Kind ist unglücklich"</em>. 
+    Zuhause entlädt sich oft die Anspannung des Schultages.
+  </p>
+</section>
+
+<section class="help-section wissen hidden">
+  <h2>🧠 Hintergrund: Safe Space</h2>
+  <p>
+    Zuhause lassen Kinder oft die Maske fallen ("Masking"). Wenn das Kind in der Schule 
+    unauffällig ist, aber zuhause explodiert, hat es sich den ganzen Tag extrem zusammengerissen.
+  </p>
+</section>
+
+</main>
+
+<script src="../assets/help.js"></script>
+<script>
+const buttons = document.querySelectorAll('.mode-toggle button');
+const sections = document.querySelectorAll('.help-section');
+function setMode(mode) {
+  sections.forEach(sec => sec.classList.toggle('hidden', !sec.classList.contains(mode)));
+  buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+}
+buttons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+</script>
+</body>
+</html>

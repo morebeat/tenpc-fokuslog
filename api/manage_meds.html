@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FokusLog – Medikamente verwalten</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#013c4a">
+</head>
+<body data-page="manage_meds">
+    <header>Medikamente verwalten</header>
+    <main id="manage-meds-content">
+        <div id="meds-error" style="color:red"></div>
+        
+        <h3>Vorhandene Medikamente</h3>
+        <div id="meds-list">Lade...</div>
+
+        <h3>Neues Medikament hinzufügen</h3>
+        <form id="add-med-form">
+            <label for="name">Name des Medikaments</label>
+            <input type="text" id="name" name="name" required placeholder="z.B. Ritalin">
+
+            <label for="default_dose">Standard-Dosis (optional)</label>
+            <input type="text" id="default_dose" name="default_dose" placeholder="z.B. 10mg">
+
+            <input type="submit" value="Hinzufügen">
+        </form>
+        
+        <nav>
+            <a class="button" href="dashboard.html">Zurück zum Dashboard</a>
+        </nav>
+    </main>
+    <script src="js/app.js"></script>
+</body>
+</html>
