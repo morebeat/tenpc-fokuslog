@@ -813,14 +813,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             <h3 style="margin-top: 0; color: #013c4a;">👋 Willkommen bei FokusLog!</h3>
             <p>Es sieht so aus, als wärst du neu hier. Hier sind die ersten Schritte, um loszulegen:</p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px;">
-                <a href="help/index.html?tab=setup" style="text-decoration: none; color: inherit;">
+                <a id="first-steps-med-cta" class="first-steps-cta" href="help/index.html?tab=setup" style="text-decoration: none; color: inherit;">
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; height: 100%; display: flex; flex-direction: column; align-items: flex-start; transition: background 0.2s;">
                         <div style="font-size: 24px; margin-bottom: 10px;">⚙️</div>
                         <strong style="font-size: 1.1rem; margin-bottom: 5px;">Einrichtung starten</strong>
                         <p style="font-size: 0.9rem; color: #666; margin-bottom: 0;">Medikamente & Profil konfigurieren.</p>
                     </div>
                 </a>
-                <a href="entry.html" style="text-decoration: none; color: inherit;">
+                <a id="first-steps-entry-cta" class="first-steps-cta" href="entry.html" style="text-decoration: none; color: inherit;">
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; height: 100%; display: flex; flex-direction: column; align-items: flex-start; transition: background 0.2s;">
                         <div style="font-size: 24px; margin-bottom: 10px;">📝</div>
                         <strong style="font-size: 1.1rem; margin-bottom: 5px;">Ersten Eintrag erstellen</strong>
@@ -837,6 +837,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             const main = document.querySelector('main');
             if (main) main.prepend(container);
         }
+
+        return container;
+    }
+
+    async function updateFirstStepsCardState(cardElement = document.getElementById('first-steps-card')) {
+        if (!cardElement) return;
+        const medCta = document.getElementById('first-steps-med-cta');
+        const entryCta = document.getElementById('first-steps-entry-cta');
+        let hasMedications = false;
+        let hasEntries = false;
+
+        try {
+            const [medRes, entryRes] = await Promise.all([
+                fetch('/api/medications'),
+                fetch('/api/entries?limit=1')
+            ]);
+
+            if (medRes.ok) {
+                const medData = await medRes.json();
+                hasMedications = Array.isArray(medData.medications) && medData.medications.length > 0;
+            }
+
+            if (entryRes.ok) {
+                const entryData = await entryRes.json();
+                hasEntries = Array.isArray(entryData.entries) && entryData.entries.length > 0;
+            }
+        } catch (error) {
+            console.error('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
+        }
+
+        if (medCta) {
+            medCta.classList.toggle('hidden', hasMedications);
+        }
+        if (entryCta) {
+            entryCta.classList.toggle('hidden', hasEntries);
+        }
+
+        const medHidden = !medCta || medCta.classList.contains('hidden');
+        const entryHidden = !entryCta || entryCta.classList.contains('hidden');
+        cardElement.style.display = (medHidden && entryHidden) ? 'none' : 'block';
     }
 
     // 5. Report-Page Logik
