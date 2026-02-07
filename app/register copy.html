@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrieren – FokusLog</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+</head>
+<body data-page="register" class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <h1>FokusLog</h1>
+            </div>
+            <h2>Konto erstellen</h2>
+            <p style="text-align: center; margin-top: -1rem; margin-bottom: 1.5rem; font-size: 0.9rem;">Erstelle einen neuen Account für dich oder deine Familie.</p>
+            
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Ich möchte FokusLog nutzen als:</label>
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" name="account_type" value="family" checked> Familie
+                        </label>
+                        <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" name="account_type" value="individual"> Einzelperson
+                        </label>
+                    </div>
+                </div>
+
+                <div id="family-name-group" class="form-group">
+                    <label for="family_name" id="familyname-label">Familienname (Pseudonym empfohlen):</label>
+                    <input type="text" id="family_name" name="family_name" placeholder="z.B. Familie Müller">
+                </div>
+
+                <div class="form-group">
+                    <label for="username" id="username-label">Benutzername (für den Haupt-Account):</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Passwort:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div id="register-error" class="error-message hidden"></div>
+                <button type="submit" class="button button-primary button-full-width">Registrieren</button>
+            </form>
+            <div class="auth-footer">
+                <p>Bereits registriert? <a href="login.html">Hier anmelden</a></p>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -149,6 +149,17 @@ input[type="submit"]:disabled {
     transform: scale(1.2);
 }
 
+.help-hint {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    background-color: #fff8e1;
+    color: #4a3515;
+    border-left: 4px solid #f59e0b;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
 .hidden {
     display: none;
 }

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FokusLog – Dein Begleiter für die ADHS-Medikation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="FokusLog ist ein digitales Tagebuch zur Dokumentation der ADHS-Medikation. Beobachte Wirkung, Nebenwirkungen und erstelle Berichte für den Arzt. Sicher und datenschutzfreundlich.">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js', { scope: './' });
+            });
+        }
+    </script>
+</head>
+<body>
+    <header class="landing-header">
+        <div class="logo">
+            <h1>FokusLog</h1>
+        </div>
+        <nav class="main-nav">
+            <a href="login.html" class="button button-secondary">Anmelden</a>
+            <a href="register.html" class="button btn">Kostenlos registrieren</a>
+        </nav>
+    </header>
+
+    <main class="landing-main">
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Klarheit bei der ADHS-Medikation</h2>
+                <p class="lead">Beobachte, was wirklich zählt. Verstehe die Wirkung. Und führe bessere Gespräche mit deinem Arzt.</p>
+                <a href="register.html" class="button btn button-large">Jetzt kostenlos starten</a>
+            </div>
+            <div class="hero-image">
+                <!-- Du kannst hier den Pfad zu deinem Bild einfügen -->
+                <!-- <img src="assets/hero-illustration.svg" alt="Illustration einer Person, die auf einem Diagramm sitzt und Notizen macht."> -->
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <h3>📝 Einfach dokumentieren</h3>
+                <p>Erfasse mit wenigen Klicks täglich Dosis, Wirkung und Befinden. Schnell, einfach und auch für Kinder verständlich.</p>
+            </div>
+            <div class="feature-card">
+                <h3>📊 Muster erkennen</h3>
+                <p>Übersichtliche Diagramme zeigen dir Zusammenhänge zwischen Medikation, Fokus, Stimmung und Nebenwirkungen auf.</p>
+            </div>
+            <div class="feature-card">
+                <h3>👨‍⚕️ Sicher teilen</h3>
+                <p>Erstelle auf Knopfdruck einen professionellen PDF-Bericht als perfekte Grundlage für das nächste Arztgespräch.</p>
+            </div>
+        </section>
+
+        <section class="landing-faq">
+            <h2>Häufig gestellte Fragen</h2>
+            <details>
+                <summary>Ist FokusLog wirklich kostenlos?</summary>
+                <div class="details-content">
+                    <p>Ja, FokusLog ist ein Open-Source-Projekt und für private Nutzer kostenlos. Es gibt keine versteckten Kosten oder Abos.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Sind meine Gesundheitsdaten sicher?</summary>
+                <div class="details-content">
+                    <p>Absolut. Wir speichern so wenig wie möglich. Deine Daten liegen auf sicheren Servern in Deutschland und werden nicht an Dritte weitergegeben oder für Werbung genutzt.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Kann ich die Daten meinem Arzt zeigen?</summary>
+                <div class="details-content">
+                    <p>Ja, das ist das Hauptziel! Du kannst jederzeit einen PDF-Report erstellen, der den Verlauf übersichtlich darstellt.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Gibt es eine App für iOS oder Android?</summary>
+                <div class="details-content">
+                    <p>FokusLog ist eine Progressive Web App (PWA). Du kannst sie einfach über den Browser auf deinem Homescreen installieren – sie funktioniert dann wie eine normale App.</p>
+                </div>
+            </details>
+        </section>
+
+        <section class="privacy-focus">
+            <h3>🛡️ Deine Daten gehören dir.</h3>
+            <p>FokusLog wurde mit Datenschutz im Kern entwickelt. Keine Tracker, keine Werbung, keine Datenweitergabe. Deine sensiblen Gesundheitsdaten bleiben sicher und privat.</p>
+        </section>
+    </main>
+
+    <footer class="landing-footer">
+        <nav>
+            <a href="help/index.html">Hilfe & Wissen</a>
+        </nav>
+        <p>&copy; 2024 FokusLog</p>
+    </footer>
+</body>
+</html>
