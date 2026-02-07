@@ -19,11 +19,8 @@
     function toggleAdminSection(user) {
         const adminSection = document.getElementById('admin-section');
         if (!adminSection) return;
-        const isAdmin = user.role === 'parent' || user.role === 'adult';
-        const isIndividual = isAdmin && user.family_member_count <= 1;
-        if (!isAdmin || isIndividual) {
-            adminSection.style.display = 'none';
-        }
+        const canManage = user.role === 'parent' || user.role === 'adult';
+        adminSection.style.display = canManage ? '' : 'none';
     }
 
     function displayGamificationStats(user) {
