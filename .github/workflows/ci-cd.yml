@@ -221,6 +221,7 @@ jobs:
             --exclude='logs' \
             --exclude='backups' \
             --exclude='.env' \
+            --exclude='docs' \
             --exclude='.env.*' \
             --exclude='.DS_Store' \
             --exclude='node_modules' \
