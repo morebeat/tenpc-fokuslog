@@ -3,7 +3,7 @@
 Short, actionable guidance to make an AI coding agent immediately productive in this repo.
 
 1) Big picture
-- Frontend: a static Progressive Web App under [app](app) (HTML/CSS/vanilla JS). See [app/manifest.json](app/manifest.json#L1) and [app/service-worker.js](app/service-worker.js#L1) for PWA/offline behavior.
+- Frontend: a static Progressive Web App under [app](app) (HTML/CSS/vanilla JS). See [app/manifest.json](app/manifest.json#L1) and [app/service-worker.js](app/service-worker.js#L1) for PWA/offline behavior.c
 - Backend: single-file PHP REST API at [api/index.php](api/index.php#L1). It uses PHP sessions for auth, PDO for MySQL, and returns JSON for all endpoints.
 - Data model: families -> users (roles like `parent`), medications, entries and audit_log. Routes live in `api/index.php` (e.g. `/register`, `/login`, `/entries`, `/medications`). 
 - Tests: lightweight HTTP API tests in [api/ApiTest.php](api/ApiTest.php#L1) driven by [api/run_tests.php](api/run_tests.php#L1) and `SimpleTestRunner.php`.
