@@ -10,8 +10,12 @@
             const userFilter = document.getElementById('user-filter');
             const filterBtn = document.getElementById('filter-btn');
             const exportCsvBtn = document.getElementById('export-csv-btn');
+            const exportExcelBtn = document.getElementById('export-excel-btn');
+            const exportDoctorBtn = document.getElementById('export-doctor-btn');
             const exportPdfBtn = document.getElementById('export-pdf-btn');
             const entriesTable = document.getElementById('entries-table');
+            const trendsSection = document.getElementById('trends-section');
+            const compareSection = document.getElementById('compare-section');
             let reportChart = null;
             let weightChart = null;
             const escapeHtml = utils?.escapeHtml || ((value) => value);
@@ -420,6 +424,210 @@
                 pdf.save(`fokuslog_report_${username.replace(/\s/g, '_')}_${dateFrom}_${dateTo}.pdf`);
             };
 
+            // Trend-Analyse laden
+            const loadTrends = async () => {
+                if (!trendsSection) return;
+                const dateFrom = dateFromInput?.value;
+                const dateTo = dateToInput?.value;
+                const userId = userFilter?.value;
+                
+                try {
+                    let url = `/api/report/trends?date_from=${dateFrom}&date_to=${dateTo}`;
+                    if (userId) url += `&user_id=${userId}`;
+                    
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayTrends(data);
+                        trendsSection.style.display = 'block';
+                    } else {
+                        trendsSection.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Laden der Trends:', error);
+                    trendsSection.style.display = 'none';
+                }
+            };
+
+            const displayTrends = (data) => {
+                const warningsContainer = document.getElementById('warnings-container');
+                const insightsContainer = document.getElementById('insights-container');
+                const statsSummary = document.getElementById('stats-summary');
+                
+                // Warnungen anzeigen
+                if (warningsContainer) {
+                    if (data.warnings && data.warnings.length > 0) {
+                        warningsContainer.innerHTML = data.warnings.map(w => `
+                            <div class="warning-card ${w.severity || ''}">
+                                <span class="warning-icon">${w.severity === 'warning' ? '⚠️' : '⚡'}</span>
+                                <div class="warning-content">
+                                    <h4>${escapeHtml(w.message)}</h4>
+                                    <p>${escapeHtml(w.recommendation || '')}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        warningsContainer.innerHTML = '<p style="color: #38a169;">✓ Keine auffälligen Muster erkannt</p>';
+                    }
+                }
+                
+                // Insights anzeigen
+                if (insightsContainer) {
+                    if (data.insights && data.insights.length > 0) {
+                        insightsContainer.innerHTML = data.insights.map(i => `
+                            <div class="insight-card">
+                                <span class="insight-icon">${i.icon || '💡'}</span>
+                                <div class="insight-content">
+                                    <h4>${escapeHtml(i.message)}</h4>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        insightsContainer.innerHTML = '';
+                    }
+                }
+                
+                // Statistiken anzeigen
+                if (statsSummary && data.stats) {
+                    const avg = data.stats.averages || {};
+                    statsSummary.innerHTML = `
+                        <div class="stat-item">
+                            <span class="stat-value">${data.stats.entry_count || 0}</span>
+                            <span class="stat-label">Einträge</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${data.stats.days_covered || 0}</span>
+                            <span class="stat-label">Tage</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${avg.mood != null ? avg.mood.toFixed(1) : '-'}</span>
+                            <span class="stat-label">Ø Stimmung</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${avg.focus != null ? avg.focus.toFixed(1) : '-'}</span>
+                            <span class="stat-label">Ø Fokus</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${avg.sleep != null ? avg.sleep.toFixed(1) : '-'}</span>
+                            <span class="stat-label">Ø Schlaf</span>
+                        </div>
+                    `;
+                }
+            };
+
+            // Wochenvergleich laden
+            const loadComparison = async () => {
+                if (!compareSection) return;
+                const userId = userFilter?.value;
+                
+                try {
+                    let url = '/api/report/compare?type=week';
+                    if (userId) url += `&user_id=${userId}`;
+                    
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayComparison(data);
+                        compareSection.style.display = 'block';
+                    } else {
+                        compareSection.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Laden des Vergleichs:', error);
+                    compareSection.style.display = 'none';
+                }
+            };
+
+            const displayComparison = (data) => {
+                const container = document.getElementById('compare-container');
+                if (!container || !data.comparison) return;
+                
+                const metricLabels = {
+                    mood: 'Stimmung',
+                    focus: 'Fokus',
+                    sleep: 'Schlaf',
+                    appetite: 'Appetit'
+                };
+                
+                const directionArrows = {
+                    improved: '↑',
+                    declined: '↓',
+                    stable: '→'
+                };
+                
+                const directionLabels = {
+                    improved: 'Verbessert',
+                    declined: 'Verschlechtert',
+                    stable: 'Stabil'
+                };
+                
+                let html = '';
+                for (const [metric, values] of Object.entries(data.comparison)) {
+                    if (!values.this_week && !values.last_week) continue;
+                    
+                    html += `
+                        <div class="compare-metric">
+                            <h4>${metricLabels[metric] || metric}</h4>
+                            <div class="compare-values">
+                                <div class="compare-period">
+                                    <span class="value">${values.last_week?.toFixed(1) || '-'}</span>
+                                    <span class="label">Letzte Woche</span>
+                                </div>
+                                <span class="compare-arrow ${values.direction}">${directionArrows[values.direction] || '→'}</span>
+                                <div class="compare-period">
+                                    <span class="value">${values.this_week?.toFixed(1) || '-'}</span>
+                                    <span class="label">Diese Woche</span>
+                                </div>
+                            </div>
+                            <div class="compare-change ${values.direction}">
+                                ${directionLabels[values.direction] || 'Stabil'} 
+                                ${values.change ? `(${values.change > 0 ? '+' : ''}${values.change.toFixed(1)})` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (html === '') {
+                    html = '<p>Nicht genügend Daten für einen Vergleich vorhanden.</p>';
+                }
+                
+                container.innerHTML = html;
+            };
+
+            // Excel-Export (Server-seitig)
+            const exportToExcel = async () => {
+                const dateFrom = dateFromInput?.value;
+                const dateTo = dateToInput?.value;
+                const userId = userFilter?.value;
+                
+                if (!dateFrom || !dateTo) {
+                    alert('Bitte wählen Sie einen Datumsbereich aus.');
+                    return;
+                }
+                
+                let url = `/api/report/export/excel?date_from=${dateFrom}&date_to=${dateTo}&format=detailed`;
+                if (userId) url += `&user_id=${userId}`;
+                
+                window.location.href = url;
+            };
+
+            // Arzt-Export
+            const exportForDoctor = async () => {
+                const dateFrom = dateFromInput?.value;
+                const dateTo = dateToInput?.value;
+                const userId = userFilter?.value;
+                
+                if (!dateFrom || !dateTo) {
+                    alert('Bitte wählen Sie einen Datumsbereich aus.');
+                    return;
+                }
+                
+                let url = `/api/report/export/excel?date_from=${dateFrom}&date_to=${dateTo}&format=doctor`;
+                if (userId) url += `&user_id=${userId}`;
+                
+                window.location.href = url;
+            };
+
             const loadWeightData = async () => {
                 const dateFrom = dateFromInput?.value;
                 const dateTo = dateToInput?.value;
@@ -496,16 +704,26 @@
                 filterBtn.addEventListener('click', () => {
                     loadEntries();
                     loadWeightData();
+                    loadTrends();
+                    loadComparison();
                 });
             }
             if (userFilter) {
                 userFilter.addEventListener('change', () => {
                     loadEntries();
                     loadWeightData();
+                    loadTrends();
+                    loadComparison();
                 });
             }
             if (exportCsvBtn) {
                 exportCsvBtn.addEventListener('click', exportToCSV);
+            }
+            if (exportExcelBtn) {
+                exportExcelBtn.addEventListener('click', exportToExcel);
+            }
+            if (exportDoctorBtn) {
+                exportDoctorBtn.addEventListener('click', exportForDoctor);
             }
             if (exportPdfBtn) {
                 exportPdfBtn.addEventListener('click', exportToPDF);
@@ -513,6 +731,8 @@
             loadUsersForFilter();
             setDefaultDates();
             loadEntries();
+            loadTrends();
+            loadComparison();
             if (document.getElementById('weight-history')) {
                 loadWeightData();
             }

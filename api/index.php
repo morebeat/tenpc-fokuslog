@@ -203,6 +203,12 @@ $router->get('/me/latest-weight', 'WeightController', 'latestWeight');
 $router->get('/glossary', 'GlossaryController', 'index');
 $router->get('/glossary/{slug}', 'GlossaryController', 'show');
 
+// Report-Routen (Analyse & Export)
+$router->get('/report/trends', 'ReportController', 'trends');
+$router->get('/report/compare', 'ReportController', 'compare');
+$router->get('/report/summary', 'ReportController', 'summary');
+$router->get('/report/export/excel', 'ReportController', 'exportExcel');
+
 // Admin-Routen
 $router->post('/admin/migrate', 'AdminController', 'migrate');
 $router->post('/admin/backup', 'AdminController', 'backup');

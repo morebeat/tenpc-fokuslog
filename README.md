@@ -20,12 +20,14 @@ FokusLog is a **digital medication and observation diary** that helps:
 
 - 📝 **Simple Daily Entries** - Rate mood, focus, sleep, and more on a 1-5 scale
 - 📊 **Visual Reports** - Charts showing patterns over time
+- � **Automatic Trend Analysis** - Detects patterns like appetite loss, mood changes, weight loss
+- 📈 **Week-over-Week Comparisons** - See how metrics change over time
 - 💊 **Medication Tracking** - Compare effectiveness across different medications
 - 👨‍👩‍👧‍👦 **Family Management** - Parents manage multiple children securely
 - 🎮 **Gamification** - Points, streaks, and badges motivate children to track consistently
 - 🔒 **Privacy First** - GDPR compliant, no tracking, no external services
 - 📱 **Progressive Web App** - Works on all devices, offline support
-- 📄 **Export to PDF** - Share reports with doctors
+- 📄 **Multiple Export Formats** - PDF reports, Excel/CSV, Doctor-ready exports
 - 🌍 **Multi-language** - German and English support
 
 ### What FokusLog is NOT

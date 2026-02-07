@@ -15,8 +15,10 @@
 ## 2. Technical Architecture
 
 ### Backend
-- **Language**: PHP 7.4+ (Vanilla, no framework).
-- **Entry Point**: Single entry point architecture via `api/index.php`.
+- **Language**: PHP 8.0+ (Vanilla, no framework).
+- **Architecture**: MVC-style Controller pattern with Router.
+- **Entry Point**: Single entry point via `api/index.php`, routing handled by `lib/Router.php`.
+- **Controllers**: Modular controllers in `api/lib/Controller/` for each domain.
 - **Database Access**: PDO (PHP Data Objects) with prepared statements.
 - **Authentication**: PHP Native Sessions (`HttpOnly`, `Secure`, `SameSite=Strict`).
 - **Logging**: Custom file-based logger (`api/lib/logger.php`) with sensitive data redaction.
@@ -39,18 +41,34 @@
 ```text
 fokuslog-app/
 ├── api/
-│   ├── index.php        # Main REST API controller and router
+│   ├── index.php           # API entry point & router config
+│   ├── RateLimiter.php     # Rate limiting
 │   └── lib/
-│       └── logger.php   # Logging utility
+│       ├── Router.php      # URL routing with parameter extraction
+│       ├── EntryPayload.php
+│       └── Controller/     # MVC Controllers
+│           ├── BaseController.php
+│           ├── AuthController.php
+│           ├── UsersController.php
+│           ├── MedicationsController.php
+│           ├── EntriesController.php
+│           ├── TagsController.php
+│           ├── BadgesController.php
+│           ├── WeightController.php
+│           ├── GlossaryController.php
+│           ├── ReportController.php   # Analytics & Exports
+│           └── AdminController.php
 ├── app/
 │   └── js/
-│       └── app.js       # Main frontend logic
+│       ├── app.js          # Main frontend logic
+│       └── pages/
+│           └── report.js   # Report page with trends & comparisons
 ├── db/
-│   └── schema.sql       # Database definition
+│   └── schema.sql          # Database definition
 ├── docs/
-│   └── dsgvo.md         # Privacy documentation
+│   └── dsgvo.md            # Privacy documentation
 └── scripts/
-    └── update_schema.sql # Database migration scripts
+    └── update_schema.sql   # Database migration scripts
 ```
 
 ---
@@ -120,6 +138,28 @@ All requests should be sent to `/api` (rewritten to `api/index.php`).
 | `GET` | `/badges` | List badges and progress. |
 | `GET` | `/weight` | Get weight history. |
 | `GET` | `/me/latest-weight` | Get most recent weight entry. |
+
+### Reports & Analytics (NEW)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/report/trends` | Trend analysis with pattern detection. Returns warnings, insights, and statistics. |
+| `GET` | `/report/compare` | Period or medication comparison. Params: `type` (week/medication/custom). |
+| `GET` | `/report/summary` | Summary data for PDF reports. |
+| `GET` | `/report/export/excel` | Excel/CSV export. Params: `format` (detailed/summary/doctor). |
+
+#### Trend Analysis Response
+The `/report/trends` endpoint automatically detects:
+- **Appetite warnings**: 3+ consecutive days with low appetite (1-2)
+- **Mood trends**: Declining or improving mood patterns
+- **Sleep quality**: Below-average sleep scores
+- **Irritability spikes**: Extended periods of high irritability
+- **Weight loss**: >3% loss over the analysis period
+- **Side effects**: Frequent documentation of side effects
+
+#### Comparison Types
+- `type=week`: Week-over-week comparison (default)
+- `type=medication&med1=X&med2=Y`: Compare two medications
+- `type=custom&period1_from=...&period2_to=...`: Custom period comparison
 
 ---
 

@@ -41,6 +41,20 @@
             </div>
         </div>
 
+        <!-- Trend-Warnungen & Insights -->
+        <div id="trends-section" class="form-card" style="display: none;">
+            <h3>Trend-Analyse</h3>
+            <div id="warnings-container" class="warnings-container"></div>
+            <div id="insights-container" class="insights-container"></div>
+            <div id="stats-summary" class="stats-summary"></div>
+        </div>
+
+        <!-- Wochenvergleich -->
+        <div id="compare-section" class="form-card" style="display: none;">
+            <h3>Wochenvergleich</h3>
+            <div id="compare-container" class="compare-container"></div>
+        </div>
+
         <div class="form-card">
             <h3>Verlauf</h3>
             <div class="chart-container">
@@ -58,8 +72,10 @@
             </div>
         </div>
 
-        <div class="form-actions" style="justify-content: flex-end; margin-top: 1.5rem;">
+        <div class="form-actions" style="justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
             <button id="export-csv-btn" class="button button-secondary">CSV Export</button>
+            <button id="export-excel-btn" class="button button-secondary">Excel Export</button>
+            <button id="export-doctor-btn" class="button button-secondary">Arzt-Export</button>
             <button id="export-pdf-btn" class="button button-secondary">PDF Export</button>
         </div>
     </main>
