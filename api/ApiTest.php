@@ -155,4 +155,19 @@ class ApiTest
         $response = $this->client->get('/me');
         Assert::equals(401, $response['code'], 'Nach Logout sollte Zugriff verweigert werden');
     }
+
+    public function testUserCannotDeleteSelf()
+    {
+        // Hole die ID des aktuellen Benutzers
+        $meResponse = $this->client->get('/me');
+        Assert::equals(200, $meResponse['code'], 'Konnte Benutzer-ID für Test nicht abrufen');
+        $userId = $meResponse['body']['id'];
+
+        // Versuche, sich selbst zu löschen
+        $deleteResponse = $this->client->delete('/users/' . $userId);
+
+        // Prüfe, ob der Server dies mit 403 verhindert
+        Assert::equals(403, $deleteResponse['code'], 'Selbstlöschung sollte 403 Forbidden zurückgeben');
+        Assert::equals('Sie können sich nicht selbst löschen', $deleteResponse['body']['error'] ?? '', 'Fehlermeldung für Selbstlöschung prüfen');
+    }
 }

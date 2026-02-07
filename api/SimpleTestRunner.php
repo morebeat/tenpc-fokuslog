@@ -4,6 +4,7 @@ class SimpleTestRunner
 {
     private $passed = 0;
     private $failed = 0;
+    private $failedTests = [];
 
     public function run($testClass)
     {
@@ -24,6 +25,10 @@ class SimpleTestRunner
                 } catch (Exception $e) {
                     echo "❌ $method: FEHLGESCHLAGEN - " . $e->getMessage() . "\n";
                     $this->failed++;
+                    $this->failedTests[] = [
+                        'method' => $method,
+                        'message' => $e->getMessage()
+                    ];
                 } finally {
                     // Hook: tearDown() nach jedem Test ausführen, falls vorhanden
                     if (method_exists($testClass, 'tearDown')) {
@@ -35,6 +40,12 @@ class SimpleTestRunner
 
         echo "\nErgebnis: {$this->passed} bestanden, {$this->failed} fehlgeschlagen.\n";
         if ($this->failed > 0) {
+            echo "\n--- Zusammenfassung der fehlgeschlagenen Tests ---\n";
+            foreach ($this->failedTests as $failure) {
+                echo "\nTest: {$failure['method']}\n";
+                echo "  Fehler: {$failure['message']}\n";
+            }
+            echo "---------------------------------------------------\n\n";
             exit(1);
         }
     }
@@ -87,6 +98,11 @@ class HttpClient
     {
         $queryString = $params ? '?' . http_build_query($params) : '';
         return $this->request('GET', $endpoint . $queryString);
+    }
+
+    public function delete($endpoint)
+    {
+        return $this->request('DELETE', $endpoint);
     }
 
     private function request($method, $endpoint, $data = null)
