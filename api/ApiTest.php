@@ -205,4 +205,117 @@ class ApiTest
         $meRes = $client->get('/me');
         Assert::equals(true, $meRes['body']['has_entries'] ?? false, 'Eltern sollten has_entries=true haben, wenn Kind Einträge hat');
     }
+
+    // =========================================================================
+    // Glossary-Tests
+    // =========================================================================
+
+    public function testGlossaryIndex()
+    {
+        // Glossary ist öffentlich abrufbar
+        $client = $this->getApiClient();
+        $response = $client->get('/glossary');
+        
+        Assert::equals(200, $response['code'], 'Glossar abrufen sollte 200 sein');
+        Assert::true(isset($response['body']['glossary']), 'Response sollte glossary-Array enthalten');
+        Assert::true(isset($response['body']['meta']), 'Response sollte meta-Objekt enthalten');
+    }
+
+    public function testGlossaryWithFilters()
+    {
+        $client = $this->getApiClient();
+        
+        // Mit Format-Parameter
+        $response = $client->get('/glossary?format=plain');
+        Assert::equals(200, $response['code'], 'Glossar mit format=plain sollte 200 sein');
+        Assert::equals('plain', $response['body']['meta']['format'] ?? '', 'Format sollte plain sein');
+        
+        // Mit Limit
+        $response = $client->get('/glossary?limit=5');
+        Assert::equals(200, $response['code'], 'Glossar mit limit sollte 200 sein');
+        Assert::true(count($response['body']['glossary']) <= 5, 'Sollte maximal 5 Einträge zurückgeben');
+    }
+
+    public function testGlossaryCategories()
+    {
+        $client = $this->getApiClient();
+        $response = $client->get('/glossary/categories');
+        
+        Assert::equals(200, $response['code'], 'Kategorien abrufen sollte 200 sein');
+        Assert::true(isset($response['body']['categories']), 'Response sollte categories-Array enthalten');
+    }
+
+    public function testGlossaryExportJson()
+    {
+        $client = $this->getApiClient();
+        $response = $client->get('/glossary/export?format=json');
+        
+        Assert::equals(200, $response['code'], 'JSON-Export sollte 200 sein');
+        Assert::true(isset($response['body']['entries']), 'Response sollte entries-Array enthalten');
+        Assert::true(isset($response['body']['export']['generated_at']), 'Export sollte Timestamp enthalten');
+    }
+
+    public function testGlossaryShowEntry()
+    {
+        $client = $this->getApiClient();
+        
+        // Zuerst prüfen ob Einträge existieren
+        $listResponse = $client->get('/glossary?limit=1');
+        if (empty($listResponse['body']['glossary'])) {
+            // Kein Eintrag vorhanden - 404 erwarten
+            $response = $client->get('/glossary/nonexistent');
+            Assert::equals(404, $response['code'], 'Nicht existierender Eintrag sollte 404 sein');
+            return;
+        }
+        
+        // Mit existierendem Slug testen
+        $slug = $listResponse['body']['glossary'][0]['slug'];
+        $response = $client->get('/glossary/' . $slug);
+        
+        Assert::equals(200, $response['code'], 'Einzelner Eintrag sollte 200 sein');
+        Assert::true(isset($response['body']['entry']), 'Response sollte entry-Objekt enthalten');
+        Assert::equals($slug, $response['body']['entry']['slug'], 'Slug sollte übereinstimmen');
+    }
+
+    public function testGlossaryShowWithFormats()
+    {
+        $client = $this->getApiClient();
+        
+        // Hole einen Slug
+        $listResponse = $client->get('/glossary?limit=1');
+        if (empty($listResponse['body']['glossary'])) {
+            return; // Kein Eintrag zum Testen
+        }
+        
+        $slug = $listResponse['body']['glossary'][0]['slug'];
+        
+        // Format: plain
+        $response = $client->get('/glossary/' . $slug . '?format=plain');
+        Assert::equals(200, $response['code'], 'Eintrag mit format=plain sollte 200 sein');
+        
+        // Format: sections
+        $response = $client->get('/glossary/' . $slug . '?format=sections');
+        Assert::equals(200, $response['code'], 'Eintrag mit format=sections sollte 200 sein');
+    }
+
+    public function testGlossaryImportRequiresAuth()
+    {
+        // Ohne Authentifizierung sollte Import 401 zurückgeben
+        $client = $this->getApiClient();
+        $response = $client->post('/glossary/import', []);
+        
+        Assert::equals(401, $response['code'], 'Import ohne Auth sollte 401 sein');
+    }
+
+    public function testGlossaryImportRequiresParentRole()
+    {
+        // Authentifizierter Client (Parent-Rolle) - sollte funktionieren oder 500 wenn Script fehlt
+        $response = $this->client->post('/glossary/import', []);
+        
+        // Entweder 200 (erfolgreich) oder 500 (Script-Fehler) - aber nicht 401/403
+        Assert::true(
+            in_array($response['code'], [200, 500]), 
+            'Import als Parent sollte 200 oder 500 sein (nicht 401/403), war: ' . $response['code']
+        );
+    }
 }

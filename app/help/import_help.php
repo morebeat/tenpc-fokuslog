@@ -530,8 +530,20 @@ class HelpImporter
 }
 
 // ============================================================================
-// CLI-Ausführung
+// CLI-Ausführung oder HTTP-Fallback
 // ============================================================================
+
+// Bei HTTP-Aufruf: JSON-Fehler zurückgeben
+if (php_sapi_name() !== 'cli' && !defined('IMPORT_HELP_RUN')) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'Dieses Skript sollte via CLI oder über die API aufgerufen werden',
+        'hint' => 'CLI: php app/help/import_help.php',
+        'api' => 'POST /api/glossary/import (erfordert Authentifizierung)'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 if (php_sapi_name() === 'cli' || defined('IMPORT_HELP_RUN')) {
     ini_set('display_errors', '1');

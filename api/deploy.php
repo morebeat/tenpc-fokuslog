@@ -115,8 +115,51 @@ if ($newEnvContent) {
     unlink($envBackup);
 }
 
-
-
+// Hilfe-Inhalte in Glossary-Tabelle importieren
+$helpImportScript = $deployDir . '/app/help/import_help.php';
+$helpImportOutput = [];
+if (is_file($helpImportScript)) {
+    error_log("[Deploy] Starting help/glossary import...");
+    
+    // Output buffering, da HelpImporter echo verwendet
+    ob_start();
+    
+    // HelpImporter Klasse laden
+    require_once $helpImportScript;
+    
+    // .env neu laden falls aktualisiert
+    $env = parse_ini_file($envFile) ?: [];
+    
+    try {
+        $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $env['DB_USER'], $env['DB_PASS'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]);
+        
+        $importer = new HelpImporter($pdo, dirname($helpImportScript));
+        $stats = $importer->setForce(false)->run();
+        
+        // Buffered output ins Log schreiben
+        $bufferedOutput = ob_get_clean();
+        if ($bufferedOutput) {
+            error_log("[Deploy] Help import output: " . substr($bufferedOutput, 0, 1000));
+        }
+        
+        $helpImportOutput[] = sprintf(
+            'Help Import: %d importiert, %d aktualisiert, %d übersprungen, %d gelöscht',
+            $stats['imported'], $stats['updated'], $stats['skipped'], $stats['deleted']
+        );
+        error_log("[Deploy] Help import completed: " . json_encode($stats));
+    } catch (Throwable $e) {
+        ob_end_clean();
+        $helpImportOutput[] = 'Help Import fehlgeschlagen: ' . $e->getMessage();
+        error_log("[Deploy] Help import failed: " . $e->getMessage());
+    }
+} else {
+    $helpImportOutput[] = 'Help Import-Skript nicht gefunden.';
+    error_log("[Deploy] Help import script not found: " . $helpImportScript);
+}
 
 // Hole aktuellen Commit
 exec('git rev-parse --short HEAD', $commit);
@@ -126,13 +169,14 @@ if (empty($migrationOutput)) {
     $migrationOutput[] = 'Keine neuen Migrationen gefunden.';
 }
 
-error_log("[Deploy] Erfolg: Commit $commitHash deployed. Migrationen: " . implode(', ', $migrationOutput));
+error_log("[Deploy] Erfolg: Commit $commitHash deployed. Migrationen: " . implode(', ', $migrationOutput) . " Help: " . implode(', ', $helpImportOutput));
 
 http_response_code(200);
 echo json_encode([
     'success' => true,
     'message' => 'Deployment erfolgreich',
     'migrations' => $migrationOutput,
+    'help_import' => $helpImportOutput,
     'commit' => $commitHash,
     'timestamp' => date('Y-m-d H:i:s')
 ]);

@@ -259,9 +259,28 @@ Das Projekt enthält einen einfachen Webhook für Deployment via Git (`api/deplo
 Dafür muss ein `DEPLOY_TOKEN` in der `.env` gesetzt sein.
 
 Bei jedem Deployment werden automatisch:
-1. `git pull` ausgeführt.
-2. Die `.env` Datei geschützt.
-3. Neue Hilfe-Inhalte in die Datenbank importiert.
+1. `git fetch` und `git reset --hard origin/HEAD` ausgeführt
+2. Die `.env` Datei gesichert und wiederhergestellt
+3. Hilfe-Inhalte in die `glossary`-Tabelle importiert (Change-Detection via File-Hash)
+
+### Deployment-Response
+```json
+{
+  "success": true,
+  "message": "Deployment erfolgreich",
+  "migrations": ["..."],
+  "help_import": ["Help Import: 5 importiert, 2 aktualisiert, 40 übersprungen, 0 gelöscht"],
+  "commit": "abc1234",
+  "timestamp": "2026-02-08 12:00:00"
+}
+```
+
+### Bootstrap-Skript
+Für lokale Setups oder CI/CD kann auch `scripts/bootstrap.php` verwendet werden:
+```bash
+php scripts/bootstrap.php --with-seed --with-tests
+```
+Optionen: `--skip-help`, `--skip-migrations`, `--dry-run`, `--help`
 
 ## 🤝 Mitmachen
 
