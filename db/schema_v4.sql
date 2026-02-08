@@ -147,15 +147,27 @@ CREATE TABLE `families` (
 --
 
 CREATE TABLE `glossary` (
-  `id` int NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
   `slug` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `title` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content_plain` text COLLATE utf8mb4_unicode_ci COMMENT 'Reiner Text ohne HTML-Tags für Previews',
+  `content_sections` json DEFAULT NULL COMMENT 'Strukturierte Abschnitte als JSON',
+  `full_content` mediumtext COLLATE utf8mb4_unicode_ci,
+  `keywords` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Komma-getrennte Stichwörter für Suche',
+  `target_audience` set('eltern','kinder','erwachsene','lehrer','aerzte','alle') DEFAULT 'alle' COMMENT 'Zielgruppen für die Seite',
+  `reading_time_min` tinyint UNSIGNED DEFAULT NULL COMMENT 'Geschätzte Lesezeit in Minuten',
+  `source_file` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Ursprüngliche Datei (relativ zu app/help/)',
+  `file_hash` char(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'MD5-Hash der Quelldatei für Change-Detection',
+  `last_imported_at` timestamp NULL DEFAULT NULL COMMENT 'Zeitpunkt des letzten Imports',
   `link` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `category` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Allgemein',
-  `full_content` mediumtext COLLATE utf8mb4_unicode_ci
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`),
+  FULLTEXT KEY `idx_glossary_search` (`title`, `content`, `keywords`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Hilfe-Inhalte für eigene und externe Anwendungen';
 
 
 
@@ -333,13 +345,6 @@ ALTER TABLE `entry_tags`
 --
 ALTER TABLE `families`
   ADD PRIMARY KEY (`id`);
-
---
--- Indizes für die Tabelle `glossary`
---
-ALTER TABLE `glossary`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `slug` (`slug`);
 
 --
 -- Indizes für die Tabelle `medications`

@@ -54,7 +54,7 @@ jobs:
           EOF
 
       - name: Bootstrap schema & seed data
-        run: php scripts/bootstrap.php --create-db --with-seed --skip-help
+        run: php scripts/bootstrap.php --create-db --with-seed
 
       - name: Start PHP development server
         run: |

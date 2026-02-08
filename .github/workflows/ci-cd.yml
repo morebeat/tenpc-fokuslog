@@ -286,56 +286,6 @@ jobs:
         run: |
           curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
 
-  deploy-qa:
-    name: Deploy to QA
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
-    environment: qa
-    env:
-      HEALTHCHECK_URL: ${{ secrets.QA_HEALTHCHECK_URL }}
-      DEPLOY_READY: ${{ secrets.QA_FTP_HOST != '' && secrets.QA_FTP_USER != '' && secrets.QA_FTP_PASS != '' }}
-    steps:
-      - name: Skip QA deploy (missing secrets)
-        if: env.DEPLOY_READY != 'true'
-        run: |
-          echo 'QA deploy skipped: required FTP secrets are not configured.'
-
-      - name: Download build artifact
-        if: env.DEPLOY_READY == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: fokuslog-build
-          path: artifact
-
-      - name: Extract artifact
-        if: env.DEPLOY_READY == 'true'
-        run: |
-          cd artifact
-          tar -xzf *.tar.gz
-
-      - name: Deploy to QA via FTP
-        if: env.DEPLOY_READY == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.QA_FTP_HOST }}
-          username: ${{ secrets.QA_FTP_USER }}
-          password: ${{ secrets.QA_FTP_PASS }}
-          server-dir: ${{ secrets.QA_FTP_PATH }}
-          local-dir: artifact
-          protocol: ftp
-          exclude: |
-            .git/**
-            logs/**
-            backups/**
-            *.sql
-            *.tar.gz
-
-      - name: Health check (QA)
-        if: env.DEPLOY_READY == 'true' && env.HEALTHCHECK_URL != ''
-        run: |
-          curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
-
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
