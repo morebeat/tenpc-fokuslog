@@ -271,7 +271,9 @@ class ReportController extends BaseController
 
             // Response als Download
             header('Content-Type: text/csv; charset=utf-8');
-            header('Content-Disposition: attachment; filename="fokuslog_export_' . $dateFrom . '_' . $dateTo . '.csv"');
+            $filename = 'fokuslog_export_' . $dateFrom . '_' . $dateTo . '.csv';
+            $encodedFilename = rawurlencode($filename);
+            header("Content-Disposition: attachment; filename=\"$filename\"; filename*=UTF-8''$encodedFilename");
             
             // BOM für Excel UTF-8 Erkennung
             echo "\xEF\xBB\xBF";
@@ -714,12 +716,12 @@ class ReportController extends BaseController
                 $entry['irritability'] ?? '',
                 $entry['hyperactivity'] ?? '',
                 $entry['weight'] ?? '',
-                str_replace(["\n", "\r", ";"], [" ", " ", ","], $entry['side_effects'] ?? ''),
-                str_replace(["\n", "\r", ";"], [" ", " ", ","], $entry['special_events'] ?? ''),
+                str_replace(["\n", "\r", ";"], [" ", " ", ","], (string)($entry['side_effects'] ?? '')),
+                str_replace(["\n", "\r", ";"], [" ", " ", ","], (string)($entry['special_events'] ?? '')),
                 $entry['tags'] ?? '',
-                str_replace(["\n", "\r", ";"], [" ", " ", ","], $entry['other_effects'] ?? '')
+                str_replace(["\n", "\r", ";"], [" ", " ", ","], (string)($entry['other_effects'] ?? ''))
             ];
-            $csv .= implode(';', array_map(fn($v) => '"' . str_replace('"', '""', $v) . '"', $row)) . "\n";
+            $csv .= implode(';', array_map(fn($v) => '"' . str_replace('"', '""', (string)$v) . '"', $row)) . "\n";
         }
 
         return $csv;

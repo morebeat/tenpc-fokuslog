@@ -199,8 +199,11 @@ $router->get('/badges', 'BadgesController', 'index');
 $router->get('/weight', 'WeightController', 'index');
 $router->get('/me/latest-weight', 'WeightController', 'latestWeight');
 
-// Glossary-Routen
+// Glossary-Routen (Hilfe-Inhalte für eigene und externe Anwendungen)
 $router->get('/glossary', 'GlossaryController', 'index');
+$router->get('/glossary/categories', 'GlossaryController', 'categories');
+$router->get('/glossary/export', 'GlossaryController', 'export');
+$router->post('/glossary/import', 'GlossaryController', 'import');
 $router->get('/glossary/{slug}', 'GlossaryController', 'show');
 
 // Report-Routen (Analyse & Export)

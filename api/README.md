@@ -150,7 +150,41 @@ Der Worker (`scripts/notification-worker.php`) verarbeitet geplante Benachrichti
 */5 * * * * php /path/to/scripts/notification-worker.php
 ```
 
-### Weitere Endpunkte
+### Glossar/Hilfe-Inhalte (Erweitert)
+Die Glossar-API ermöglicht die Wiederverwendung von Hilfe-Inhalten in anderen Anwendungen und Layouts.
+
+| Methode | Endpunkt | Beschreibung |
+|---------|----------|--------------|
+| GET | `/glossary` | Lexikon-Einträge mit Filtern |
+| GET | `/glossary/categories` | Alle verfügbaren Kategorien |
+| GET | `/glossary/export` | Export als JSON oder CSV |
+| POST | `/glossary/import` | Import aus HTML-Dateien (Admin) |
+| GET | `/glossary/{slug}` | Einzelner Eintrag mit vollem Inhalt |
+
+#### Query-Parameter für `/glossary`
+| Parameter | Beschreibung | Beispiel |
+|-----------|--------------|----------|
+| `category` | Filter nach Kategorie | `?category=Wissen` |
+| `audience` | Filter nach Zielgruppe | `?audience=eltern` |
+| `search` | Volltextsuche | `?search=medikament` |
+| `format` | Ausgabeformat (list, full, plain) | `?format=plain` |
+| `limit` | Max. Anzahl | `?limit=10` |
+| `offset` | Pagination-Offset | `?offset=20` |
+
+#### Ausgabeformate
+- **list** (Standard): Kompakte Liste mit Titel, Kurztext, Link
+- **full**: Alle Felder inkl. HTML und strukturierte Abschnitte
+- **plain**: Nur Plaintext-Version ohne HTML
+
+#### Zielgruppen (`audience`)
+`eltern`, `kinder`, `erwachsene`, `lehrer`, `aerzte`, `alle`
+
+#### Export (`/glossary/export`)
+- `?format=json` – JSON-Export (Standard)
+- `?format=csv` – CSV für Excel/Tabellenkalkulationen
+- `?include=slug,title,content` – Nur bestimmte Felder
+
+### Tags & Badges
 | Methode | Endpunkt | Beschreibung |
 |---------|----------|--------------|
 | GET | `/tags` | Tags auflisten |
@@ -158,17 +192,8 @@ Der Worker (`scripts/notification-worker.php`) verarbeitet geplante Benachrichti
 | DELETE | `/tags/{id}` | Tag löschen |
 | GET | `/badges` | Badges & Fortschritt |
 | GET | `/weight` | Gewichtsverlauf |
-| GET | `/glossary` | Lexikon-Einträge |
-| GET | `/glossary/{slug}` | Einzelner Lexikon-Eintrag |
 
-## 🛠 Tech Stack
-
-- **Frontend**: Vanilla JavaScript (ES6+), CSS3, HTML5. Keine Build-Tools notwendig.
-- **Backend**: PHP 7.4+ (REST API).
-- **Datenbank**: MySQL / MariaDB.
-- **Libraries**: Chart.js (Visualisierung), jsPDF (Berichte), canvas-confetti (Gamification).
-
-## 📦 Installation & Setup (Lokal)
+##  Installation & Setup (Lokal)
 
 ### Voraussetzungen
 - PHP 7.4 oder höher
@@ -204,8 +229,22 @@ Der Worker (`scripts/notification-worker.php`) verarbeitet geplante Benachrichti
 4. **Hilfe-Inhalte importieren**
    - Damit das Lexikon funktioniert, müssen die HTML-Inhalte in die Datenbank importiert werden:
      ```bash
+     # Normaler Import (nur geänderte Dateien)
      php app/help/import_help.php
+     
+     # Alle Dateien neu importieren
+     php app/help/import_help.php --force
+     
+     # Nur simulieren (keine DB-Änderungen)
+     php app/help/import_help.php --dry-run
      ```
+   - Das Skript extrahiert automatisch:
+     - Vollständigen HTML-Inhalt
+     - Reinen Text (ohne HTML) für Previews
+     - Strukturierte Abschnitte (alltag/wissen)
+     - Keywords aus Überschriften
+     - Zielgruppen-Erkennung
+     - Geschätzte Lesezeit
 
 5. **Starten**
    - Nutze den PHP Built-in Server für die Entwicklung:

@@ -127,6 +127,8 @@
                     if (response.ok) {
                         const data = await response.json();
                         displayStatus(data);
+                    } else {
+                        notificationStatus.innerHTML = '<p class="error">Status konnte nicht geladen werden.</p>';
                     }
                 } catch (error) {
                     console.error('Fehler beim Laden des Status:', error);

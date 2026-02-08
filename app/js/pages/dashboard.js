@@ -11,7 +11,7 @@
             toggleAdminSection(user);
             if (!user.points || user.points === 0) {
                 const card = ensureFirstStepsCard();
-                await updateFirstStepsCardState(card, utils?.firstStepsState);
+                await updateFirstStepsCardState(card);
             }
         }
     };
@@ -120,8 +120,8 @@
         return container;
     }
 
-    async function updateFirstStepsCardState(cardElement, firstStepsUtils) {
-        if (!cardElement || !firstStepsUtils) return;
+    async function updateFirstStepsCardState(cardElement) {
+        if (!cardElement) return;
         const medCta = document.getElementById('first-steps-med-cta');
         const entryCta = document.getElementById('first-steps-entry-cta');
         let hasMedications = false;
@@ -143,13 +143,16 @@
             console.error('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
         }
 
-        const state = firstStepsUtils.computeFirstStepsVisibility({ hasMedications, hasEntries });
+        const showMedCta = !hasMedications;
+        const showEntryCta = !hasEntries;
+        const hideCard = !showMedCta && !showEntryCta;
+
         if (medCta) {
-            medCta.classList.toggle('hidden', !state.showMedCta);
+            medCta.classList.toggle('hidden', !showMedCta);
         }
         if (entryCta) {
-            entryCta.classList.toggle('hidden', !state.showEntryCta);
+            entryCta.classList.toggle('hidden', !showEntryCta);
         }
-        cardElement.style.display = state.hideCard ? 'none' : 'block';
+        cardElement.style.display = hideCard ? 'none' : 'block';
     }
 })(window);

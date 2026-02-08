@@ -50,7 +50,7 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 | TagsController | /tags, /tags/{id} | Custom tags |
 | BadgesController | /badges | Gamification badges |
 | WeightController | /weight, /me/latest-weight | Weight tracking |
-| GlossaryController | /glossary, /glossary/{slug} | Help lexicon |
+| GlossaryController | /glossary, /glossary/categories, /glossary/export, /glossary/import, /glossary/{slug} | Help lexicon with filters, export & import |
 | **ReportController** | /report/trends, /report/compare, /report/summary, /report/export/excel | **Analytics & Exports** |
 | **NotificationsController** | /notifications/settings, /notifications/push/*, /notifications/email/*, /notifications/status | **Push & Email Notifications** |
 | AdminController | /admin/migrate, /admin/backup | Admin operations |
@@ -79,6 +79,7 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 - Notifications Frontend: [app/notifications.html](app/notifications.html#L1), [app/js/pages/notifications.js](app/js/pages/notifications.js#L1)
 - Notification Worker (Cron): [scripts/notification-worker.php](scripts/notification-worker.php#L1)
 - API tests: [api/ApiTest.php](api/ApiTest.php#L1), [api/run_tests.php](api/run_tests.php#L1)
-- DB schema and migrations: [db/schema.sql](db/schema.sql#L1), [scripts/update_schema.sql](scripts/update_schema.sql#L1)
+- DB schema and migrations: [db/schema.sql](db/schema.sql#L1), [db/migrations/](db/migrations/)
+- Help import script: [app/help/import_help.php](app/help/import_help.php#L1) - Scans HTML files, extracts structured content
 
 If any area is unclear or you want the file to include more details (e.g., exact test output interpretation or CI/deploy steps), tell me which section to expand.

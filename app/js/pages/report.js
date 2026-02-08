@@ -594,6 +594,43 @@
                 container.innerHTML = html;
             };
 
+            // Hilfsfunktion: Dateinamen aus Header extrahieren (RFC 5987 Support)
+            const getFilenameFromHeader = (header) => {
+                if (!header) return null;
+                // 1. Priorität: filename*=UTF-8''... (für Umlaute)
+                const matchesStar = header.match(/filename\*=UTF-8''([^;]+)/i);
+                if (matchesStar && matchesStar[1]) {
+                    return decodeURIComponent(matchesStar[1]);
+                }
+                // 2. Fallback: filename="..."
+                const matches = header.match(/filename="?([^"]+)"?/i);
+                return (matches && matches[1]) ? matches[1] : null;
+            };
+
+            // Hilfsfunktion: Server-Export auslösen
+            const triggerServerExport = async (url, defaultFilename) => {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || `Server-Fehler: ${response.status}`);
+                    }
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    const header = response.headers.get('Content-Disposition');
+                    a.download = getFilenameFromHeader(header) || defaultFilename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(downloadUrl);
+                } catch (error) {
+                    console.error('Export fehlgeschlagen:', error);
+                    alert('Der Export konnte nicht erstellt werden:\n' + error.message);
+                }
+            };
+
             // Excel-Export (Server-seitig)
             const exportToExcel = async () => {
                 const dateFrom = dateFromInput?.value;
@@ -608,8 +645,7 @@
                 let url = `/api/report/export/excel?date_from=${dateFrom}&date_to=${dateTo}&format=detailed`;
                 if (userId) url += `&user_id=${userId}`;
                 
-                window.location.href = url;
-            };
+                
 
             // Arzt-Export
             const exportForDoctor = async () => {
@@ -625,8 +661,7 @@
                 let url = `/api/report/export/excel?date_from=${dateFrom}&date_to=${dateTo}&format=doctor`;
                 if (userId) url += `&user_id=${userId}`;
                 
-                window.location.href = url;
-            };
+                
 
             const loadWeightData = async () => {
                 const dateFrom = dateFromInput?.value;
