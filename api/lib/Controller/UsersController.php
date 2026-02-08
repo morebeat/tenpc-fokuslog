@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace FokusLog\Controller;
@@ -74,9 +75,13 @@ class UsersController extends BaseController
             $gender = $data['gender'] ?? null;
             $initialWeight = (isset($data['initial_weight']) && $data['initial_weight'] !== '') ? $data['initial_weight'] : null;
 
-            if ($username === '' || $password === '' || !in_array($role, ['child', 'teacher', 'adult'], true)
+            if (
+                $username === ''
+                || $password === ''
+                || !in_array($role, ['child', 'teacher', 'adult'], true)
                 || ($gender !== null && !in_array($gender, ['male', 'female', 'diverse', '']))
-                || ($initialWeight !== null && !is_numeric($initialWeight))) {
+                || ($initialWeight !== null && !is_numeric($initialWeight))
+            ) {
                 app_log('WARNING', 'user_create_validation_failed', [
                     'creator_id' => $user['id'],
                     'username' => $username,
@@ -127,10 +132,13 @@ class UsersController extends BaseController
             $gender = $data['gender'] ?? null;
             $initialWeight = (isset($data['initial_weight']) && $data['initial_weight'] !== '') ? $data['initial_weight'] : null;
 
-            if ($username === '' || !in_array($role, ['child', 'teacher', 'adult'], true)
+            if (
+                $username === ''
+                || !in_array($role, ['child', 'teacher', 'adult'], true)
                 || ($gender !== null && !in_array($gender, ['male', 'female', 'diverse', '']))
-                || ($initialWeight !== null && !is_numeric($initialWeight))) {
-                $this->respond(400, ['error' => 'username und role sind erforderlich. gender/initial_weight sind ungÃ¼ltig.']);
+                || ($initialWeight !== null && !is_numeric($initialWeight))
+            ) {
+                $this->respond(400, ['error' => 'username und role sind erforderlich. gender/initial_weight sind ungültig.']);
             }
 
             // Parent darf sich nicht selbst bearbeiten

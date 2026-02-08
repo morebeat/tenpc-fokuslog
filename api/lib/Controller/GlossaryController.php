@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace FokusLog\Controller;
@@ -321,8 +322,8 @@ class GlossaryController extends BaseController
                 header('Content-Disposition: attachment; filename="fokuslog-glossary.csv"');
 
                 $output = fopen('php://output', 'w');
-                // BOM fÃ¼r Excel UTF-8
-                fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+                // BOM für Excel UTF-8
+                fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
                 // Header
                 fputcsv($output, $fields, ';');
                 // Daten

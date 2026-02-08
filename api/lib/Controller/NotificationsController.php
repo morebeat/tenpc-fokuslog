@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace FokusLog\Controller;
@@ -59,7 +60,6 @@ class NotificationsController extends BaseController
             }
 
             $this->respond(200, ['settings' => $settings]);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'notification_settings_get_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Laden der Einstellungen']);
@@ -139,9 +139,8 @@ class NotificationsController extends BaseController
 
             $this->logAction($user['id'], 'notification_settings_updated', array_keys($updateData));
 
-            // Neue Einstellungen zurÃ¼ckgeben
+            // Neue Einstellungen zurückgeben
             $this->getSettings();
-
         } catch (Throwable $e) {
             app_log('ERROR', 'notification_settings_update_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Speichern der Einstellungen']);
@@ -174,7 +173,6 @@ class NotificationsController extends BaseController
 
             $this->logAction($user['id'], 'push_subscribed');
             $this->respond(200, ['success' => true, 'message' => 'Push-Benachrichtigungen aktiviert']);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'push_subscribe_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Aktivieren der Push-Benachrichtigungen']);
@@ -199,7 +197,6 @@ class NotificationsController extends BaseController
 
             $this->logAction($user['id'], 'push_unsubscribed');
             $this->respond(200, ['success' => true, 'message' => 'Push-Benachrichtigungen deaktiviert']);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'push_unsubscribe_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Deaktivieren']);
@@ -231,7 +228,6 @@ class NotificationsController extends BaseController
             }
 
             $this->respond(200, ['success' => true, 'message' => 'E-Mail-Adresse verifiziert']);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'email_verify_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler bei der Verifizierung']);
@@ -268,7 +264,6 @@ class NotificationsController extends BaseController
             $this->sendVerificationEmail($settings['email'], $token, $user['username']);
 
             $this->respond(200, ['success' => true, 'message' => 'Verifizierungs-E-Mail gesendet']);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'resend_verification_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Senden der Verifizierungs-E-Mail']);
@@ -322,7 +317,6 @@ class NotificationsController extends BaseController
                     'email_enabled' => (bool)($settings['email_weekly_digest'] ?? false) && (bool)($settings['email_verified'] ?? false)
                 ]
             ]);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'notification_status_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Laden des Status']);

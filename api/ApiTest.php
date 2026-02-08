@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/SimpleTestRunner.php';
 
 class ApiTest

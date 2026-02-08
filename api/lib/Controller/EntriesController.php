@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace FokusLog\Controller;
@@ -328,8 +329,12 @@ class EntriesController extends BaseController
         if (date('N', strtotime($date)) >= 6) {
             $specialBadgeNames[] = 'Wochenend-Warrior';
         }
-        if ($time === 'morning') $specialBadgeNames[] = 'FrÃ¼her Vogel';
-        if ($time === 'evening') $specialBadgeNames[] = 'Nachteule';
+        if ($time === 'morning') {
+            $specialBadgeNames[] = 'Früher Vogel';
+        }
+        if ($time === 'evening') {
+            $specialBadgeNames[] = 'Nachteule';
+        }
 
         if (!empty($specialBadgeNames)) {
             $inQuery = implode(',', array_fill(0, count($specialBadgeNames), '?'));

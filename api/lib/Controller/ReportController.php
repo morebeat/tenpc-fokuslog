@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace FokusLog\Controller;
@@ -166,7 +167,6 @@ class ReportController extends BaseController
                 'stats' => $stats,
                 'period' => ['from' => $dateFrom, 'to' => $dateTo]
             ]);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'trends_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler bei der Trendanalyse: ' . $e->getMessage()]);
@@ -213,7 +213,6 @@ class ReportController extends BaseController
             }
 
             $this->respond(200, $result);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'compare_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Vergleich: ' . $e->getMessage()]);
@@ -279,7 +278,6 @@ class ReportController extends BaseController
             echo "\xEF\xBB\xBF";
             echo $csv;
             exit;
-
         } catch (Throwable $e) {
             app_log('ERROR', 'export_excel_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Export: ' . $e->getMessage()]);
@@ -353,8 +351,12 @@ class ReportController extends BaseController
             foreach ($entries as $entry) {
                 $slot = $entry['time'];
                 if (isset($timeSlotStats[$slot])) {
-                    if ($entry['mood']) $timeSlotStats[$slot]['mood'][] = $entry['mood'];
-                    if ($entry['focus']) $timeSlotStats[$slot]['focus'][] = $entry['focus'];
+                    if ($entry['mood']) {
+                    $timeSlotStats[$slot]['mood'][] = $entry['mood'];
+                }
+                if ($entry['focus']) {
+                    $timeSlotStats[$slot]['focus'][] = $entry['focus'];
+                }
                 }
             }
 
@@ -395,7 +397,6 @@ class ReportController extends BaseController
                 'side_effects' => array_slice($sideEffects, 0, 10), // Max 10 fÃ¼r Ãœbersicht
                 'side_effects_total' => count($sideEffects)
             ]);
-
         } catch (Throwable $e) {
             app_log('ERROR', 'summary_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler bei der Zusammenfassung: ' . $e->getMessage()]);
