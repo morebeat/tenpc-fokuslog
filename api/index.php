@@ -209,6 +209,15 @@ $router->get('/report/compare', 'ReportController', 'compare');
 $router->get('/report/summary', 'ReportController', 'summary');
 $router->get('/report/export/excel', 'ReportController', 'exportExcel');
 
+// Notifications-Routen (Benachrichtigungen)
+$router->get('/notifications/settings', 'NotificationsController', 'getSettings');
+$router->put('/notifications/settings', 'NotificationsController', 'updateSettings');
+$router->post('/notifications/push/subscribe', 'NotificationsController', 'subscribePush');
+$router->post('/notifications/push/unsubscribe', 'NotificationsController', 'unsubscribePush');
+$router->post('/notifications/email/verify', 'NotificationsController', 'verifyEmail');
+$router->post('/notifications/email/resend-verification', 'NotificationsController', 'resendVerification');
+$router->get('/notifications/status', 'NotificationsController', 'getStatus');
+
 // Admin-Routen
 $router->post('/admin/migrate', 'AdminController', 'migrate');
 $router->post('/admin/backup', 'AdminController', 'backup');

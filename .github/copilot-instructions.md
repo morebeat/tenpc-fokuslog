@@ -52,6 +52,7 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 | WeightController | /weight, /me/latest-weight | Weight tracking |
 | GlossaryController | /glossary, /glossary/{slug} | Help lexicon |
 | **ReportController** | /report/trends, /report/compare, /report/summary, /report/export/excel | **Analytics & Exports** |
+| **NotificationsController** | /notifications/settings, /notifications/push/*, /notifications/email/*, /notifications/status | **Push & Email Notifications** |
 | AdminController | /admin/migrate, /admin/backup | Admin operations |
 
 5) Integration points and external deps
@@ -74,6 +75,9 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 - Base Controller: [api/lib/Controller/BaseController.php](api/lib/Controller/BaseController.php#L1)
 - Report Controller: [api/lib/Controller/ReportController.php](api/lib/Controller/ReportController.php#L1)
 - Report Frontend: [app/js/pages/report.js](app/js/pages/report.js#L1)
+- Notifications Controller: [api/lib/Controller/NotificationsController.php](api/lib/Controller/NotificationsController.php#L1)
+- Notifications Frontend: [app/notifications.html](app/notifications.html#L1), [app/js/pages/notifications.js](app/js/pages/notifications.js#L1)
+- Notification Worker (Cron): [scripts/notification-worker.php](scripts/notification-worker.php#L1)
 - API tests: [api/ApiTest.php](api/ApiTest.php#L1), [api/run_tests.php](api/run_tests.php#L1)
 - DB schema and migrations: [db/schema.sql](db/schema.sql#L1), [scripts/update_schema.sql](scripts/update_schema.sql#L1)
 

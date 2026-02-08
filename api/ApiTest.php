@@ -170,4 +170,39 @@ class ApiTest
         Assert::equals(403, $deleteResponse['code'], 'Selbstlöschung sollte 403 Forbidden zurückgeben');
         Assert::equals('Sie können sich nicht selbst löschen', $deleteResponse['body']['error'] ?? '', 'Fehlermeldung für Selbstlöschung prüfen');
     }
+
+    public function testParentSeesFamilyEntriesInMe()
+    {
+        // Szenario: Elternteil hat selbst keine Einträge, aber das Kind hat welche.
+        // Das Dashboard sollte trotzdem nicht den "Willkommen"-Screen zeigen (has_entries = true).
+        
+        $client = $this->getAuthenticatedClient();
+        
+        // 1. Kind anlegen
+        $childName = 'child_' . bin2hex(random_bytes(4));
+        $client->post('/users', [
+            'username' => $childName, 
+            'password' => 'pass123', 
+            'role' => 'child',
+            'first_name' => 'TestKind'
+        ]);
+
+        // 2. Medikament anlegen (als Elternteil)
+        $medRes = $client->post('/medications', ['name' => 'Saft', 'default_dose' => '5ml']);
+        $medId = $medRes['body']['id'];
+
+        // 3. Als Kind einloggen und Eintrag erstellen
+        $childClient = $this->getApiClient();
+        $childClient->post('/login', ['username' => $childName, 'password' => 'pass123']);
+        $childClient->post('/entries', [
+            'date' => date('Y-m-d'),
+            'time' => 'morning',
+            'medication_id' => $medId,
+            'mood' => 4
+        ]);
+
+        // 4. Als Elternteil wieder /me prüfen
+        $meRes = $client->get('/me');
+        Assert::equals(true, $meRes['body']['has_entries'] ?? false, 'Eltern sollten has_entries=true haben, wenn Kind Einträge hat');
+    }
 }

@@ -26,18 +26,23 @@ class BadgesController extends BaseController
             $allBadges = $stmtAll->fetchAll();
 
             // Verdiente Badges des Users
-            $stmtEarned = $this->pdo->prepare('SELECT badge_id FROM user_badges WHERE user_id = ?');
+            $stmtEarned = $this->pdo->prepare('SELECT badge_id, earned_at FROM user_badges WHERE user_id = ?');
             $stmtEarned->execute([$user['id']]);
-            $earnedBadgeIds = array_flip($stmtEarned->fetchAll(PDO::FETCH_COLUMN));
+            $earnedMap = [];
+            foreach ($stmtEarned->fetchAll() as $row) {
+                $earnedMap[$row['badge_id']] = $row['earned_at'];
+            }
 
             // Kombinieren
             foreach ($allBadges as &$badge) {
-                $badge['earned'] = isset($earnedBadgeIds[$badge['id']]);
+                $badge['earned'] = isset($earnedMap[$badge['id']]);
+                $badge['earned_at'] = $badge['earned'] ? $earnedMap[$badge['id']] : null;
             }
 
             $this->respond(200, [
                 'badges' => $allBadges,
-                'current_streak' => (int)$user['streak_current']
+                'current_streak' => (int)($user['streak_current'] ?? 0),
+                'points' => (int)($user['points'] ?? 0)
             ]);
         } catch (Throwable $e) {
             app_log('ERROR', 'badges_get_failed', ['error' => $e->getMessage()]);

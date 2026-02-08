@@ -173,11 +173,19 @@ class AuthController extends BaseController
             $stmtFamily->execute([$user['family_id']]);
             $familyCount = $stmtFamily->fetchColumn();
 
-            // Prüfen, ob bereits Einträge oder Medikamente in der Familie existieren
-            $stmtEntries = $this->pdo->prepare('SELECT 1 FROM entries e JOIN users u ON e.user_id = u.id WHERE u.family_id = ? LIMIT 1');
-            $stmtEntries->execute([$user['family_id']]);
-            $hasEntries = $stmtEntries->fetch() !== false;
+            // Prüfen, ob der User selbst Einträge hat
+            $stmt = $this->pdo->prepare("SELECT 1 FROM entries WHERE user_id = ? LIMIT 1");
+            $stmt->execute([$user['id']]);
+            $hasEntries = (bool)$stmt->fetchColumn();
 
+            // Wenn nicht, und der User ist 'parent' oder 'adult', prüfen wir, ob IRGENDJEMAND in der Familie Einträge hat
+            if (!$hasEntries && ($user['role'] === 'parent' || $user['role'] === 'adult')) {
+                $stmtEntries = $this->pdo->prepare('SELECT 1 FROM entries e JOIN users u ON e.user_id = u.id WHERE u.family_id = ? LIMIT 1');
+                $stmtEntries->execute([$user['family_id']]);
+                $hasEntries = $stmtEntries->fetch() !== false;
+            }
+
+            // Medikamente werden immer familienweit geprüft
             $stmtMeds = $this->pdo->prepare('SELECT 1 FROM medications WHERE family_id = ? LIMIT 1');
             $stmtMeds->execute([$user['family_id']]);
             $hasMedications = $stmtMeds->fetch() !== false;

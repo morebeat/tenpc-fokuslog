@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FokusLog – Benachrichtigungen</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+</head>
+<body data-page="notifications" class="app-page">
+    <header class="app-header">
+        <div class="logo">
+            <h1>FokusLog</h1>
+        </div>
+        <nav>
+            <a href="dashboard.html" class="button button-secondary">Dashboard</a>
+        </nav>
+    </header>
+    <main class="entry-main">
+        <h2 class="page-title">Benachrichtigungen</h2>
+
+        <!-- Push-Benachrichtigungen -->
+        <div class="form-card">
+            <h3>🔔 Push-Benachrichtigungen</h3>
+            <p class="form-description">Erhalte Erinnerungen direkt auf deinem Gerät.</p>
+            
+            <div id="push-not-supported" class="info-box warning" style="display: none;">
+                Push-Benachrichtigungen werden von diesem Browser nicht unterstützt.
+            </div>
+            
+            <div id="push-settings">
+                <div class="form-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="push_enabled" name="push_enabled">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Push-Benachrichtigungen aktivieren</span>
+                    </label>
+                </div>
+                
+                <div id="push-details" class="settings-details" style="display: none;">
+                    <h4>Erinnerungszeiten</h4>
+                    
+                    <div class="form-group time-setting">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="push_morning" name="push_morning" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Morgens</span>
+                        </label>
+                        <input type="time" id="push_morning_time" name="push_morning_time" value="08:00">
+                    </div>
+                    
+                    <div class="form-group time-setting">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="push_noon" name="push_noon" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Mittags</span>
+                        </label>
+                        <input type="time" id="push_noon_time" name="push_noon_time" value="12:00">
+                    </div>
+                    
+                    <div class="form-group time-setting">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="push_evening" name="push_evening" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Abends</span>
+                        </label>
+                        <input type="time" id="push_evening_time" name="push_evening_time" value="18:00">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- E-Mail-Benachrichtigungen -->
+        <div class="form-card">
+            <h3>📧 E-Mail-Benachrichtigungen</h3>
+            <p class="form-description">Wöchentliche Zusammenfassungen und Erinnerungen per E-Mail.</p>
+            
+            <div class="form-group">
+                <label for="email">E-Mail-Adresse</label>
+                <div class="input-with-status">
+                    <input type="email" id="email" name="email" placeholder="deine@email.de">
+                    <span id="email-status" class="status-badge"></span>
+                </div>
+                <button type="button" id="verify-email-btn" class="button button-small button-secondary" style="display: none;">
+                    Verifizierung erneut senden
+                </button>
+            </div>
+            
+            <div id="email-settings" class="settings-details" style="display: none;">
+                <h4>E-Mail-Optionen</h4>
+                
+                <div class="form-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="email_weekly_digest" name="email_weekly_digest">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Wöchentliche Zusammenfassung</span>
+                    </label>
+                </div>
+                
+                <div id="digest-day-setting" class="form-group" style="display: none;">
+                    <label for="email_digest_day">Versandtag</label>
+                    <select id="email_digest_day" name="email_digest_day">
+                        <option value="0">Sonntag</option>
+                        <option value="1">Montag</option>
+                        <option value="2">Dienstag</option>
+                        <option value="3">Mittwoch</option>
+                        <option value="4">Donnerstag</option>
+                        <option value="5">Freitag</option>
+                        <option value="6">Samstag</option>
+                    </select>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="email_missing_alert" name="email_missing_alert">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Erinnerung bei fehlenden Einträgen</span>
+                    </label>
+                </div>
+                
+                <div id="missing-days-setting" class="form-group" style="display: none;">
+                    <label for="email_missing_days">Nach wie vielen Tagen?</label>
+                    <select id="email_missing_days" name="email_missing_days">
+                        <option value="2">2 Tage</option>
+                        <option value="3" selected>3 Tage</option>
+                        <option value="5">5 Tage</option>
+                        <option value="7">7 Tage</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status-Übersicht -->
+        <div class="form-card">
+            <h3>📊 Status</h3>
+            <div id="notification-status">
+                <p>Lade Status...</p>
+            </div>
+        </div>
+
+        <!-- Speichern-Button -->
+        <div class="form-actions sticky-actions">
+            <button type="button" id="save-settings-btn" class="button button-primary">Einstellungen speichern</button>
+        </div>
+        
+        <div id="message-container" class="message-container"></div>
+    </main>
+    <script src="js/utils/common.js"></script>
+    <script src="js/pages/notifications.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

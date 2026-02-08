@@ -7,7 +7,7 @@
  * Daten verwendet werden.
  */
 
-const CACHE_NAME = 'fokuslog-cache-v6';
+const CACHE_NAME = 'fokuslog-cache-v7';
 const OFFLINE_URLS = [
   '/app/index.html',
   '/app/style.css',
@@ -17,6 +17,7 @@ const OFFLINE_URLS = [
   '/app/dashboard.html',
   '/app/entry.html',
   '/app/report.html',
+  '/app/notifications.html',
   '/app/manage_users.html',
   '/app/manage_meds.html',
   '/app/privacy.html',
@@ -83,4 +84,102 @@ self.addEventListener('message', event => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
+});
+
+/*
+ * Push Notification Handler
+ * Wird aufgerufen wenn eine Push-Nachricht vom Server empfangen wird
+ */
+self.addEventListener('push', event => {
+  let data = {
+    title: 'FokusLog',
+    body: 'Zeit für deinen Eintrag!',
+    icon: '/app/icons/icon-192.png',
+    badge: '/app/icons/icon-192.png',
+    tag: 'fokuslog-reminder',
+    data: { url: '/app/entry.html' }
+  };
+
+  // Versuche Push-Daten zu parsen
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    } catch (e) {
+      // Falls kein JSON, nutze Text als Body
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/app/icons/icon-192.png',
+    badge: data.badge || '/app/icons/icon-192.png',
+    tag: data.tag || 'fokuslog-notification',
+    vibrate: [200, 100, 200],
+    requireInteraction: false,
+    data: data.data || { url: '/app/entry.html' },
+    actions: [
+      { action: 'open', title: 'Öffnen' },
+      { action: 'dismiss', title: 'Später' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+/*
+ * Notification Click Handler
+ * Wird aufgerufen wenn der Benutzer auf eine Notification klickt
+ */
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+
+  // Bei "dismiss" nichts tun
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  // URL aus Notification-Daten holen
+  const urlToOpen = event.notification.data?.url || '/app/entry.html';
+  const fullUrl = new URL(urlToOpen, self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        // Versuche ein existierendes Fenster zu finden und zu fokussieren
+        for (const client of windowClients) {
+          if (client.url === fullUrl && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Sonst neues Fenster öffnen
+        if (clients.openWindow) {
+          return clients.openWindow(fullUrl);
+        }
+      })
+  );
+});
+
+/*
+ * Push Subscription Change Handler
+ * Wird aufgerufen wenn sich das Push-Abonnement ändert
+ */
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil(
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: self.vapidPublicKey
+    }).then(subscription => {
+      // Sende neue Subscription an Server
+      return fetch('/api/notifications/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+        credentials: 'include'
+      });
+    })
+  );
 });

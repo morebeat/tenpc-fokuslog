@@ -15,6 +15,10 @@ FokusLog ist eine datenschutzfreundliche Progressive Web App (PWA) zur Dokumenta
   - Excel/CSV-Export mit Arzt-Format
   - Automatische Trend-Erkennung (Appetit, Stimmung, Gewicht)
   - Woche-über-Woche-Vergleiche
+- **Benachrichtigungen** (NEU):
+  - Push-Erinnerungen (morgens, mittags, abends)
+  - Wöchentlicher E-Mail-Digest für Eltern
+  - Automatische Alerts bei fehlenden Einträgen
 - **Wissen**: Integriertes Lexikon und Hilfebereich.
 
 ## 🛠 Tech Stack
@@ -45,7 +49,8 @@ api/
         ├── BadgesController.php
         ├── WeightController.php
         ├── GlossaryController.php
-        ├── ReportController.php    # Analysen & Exporte (NEU)
+        ├── ReportController.php    # Analysen & Exporte
+        ├── NotificationsController.php  # Push & E-Mail (NEU)
         └── AdminController.php     # Migration, Backup
 ```
 
@@ -111,6 +116,39 @@ Query-Parameter `format`:
 - `detailed` – Alle Felder als CSV
 - `summary` – Zusammenfassung mit Durchschnittswerten
 - `doctor` – Formatierter Arzt-Report mit allen relevanten Informationen
+
+### Benachrichtigungen (NEU)
+| Methode | Endpunkt | Beschreibung |
+|---------|----------|--------------|
+| GET | `/notifications/settings` | Benachrichtigungs-Einstellungen abrufen |
+| PUT | `/notifications/settings` | Einstellungen aktualisieren |
+| POST | `/notifications/push/subscribe` | Push-Benachrichtigungen aktivieren |
+| POST | `/notifications/push/unsubscribe` | Push-Benachrichtigungen deaktivieren |
+| POST | `/notifications/email/verify` | E-Mail-Adresse verifizieren |
+| POST | `/notifications/email/resend-verification` | Verifizierungs-E-Mail erneut senden |
+| GET | `/notifications/status` | Benachrichtigungs-Status abrufen |
+
+#### Push-Benachrichtigungen
+- **Morgens, Mittags, Abends**: Konfigurierbare Erinnerungszeiten
+- **Web Push API**: Funktioniert auch bei geschlossener App
+- **VAPID-Authentifizierung**: Sichere Server-zu-Browser-Kommunikation
+- Benötigt VAPID-Keys in `.env`:
+  ```
+  VAPID_PUBLIC_KEY=your_public_key
+  VAPID_PRIVATE_KEY=your_private_key
+  ```
+
+#### E-Mail-Benachrichtigungen
+- **Wöchentlicher Digest**: Zusammenfassung der Woche für Eltern
+- **Fehlende Einträge Alert**: Erinnerung nach X Tagen ohne Eintrag
+- E-Mail-Adresse muss verifiziert werden
+
+#### Notification Worker (Cron-Job)
+Der Worker (`scripts/notification-worker.php`) verarbeitet geplante Benachrichtigungen:
+```bash
+# Alle 5 Minuten ausführen
+*/5 * * * * php /path/to/scripts/notification-worker.php
+```
 
 ### Weitere Endpunkte
 | Methode | Endpunkt | Beschreibung |
