@@ -62,3 +62,15 @@ jobs:
             **/.DS_Store
             **/node_modules/**
             **/vendor/**
+
+      - name: Trigger Help Import via Webhook
+        run: |
+          DEPLOY_URL=${{ github.ref == 'refs/heads/main' && secrets.PROD_DEPLOY_URL || secrets.DEV_DEPLOY_URL }}
+          DEPLOY_TOKEN=${{ github.ref == 'refs/heads/main' && secrets.PROD_DEPLOY_TOKEN || secrets.DEV_DEPLOY_TOKEN }}
+          if [ -n "$DEPLOY_URL" ] && [ -n "$DEPLOY_TOKEN" ]; then
+            curl -s -X POST "${DEPLOY_URL}?token=${DEPLOY_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{"skip_git": true}' || echo "Webhook call failed (non-critical)"
+          else
+            echo "Skipping webhook - secrets not configured"
+          fi

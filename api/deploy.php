@@ -53,67 +53,76 @@ error_log("[Deploy] Deployment-Versuch von IP: " . ($_SERVER['REMOTE_ADDR'] ?? '
  
 // Optional: Neuer .env Inhalt aus Request (z.B. von GitHub Secrets)
 $newEnvContent = $inputData['env_content'] ?? null;
+$skipGit = isset($inputData['skip_git']) && $inputData['skip_git'];
 
 // Deployment-Directory
 $deployDir = dirname(__DIR__);
 
-// Überprüfe ob .git existiert
-if (!is_dir($deployDir . '/.git')) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Git-Repository nicht vorhanden: $deployDir ']);
-    exit;
-}
-
-// Backup .env
-$envFile = $deployDir . '/.env';
-$envBackup = $deployDir . '/.env.backup';
-if (is_file($envFile)) {
-    copy($envFile, $envBackup);
-}
-
-// Führe git pull aus
-chdir($deployDir);
-$output = [];
-$return = 0;
-
-error_log("[Deploy] Starting git fetch...");
-exec('git fetch origin 2>&1', $output, $return);
-
-if ($return !== 0) {
-    http_response_code(500);
-    error_log("[Deploy] Git fetch failed: " . implode("\n", $output));
-    echo json_encode(['error' => 'Git fetch fehlgeschlagen', 'output' => $output]);
-    exit;
-}
-
-$output = [];
-$return = 0;
-exec('git reset --hard origin/HEAD 2>&1', $output, $return);
-
-if ($return !== 0) {
-    http_response_code(500);
-    error_log("[Deploy] Git reset failed: " . implode("\n", $output));
-    echo json_encode(['error' => 'Git reset fehlgeschlagen', 'output' => $output]);
-    exit;
-}
-
-exec('git clean -fd 2>&1', $output, $return);
-
-// Stelle .env wieder her oder schreibe neue
-$migrationOutput = [];
-if ($newEnvContent) {
-    // Neue .env aus Request schreiben
-    if (file_put_contents($envFile, $newEnvContent) !== false) {
-        $migrationOutput[] = '.env Datei wurde aktualisiert.';
-        if (is_file($envBackup)) unlink($envBackup);
-    } else {
-        $migrationOutput[] = 'Fehler: Konnte neue .env nicht schreiben.';
-        if (is_file($envBackup)) { copy($envBackup, $envFile); unlink($envBackup); }
+// Git-Operationen nur wenn nicht übersprungen (z.B. nach FTP-Deployment)
+if (!$skipGit) {
+    // Überprüfe ob .git existiert
+    if (!is_dir($deployDir . '/.git')) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Git-Repository nicht vorhanden: ' . $deployDir]);
+        exit;
     }
-} elseif (is_file($envBackup)) {
-    copy($envBackup, $envFile);
-    unlink($envBackup);
+
+    // Backup .env
+    $envFile = $deployDir . '/.env';
+    $envBackup = $deployDir . '/.env.backup';
+    if (is_file($envFile)) {
+        copy($envFile, $envBackup);
+    }
+
+    // Führe git pull aus
+    chdir($deployDir);
+    $output = [];
+    $return = 0;
+
+    error_log("[Deploy] Starting git fetch...");
+    exec('git fetch origin 2>&1', $output, $return);
+
+    if ($return !== 0) {
+        http_response_code(500);
+        error_log("[Deploy] Git fetch failed: " . implode("\n", $output));
+        echo json_encode(['error' => 'Git fetch fehlgeschlagen', 'output' => $output]);
+        exit;
+    }
+
+    $output = [];
+    $return = 0;
+    exec('git reset --hard origin/HEAD 2>&1', $output, $return);
+
+    if ($return !== 0) {
+        http_response_code(500);
+        error_log("[Deploy] Git reset failed: " . implode("\n", $output));
+        echo json_encode(['error' => 'Git reset fehlgeschlagen', 'output' => $output]);
+        exit;
+    }
+
+    exec('git clean -fd 2>&1', $output, $return);
+
+    // Stelle .env wieder her oder schreibe neue
+    if ($newEnvContent) {
+        // Neue .env aus Request schreiben
+        if (file_put_contents($envFile, $newEnvContent) !== false) {
+            $migrationOutput[] = '.env Datei wurde aktualisiert.';
+            if (is_file($envBackup)) unlink($envBackup);
+        } else {
+            $migrationOutput[] = 'Fehler: Konnte neue .env nicht schreiben.';
+            if (is_file($envBackup)) { copy($envBackup, $envFile); unlink($envBackup); }
+        }
+    } elseif (is_file($envBackup)) {
+        copy($envBackup, $envFile);
+        unlink($envBackup);
+    }
+} else {
+    error_log("[Deploy] Skipping git operations (skip_git=true)");
 }
+
+// .env Pfad setzen (falls nicht via Git)
+$envFile = $deployDir . '/.env';
+$migrationOutput = [];
 
 // Hilfe-Inhalte in Glossary-Tabelle importieren
 $helpImportScript = $deployDir . '/app/help/import_help.php';
@@ -161,12 +170,17 @@ if (is_file($helpImportScript)) {
     error_log("[Deploy] Help import script not found: " . $helpImportScript);
 }
 
-// Hole aktuellen Commit
-exec('git rev-parse --short HEAD', $commit);
-$commitHash = trim($commit[0] ?? 'unknown');
+// Hole aktuellen Commit (falls Git verfügbar)
+$commit = [];
+$commitHash = 'unknown';
+if (!$skipGit && is_dir($deployDir . '/.git')) {
+    chdir($deployDir);
+    exec('git rev-parse --short HEAD', $commit);
+    $commitHash = trim($commit[0] ?? 'unknown');
+}
 
 if (empty($migrationOutput)) {
-    $migrationOutput[] = 'Keine neuen Migrationen gefunden.';
+    $migrationOutput[] = $skipGit ? 'Git übersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
 }
 
 error_log("[Deploy] Erfolg: Commit $commitHash deployed. Migrationen: " . implode(', ', $migrationOutput) . " Help: " . implode(', ', $helpImportOutput));

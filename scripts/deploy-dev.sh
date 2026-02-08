@@ -118,6 +118,14 @@ mkdir -p "$DEPLOY_DIR/logs"
 mkdir -p "$DEPLOY_DIR/backups"
 chmod 777 "$DEPLOY_DIR/logs" "$DEPLOY_DIR/backups"
 
+# Import help content into glossary table
+log_info "Importing help content into glossary..."
+if [ -f "$DEPLOY_DIR/app/help/import_help.php" ]; then
+    php "$DEPLOY_DIR/app/help/import_help.php" && log_info "Help import completed" || log_warning "Help import failed"
+else
+    log_warning "Help import script not found"
+fi
+
 # Clear logs
 log_info "Clearing old logs..."
 find "$DEPLOY_DIR/logs" -type f -name "*.log" -mtime +30 -delete 2>/dev/null || true
