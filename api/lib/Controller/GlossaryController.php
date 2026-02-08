@@ -6,24 +6,24 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller für Glossar/Lexikon.
- * 
- * Stellt Hilfe-Inhalte in verschiedenen Formaten bereit für die
+ * Controller fÃ¼r Glossar/Lexikon.
+ *
+ * Stellt Hilfe-Inhalte in verschiedenen Formaten bereit fÃ¼r die
  * Verwendung in der eigenen App sowie in externen Anwendungen.
  */
 class GlossaryController extends BaseController
 {
     /**
      * GET /glossary
-     * Gibt das Glossar/Lexikon zurück.
-     * 
+     * Gibt das Glossar/Lexikon zurÃ¼ck.
+     *
      * Query-Parameter:
      * - category: Filter nach Kategorie (z.B. "Wissen", "Alltag")
      * - audience: Filter nach Zielgruppe (eltern, kinder, erwachsene, lehrer, aerzte, alle)
      * - search: Volltextsuche in Titel, Inhalt und Keywords
      * - format: Ausgabeformat (list, full, plain) - default: list
-     * - limit: Maximale Anzahl Einträge
-     * - offset: Offset für Pagination
+     * - limit: Maximale Anzahl EintrÃ¤ge
+     * - offset: Offset fÃ¼r Pagination
      */
     public function index(): void
     {
@@ -66,7 +66,7 @@ class GlossaryController extends BaseController
 
             // Filter: Volltextsuche
             if ($search && strlen($search) >= 2) {
-                // Prüfe ob Fulltext-Index existiert, sonst LIKE-Fallback
+                // PrÃ¼fe ob Fulltext-Index existiert, sonst LIKE-Fallback
                 $sql .= ' AND (title LIKE ? OR content LIKE ? OR keywords LIKE ?)';
                 $searchParam = '%' . $search . '%';
                 $params[] = $searchParam;
@@ -95,7 +95,7 @@ class GlossaryController extends BaseController
                 }
             }
 
-            // Gesamtanzahl für Pagination
+            // Gesamtanzahl fÃ¼r Pagination
             $countSql = "SELECT COUNT(*) as total FROM glossary WHERE 1=1";
             $countParams = [];
             if ($category) {
@@ -113,7 +113,7 @@ class GlossaryController extends BaseController
                 $countParams[] = $searchParam;
                 $countParams[] = $searchParam;
             }
-            
+
             $countStmt = $this->pdo->prepare($countSql);
             $countStmt->execute($countParams);
             $total = (int) $countStmt->fetchColumn();
@@ -135,14 +135,14 @@ class GlossaryController extends BaseController
 
     /**
      * GET /glossary/categories
-     * Gibt alle verfügbaren Kategorien zurück.
+     * Gibt alle verfÃ¼gbaren Kategorien zurÃ¼ck.
      */
     public function categories(): void
     {
         try {
             $stmt = $this->pdo->query('SELECT DISTINCT category, COUNT(*) as count FROM glossary GROUP BY category ORDER BY category');
             $categories = $stmt->fetchAll();
-            
+
             $this->respond(200, ['categories' => $categories]);
         } catch (Throwable $e) {
             app_log('ERROR', 'glossary_categories_failed', ['error' => $e->getMessage()]);
@@ -152,8 +152,8 @@ class GlossaryController extends BaseController
 
     /**
      * GET /glossary/{slug}
-     * Gibt einen einzelnen Glossar-Eintrag mit vollem Inhalt zurück.
-     * 
+     * Gibt einen einzelnen Glossar-Eintrag mit vollem Inhalt zurÃ¼ck.
+     *
      * Query-Parameter:
      * - format: Ausgabeformat (full, plain, sections) - default: full
      */
@@ -161,9 +161,9 @@ class GlossaryController extends BaseController
     {
         try {
             $format = $_GET['format'] ?? 'full';
-            
+
             $stmt = $this->pdo->prepare('
-                SELECT slug, title, content, content_plain, content_sections, full_content, 
+                SELECT slug, title, content, content_plain, content_sections, full_content,
                        link, category, keywords, target_audience, reading_time_min,
                        created_at, updated_at
                 FROM glossary WHERE slug = ?
@@ -194,7 +194,7 @@ class GlossaryController extends BaseController
                         'reading_time_min' => $entry['reading_time_min']
                     ];
                     break;
-                    
+
                 case 'sections':
                     // Nur strukturierte Abschnitte
                     $result = [
@@ -204,13 +204,13 @@ class GlossaryController extends BaseController
                         'category' => $entry['category']
                     ];
                     break;
-                    
+
                 case 'full':
                 default:
                     $result = $entry;
                     break;
             }
-            
+
             $this->respond(200, ['entry' => $result]);
         } catch (Throwable $e) {
             app_log('ERROR', 'glossary_entry_get_failed', ['error' => $e->getMessage()]);
@@ -220,23 +220,23 @@ class GlossaryController extends BaseController
 
     /**
      * POST /glossary/import
-     * Triggert den Import der Hilfe-Dateien (nur für Admins).
+     * Triggert den Import der Hilfe-Dateien (nur fÃ¼r Admins).
      */
     public function import(): void
     {
         try {
-            // Authentifizierung prüfen
+            // Authentifizierung prÃ¼fen
             $user = $this->requireAuth();
-            
-            // Nur Parents (als "Admins" der Familie) dürfen importieren
+
+            // Nur Parents (als "Admins" der Familie) dÃ¼rfen importieren
             if ($user['role'] !== 'parent') {
                 $this->respond(403, ['error' => 'Keine Berechtigung']);
                 return;
             }
 
-            // Import-Skript einbinden und ausführen
+            // Import-Skript einbinden und ausfÃ¼hren
             $importScript = __DIR__ . '/../../../app/help/import_help.php';
-            
+
             if (!file_exists($importScript)) {
                 $this->respond(500, ['error' => 'Import-Skript nicht gefunden']);
                 return;
@@ -247,12 +247,12 @@ class GlossaryController extends BaseController
             if (!file_exists($envFile)) {
                 $envFile = __DIR__ . '/../../../.env';
             }
-            
+
             if (!file_exists($envFile)) {
                 $this->respond(500, ['error' => '.env nicht gefunden']);
                 return;
             }
-            
+
             $env = parse_ini_file($envFile);
             $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";
             $pdo = new \PDO($dsn, $env['DB_USER'], $env['DB_PASS'], [
@@ -262,15 +262,15 @@ class GlossaryController extends BaseController
 
             // HelpImporter Klasse laden
             require_once $importScript;
-            
+
             $helpDir = __DIR__ . '/../../../app/help';
             $importer = new \HelpImporter($pdo, $helpDir);
-            
+
             $force = isset($_POST['force']) && $_POST['force'];
             $stats = $importer->setForce($force)->run();
 
             $this->logAction('GLOSSARY_IMPORT', null, $stats);
-            
+
             $this->respond(200, [
                 'message' => 'Import abgeschlossen',
                 'stats' => $stats
@@ -283,8 +283,8 @@ class GlossaryController extends BaseController
 
     /**
      * GET /glossary/export
-     * Exportiert alle Glossar-Einträge in einem Format für externe Nutzung.
-     * 
+     * Exportiert alle Glossar-EintrÃ¤ge in einem Format fÃ¼r externe Nutzung.
+     *
      * Query-Parameter:
      * - format: json (default), csv
      * - include: comma-separated list of fields to include
@@ -295,10 +295,10 @@ class GlossaryController extends BaseController
             $format = $_GET['format'] ?? 'json';
             $include = isset($_GET['include']) ? explode(',', $_GET['include']) : null;
 
-            // Alle verfügbaren Felder
-            $allFields = ['slug', 'title', 'content', 'content_plain', 'full_content', 
+            // Alle verfÃ¼gbaren Felder
+            $allFields = ['slug', 'title', 'content', 'content_plain', 'full_content',
                          'link', 'category', 'keywords', 'target_audience', 'reading_time_min'];
-            
+
             // Felder filtern falls angegeben
             if ($include) {
                 $fields = array_intersect($allFields, $include);
@@ -306,8 +306,8 @@ class GlossaryController extends BaseController
                     $fields = $allFields;
                 }
             } else {
-                // Standard: Alle außer full_content (zu groß)
-                $fields = ['slug', 'title', 'content', 'content_plain', 'link', 
+                // Standard: Alle auÃŸer full_content (zu groÃŸ)
+                $fields = ['slug', 'title', 'content', 'content_plain', 'link',
                           'category', 'keywords', 'target_audience', 'reading_time_min'];
             }
 
@@ -319,9 +319,9 @@ class GlossaryController extends BaseController
                 // CSV-Export
                 header('Content-Type: text/csv; charset=utf-8');
                 header('Content-Disposition: attachment; filename="fokuslog-glossary.csv"');
-                
+
                 $output = fopen('php://output', 'w');
-                // BOM für Excel UTF-8
+                // BOM fÃ¼r Excel UTF-8
                 fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
                 // Header
                 fputcsv($output, $fields, ';');
@@ -352,3 +352,4 @@ class GlossaryController extends BaseController
         }
     }
 }
+

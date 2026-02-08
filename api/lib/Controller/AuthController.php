@@ -7,7 +7,7 @@ use RateLimiter;
 use Throwable;
 
 /**
- * Controller für Authentifizierung: Register, Login, Logout, Me.
+ * Controller fÃ¼r Authentifizierung: Register, Login, Logout, Me.
  */
 class AuthController extends BaseController
 {
@@ -38,7 +38,7 @@ class AuthController extends BaseController
         }
 
         try {
-            // Prüfe, ob Benutzername bereits existiert
+            // PrÃ¼fe, ob Benutzername bereits existiert
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
             $stmt->execute([$username]);
             if ($stmt->fetch()) {
@@ -47,21 +47,21 @@ class AuthController extends BaseController
             }
 
             $this->pdo->beginTransaction();
-            
+
             // Familie anlegen
             $stmt = $this->pdo->prepare('INSERT INTO families (name) VALUES (?)');
             $stmt->execute([$familyName]);
             $familyId = (int)$this->pdo->lastInsertId();
-            
+
             // Parent anlegen
             $role = 'parent';
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $this->pdo->prepare('INSERT INTO users (family_id, username, password_hash, role) VALUES (?, ?, ?, ?)');
             $stmt->execute([$familyId, $username, $passwordHash, $role]);
-            
+
             $this->logAction(null, 'register', 'new family and parent');
             $this->pdo->commit();
-            
+
             app_log('INFO', 'register_success', ['username' => $username, 'family_name' => $familyName]);
             $this->respond(201, ['message' => 'Registrierung erfolgreich']);
         } catch (Throwable $e) {
@@ -114,7 +114,7 @@ class AuthController extends BaseController
                 $limiter->increment($ip);
                 app_log('WARNING', 'login_failed', ['username' => $username, 'ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
                 $this->logAction(null, 'login_fail', $username);
-                $this->respond(401, ['error' => 'Ungültige Anmeldedaten']);
+                $this->respond(401, ['error' => 'UngÃ¼ltige Anmeldedaten']);
             }
 
             // Login erfolgreich
@@ -173,19 +173,19 @@ class AuthController extends BaseController
             $stmtFamily->execute([$user['family_id']]);
             $familyCount = $stmtFamily->fetchColumn();
 
-            // Prüfen, ob der User selbst Einträge hat
+            // PrÃ¼fen, ob der User selbst EintrÃ¤ge hat
             $stmt = $this->pdo->prepare("SELECT 1 FROM entries WHERE user_id = ? LIMIT 1");
             $stmt->execute([$user['id']]);
             $hasEntries = (bool)$stmt->fetchColumn();
 
-            // Wenn nicht, und der User ist 'parent' oder 'adult', prüfen wir, ob IRGENDJEMAND in der Familie Einträge hat
+            // Wenn nicht, und der User ist 'parent' oder 'adult', prÃ¼fen wir, ob IRGENDJEMAND in der Familie EintrÃ¤ge hat
             if (!$hasEntries && ($user['role'] === 'parent' || $user['role'] === 'adult')) {
                 $stmtEntries = $this->pdo->prepare('SELECT 1 FROM entries e JOIN users u ON e.user_id = u.id WHERE u.family_id = ? LIMIT 1');
                 $stmtEntries->execute([$user['family_id']]);
                 $hasEntries = $stmtEntries->fetch() !== false;
             }
 
-            // Medikamente werden immer familienweit geprüft
+            // Medikamente werden immer familienweit geprÃ¼ft
             $stmtMeds = $this->pdo->prepare('SELECT 1 FROM medications WHERE family_id = ? LIMIT 1');
             $stmtMeds->execute([$user['family_id']]);
             $hasMedications = $stmtMeds->fetch() !== false;
@@ -210,7 +210,7 @@ class AuthController extends BaseController
 
     /**
      * POST /users/me/password
-     * Passwort ändern.
+     * Passwort Ã¤ndern.
      */
     public function changePassword(): void
     {
@@ -227,7 +227,7 @@ class AuthController extends BaseController
             }
 
             if ($newPassword !== $confirmPassword) {
-                $this->respond(400, ['error' => 'Das neue Passwort stimmt nicht mit der Bestätigung überein.']);
+                $this->respond(400, ['error' => 'Das neue Passwort stimmt nicht mit der BestÃ¤tigung Ã¼berein.']);
             }
 
             if (strlen($newPassword) < 6) {
@@ -246,10 +246,11 @@ class AuthController extends BaseController
             $this->logAction($user['id'], 'password_change_success');
             app_log('INFO', 'password_change_success', ['user_id' => $user['id']]);
 
-            $this->respond(200, ['message' => 'Passwort erfolgreich geändert.']);
+            $this->respond(200, ['message' => 'Passwort erfolgreich geÃ¤ndert.']);
         } catch (Throwable $e) {
             app_log('ERROR', 'password_change_exception', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Ein Fehler ist aufgetreten: ' . $e->getMessage()]);
         }
     }
 }
+

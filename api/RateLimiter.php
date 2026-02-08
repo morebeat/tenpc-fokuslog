@@ -12,7 +12,7 @@ class RateLimiter
     }
 
     /**
-     * Prüft, ob eine IP blockiert ist.
+     * PrÃ¼ft, ob eine IP blockiert ist.
      * Limit: 5 Versuche pro 60 Sekunden.
      */
     public function check(string $ip, int $limit = 5, int $seconds = 60): bool
@@ -23,7 +23,7 @@ class RateLimiter
         }
 
         $data = json_decode(file_get_contents($file), true);
-        
+
         // Wenn das Zeitfenster abgelaufen ist, Reset
         if (time() - $data['start_time'] > $seconds) {
             unlink($file);

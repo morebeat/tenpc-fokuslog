@@ -6,21 +6,21 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller für Gewichtsdaten.
+ * Controller fÃ¼r Gewichtsdaten.
  */
 class WeightController extends BaseController
 {
     /**
      * GET /weight
-     * Gibt den Gewichtsverlauf für einen Benutzer zurück.
+     * Gibt den Gewichtsverlauf fÃ¼r einen Benutzer zurÃ¼ck.
      */
     public function index(): void
     {
         try {
             $user = $this->requireAuth();
-            
+
             if ($user['role'] === 'teacher') {
-                $this->respond(403, ['error' => 'Lehrer dürfen keine Gewichtsdaten einsehen']);
+                $this->respond(403, ['error' => 'Lehrer dÃ¼rfen keine Gewichtsdaten einsehen']);
             }
 
             $params = $this->getQueryParams();
@@ -65,19 +65,19 @@ class WeightController extends BaseController
 
     /**
      * GET /me/latest-weight
-     * Gibt das letzte eingetragene Gewicht oder das Initialgewicht zurück.
+     * Gibt das letzte eingetragene Gewicht oder das Initialgewicht zurÃ¼ck.
      */
     public function latestWeight(): void
     {
         try {
             $user = $this->requireAuth();
-            
+
             $stmt = $this->pdo->prepare('SELECT weight FROM entries WHERE user_id = ? AND weight IS NOT NULL ORDER BY date DESC, id DESC LIMIT 1');
             $stmt->execute([$user['id']]);
             $latestEntry = $stmt->fetch();
-            
+
             $weight = $latestEntry['weight'] ?? $user['initial_weight'] ?? null;
-            
+
             $this->respond(200, ['weight' => $weight]);
         } catch (Throwable $e) {
             app_log('ERROR', 'latest_weight_get_failed', ['error' => $e->getMessage()]);
@@ -85,3 +85,4 @@ class WeightController extends BaseController
         }
     }
 }
+

@@ -7,20 +7,20 @@ use PDO;
 use Throwable;
 
 /**
- * Controller für Reporting, Analysen und Exporte.
+ * Controller fÃ¼r Reporting, Analysen und Exporte.
  */
 class ReportController extends BaseController
 {
     /**
      * GET /report/trends
-     * Analysiert Trends und erkennt auffällige Muster.
+     * Analysiert Trends und erkennt auffÃ¤llige Muster.
      */
     public function trends(): void
     {
         try {
             $user = $this->requireAuth();
             $params = $this->getQueryParams();
-            
+
             $targetUserId = (int)$user['id'];
             if (($user['role'] === 'parent' || $user['role'] === 'adult') && !empty($params['user_id'])) {
                 $uid = (int)$params['user_id'];
@@ -31,16 +31,16 @@ class ReportController extends BaseController
                 }
             }
 
-            // Letzte 14 Tage für Trendanalyse
+            // Letzte 14 Tage fÃ¼r Trendanalyse
             $dateFrom = $params['date_from'] ?? date('Y-m-d', strtotime('-14 days'));
             $dateTo = $params['date_to'] ?? date('Y-m-d');
 
-            $sql = 'SELECT date, time, mood, focus, sleep, appetite, irritability, hyperactivity, 
+            $sql = 'SELECT date, time, mood, focus, sleep, appetite, irritability, hyperactivity,
                            medication_id, dose, side_effects, weight
-                    FROM entries 
+                    FROM entries
                     WHERE user_id = ? AND date BETWEEN ? AND ?
                     ORDER BY date ASC, FIELD(time, "morning", "noon", "evening")';
-            
+
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$targetUserId, $dateFrom, $dateTo]);
             $entries = $stmt->fetchAll();
@@ -57,18 +57,18 @@ class ReportController extends BaseController
                         'type' => 'appetite_low',
                         'severity' => 'warning',
                         'message' => "Niedriger Appetit an {$lowAppetiteDays} aufeinanderfolgenden Tagen erkannt",
-                        'recommendation' => 'Besprechen Sie dies beim nächsten Arzttermin. Kleine, häufige Mahlzeiten können helfen.'
+                        'recommendation' => 'Besprechen Sie dies beim nÃ¤chsten Arzttermin. Kleine, hÃ¤ufige Mahlzeiten kÃ¶nnen helfen.'
                     ];
                 }
 
-                // Stimmungs-Warnung: Abwärtstrend
+                // Stimmungs-Warnung: AbwÃ¤rtstrend
                 $moodTrend = $this->calculateTrend($entries, 'mood');
                 if ($moodTrend['slope'] < -0.15 && $moodTrend['confidence'] > 0.5) {
                     $warnings[] = [
                         'type' => 'mood_declining',
                         'severity' => 'attention',
                         'message' => 'Abnehmende Stimmungswerte im Zeitraum erkannt',
-                        'recommendation' => 'Achten Sie auf mögliche Auslöser und sprechen Sie mit Ihrem Arzt.'
+                        'recommendation' => 'Achten Sie auf mÃ¶gliche AuslÃ¶ser und sprechen Sie mit Ihrem Arzt.'
                     ];
                 }
                 $trends['mood'] = $moodTrend;
@@ -80,11 +80,11 @@ class ReportController extends BaseController
                     $insights[] = [
                         'type' => 'focus_improving',
                         'message' => 'Der Fokus verbessert sich tendenziell',
-                        'icon' => '📈'
+                        'icon' => 'ðŸ“ˆ'
                     ];
                 }
 
-                // Schlaf-Qualität
+                // Schlaf-QualitÃ¤t
                 $sleepTrend = $this->calculateTrend($entries, 'sleep');
                 $trends['sleep'] = $sleepTrend;
                 $avgSleep = $this->calculateAverage($entries, 'sleep');
@@ -92,8 +92,8 @@ class ReportController extends BaseController
                     $warnings[] = [
                         'type' => 'sleep_poor',
                         'severity' => 'attention',
-                        'message' => 'Durchschnittliche Schlafqualität ist niedrig (' . round($avgSleep, 1) . '/5)',
-                        'recommendation' => 'Überprüfen Sie die Schlafhygiene und Medikamenten-Timing.'
+                        'message' => 'Durchschnittliche SchlafqualitÃ¤t ist niedrig (' . round($avgSleep, 1) . '/5)',
+                        'recommendation' => 'ÃœberprÃ¼fen Sie die Schlafhygiene und Medikamenten-Timing.'
                     ];
                 }
 
@@ -103,8 +103,8 @@ class ReportController extends BaseController
                     $warnings[] = [
                         'type' => 'irritability_high',
                         'severity' => 'warning',
-                        'message' => "Erhöhte Reizbarkeit an {$highIrritabilityDays} aufeinanderfolgenden Tagen",
-                        'recommendation' => 'Dies könnte ein Rebound-Effekt sein. Besprechen Sie Dosierung und Timing mit dem Arzt.'
+                        'message' => "ErhÃ¶hte Reizbarkeit an {$highIrritabilityDays} aufeinanderfolgenden Tagen",
+                        'recommendation' => 'Dies kÃ¶nnte ein Rebound-Effekt sein. Besprechen Sie Dosierung und Timing mit dem Arzt.'
                     ];
                 }
 
@@ -114,14 +114,14 @@ class ReportController extends BaseController
                     $warnings[] = $weightWarning;
                 }
 
-                // Nebenwirkungen-Häufung
-                $sideEffectCount = array_reduce($entries, fn($count, $e) => 
+                // Nebenwirkungen-HÃ¤ufung
+                $sideEffectCount = array_reduce($entries, fn($count, $e) =>
                     $count + (!empty($e['side_effects']) ? 1 : 0), 0);
                 if ($sideEffectCount >= 5) {
                     $warnings[] = [
                         'type' => 'side_effects_frequent',
                         'severity' => 'attention',
-                        'message' => "Nebenwirkungen wurden in {$sideEffectCount} Einträgen dokumentiert",
+                        'message' => "Nebenwirkungen wurden in {$sideEffectCount} EintrÃ¤gen dokumentiert",
                         'recommendation' => 'Dokumentieren Sie die Art der Nebenwirkungen und besprechen Sie Alternativen.'
                     ];
                 }
@@ -133,14 +133,14 @@ class ReportController extends BaseController
                     $insights[] = [
                         'type' => 'mood_good',
                         'message' => 'Stimmung ist durchschnittlich gut (' . round($avgMood, 1) . '/5)',
-                        'icon' => '😊'
+                        'icon' => 'ðŸ˜Š'
                     ];
                 }
                 if ($avgFocus !== null && $avgFocus >= 4) {
                     $insights[] = [
                         'type' => 'focus_good',
                         'message' => 'Fokus ist durchschnittlich gut (' . round($avgFocus, 1) . '/5)',
-                        'icon' => '🎯'
+                        'icon' => 'ðŸŽ¯'
                     ];
                 }
             }
@@ -175,7 +175,7 @@ class ReportController extends BaseController
 
     /**
      * GET /report/compare
-     * Vergleicht zwei Zeiträume oder Medikamente.
+     * Vergleicht zwei ZeitrÃ¤ume oder Medikamente.
      */
     public function compare(): void
     {
@@ -196,7 +196,7 @@ class ReportController extends BaseController
             $compareType = $params['type'] ?? 'week'; // 'week', 'medication', 'custom'
 
             if ($compareType === 'week') {
-                // Woche-über-Woche Vergleich
+                // Woche-Ã¼ber-Woche Vergleich
                 $result = $this->compareWeeks($targetUserId);
             } elseif ($compareType === 'medication') {
                 // Medikamenten-Vergleich
@@ -222,7 +222,7 @@ class ReportController extends BaseController
 
     /**
      * GET /report/export/excel
-     * Exportiert Daten als Excel-kompatibles Format (CSV mit BOM für Excel).
+     * Exportiert Daten als Excel-kompatibles Format (CSV mit BOM fÃ¼r Excel).
      */
     public function exportExcel(): void
     {
@@ -245,18 +245,18 @@ class ReportController extends BaseController
             $dateTo = $params['date_to'] ?? date('Y-m-d');
             $format = $params['format'] ?? 'detailed'; // 'detailed', 'summary', 'doctor'
 
-            // Einträge laden
+            // EintrÃ¤ge laden
             $sql = 'SELECT e.*, m.name AS medication_name, u.username,
                            GROUP_CONCAT(t.name SEPARATOR ", ") as tags
-                    FROM entries e 
-                    LEFT JOIN medications m ON e.medication_id = m.id 
-                    LEFT JOIN users u ON e.user_id = u.id 
+                    FROM entries e
+                    LEFT JOIN medications m ON e.medication_id = m.id
+                    LEFT JOIN users u ON e.user_id = u.id
                     LEFT JOIN entry_tags et ON e.id = et.entry_id
                     LEFT JOIN tags t ON et.tag_id = t.id
                     WHERE e.user_id = ? AND e.date BETWEEN ? AND ?
                     GROUP BY e.id
                     ORDER BY e.date DESC, FIELD(e.time, "morning", "noon", "evening")';
-            
+
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$targetUserId, $dateFrom, $dateTo]);
             $entries = $stmt->fetchAll();
@@ -274,8 +274,8 @@ class ReportController extends BaseController
             $filename = 'fokuslog_export_' . $dateFrom . '_' . $dateTo . '.csv';
             $encodedFilename = rawurlencode($filename);
             header("Content-Disposition: attachment; filename=\"$filename\"; filename*=UTF-8''$encodedFilename");
-            
-            // BOM für Excel UTF-8 Erkennung
+
+            // BOM fÃ¼r Excel UTF-8 Erkennung
             echo "\xEF\xBB\xBF";
             echo $csv;
             exit;
@@ -288,7 +288,7 @@ class ReportController extends BaseController
 
     /**
      * GET /report/summary
-     * Gibt eine Zusammenfassung für einen Zeitraum zurück (für PDF-Report).
+     * Gibt eine Zusammenfassung fÃ¼r einen Zeitraum zurÃ¼ck (fÃ¼r PDF-Report).
      */
     public function summary(): void
     {
@@ -298,7 +298,7 @@ class ReportController extends BaseController
 
             $targetUserId = (int)$user['id'];
             $username = $user['username'];
-            
+
             if (($user['role'] === 'parent' || $user['role'] === 'adult') && !empty($params['user_id'])) {
                 $uid = (int)$params['user_id'];
                 $stmt = $this->pdo->prepare('SELECT id, username FROM users WHERE id = ? AND family_id = ?');
@@ -313,13 +313,13 @@ class ReportController extends BaseController
             $dateFrom = $params['date_from'] ?? date('Y-m-d', strtotime('-30 days'));
             $dateTo = $params['date_to'] ?? date('Y-m-d');
 
-            // Einträge laden
+            // EintrÃ¤ge laden
             $sql = 'SELECT e.*, m.name AS medication_name
-                    FROM entries e 
-                    LEFT JOIN medications m ON e.medication_id = m.id 
+                    FROM entries e
+                    LEFT JOIN medications m ON e.medication_id = m.id
                     WHERE e.user_id = ? AND e.date BETWEEN ? AND ?
                     ORDER BY e.date ASC';
-            
+
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$targetUserId, $dateFrom, $dateTo]);
             $entries = $stmt->fetchAll();
@@ -392,7 +392,7 @@ class ReportController extends BaseController
                 ],
                 'medication_stats' => $medicationStats,
                 'time_slot_stats' => $timeSlotStats,
-                'side_effects' => array_slice($sideEffects, 0, 10), // Max 10 für Übersicht
+                'side_effects' => array_slice($sideEffects, 0, 10), // Max 10 fÃ¼r Ãœbersicht
                 'side_effects_total' => count($sideEffects)
             ]);
 
@@ -421,15 +421,15 @@ class ReportController extends BaseController
 
         $dates = array_keys($dateValues);
         sort($dates);
-        
+
         $consecutive = 1;
         $maxConsecutive = 1;
-        
+
         for ($i = 1; $i < count($dates); $i++) {
             $prevDate = new \DateTime($dates[$i - 1]);
             $currDate = new \DateTime($dates[$i]);
             $diff = $prevDate->diff($currDate)->days;
-            
+
             if ($diff === 1) {
                 $consecutive++;
                 $maxConsecutive = max($maxConsecutive, $consecutive);
@@ -469,19 +469,19 @@ class ReportController extends BaseController
         }
 
         $slope = (($n * $sumXY) - ($sumX * $sumY)) / $denominator;
-        
-        // R² für Confidence
+
+        // RÂ² fÃ¼r Confidence
         $yMean = $sumY / $n;
         $ssRes = 0;
         $ssTot = 0;
         $intercept = ($sumY - $slope * $sumX) / $n;
-        
+
         foreach ($values as $v) {
             $predicted = $intercept + $slope * $v['x'];
             $ssRes += pow($v['y'] - $predicted, 2);
             $ssTot += pow($v['y'] - $yMean, 2);
         }
-        
+
         $rSquared = $ssTot > 0 ? 1 - ($ssRes / $ssTot) : 0;
 
         $direction = $slope > 0.05 ? 'up' : ($slope < -0.05 ? 'down' : 'stable');
@@ -520,7 +520,7 @@ class ReportController extends BaseController
         $weightValues = array_values($weights);
         $firstWeight = $weightValues[0];
         $lastWeight = end($weightValues);
-        
+
         $change = $lastWeight - $firstWeight;
         $percentChange = ($change / $firstWeight) * 100;
 
@@ -529,7 +529,7 @@ class ReportController extends BaseController
                 'type' => 'weight_loss',
                 'severity' => abs($percentChange) > 5 ? 'warning' : 'attention',
                 'message' => sprintf('Gewichtsverlust von %.1f kg (%.1f%%) im Zeitraum', abs($change), abs($percentChange)),
-                'recommendation' => 'Appetitprobleme sind eine häufige Nebenwirkung. Besprechen Sie Strategien mit dem Arzt.'
+                'recommendation' => 'Appetitprobleme sind eine hÃ¤ufige Nebenwirkung. Besprechen Sie Strategien mit dem Arzt.'
             ];
         }
 
@@ -541,7 +541,7 @@ class ReportController extends BaseController
         $today = new \DateTime();
         $thisWeekStart = (clone $today)->modify('monday this week')->format('Y-m-d');
         $thisWeekEnd = $today->format('Y-m-d');
-        
+
         $lastWeekStart = (clone $today)->modify('monday last week')->format('Y-m-d');
         $lastWeekEnd = (clone $today)->modify('sunday last week')->format('Y-m-d');
 
@@ -552,7 +552,7 @@ class ReportController extends BaseController
         foreach (['mood', 'focus', 'sleep', 'appetite'] as $metric) {
             $thisVal = $thisWeek['averages'][$metric];
             $lastVal = $lastWeek['averages'][$metric];
-            
+
             if ($thisVal !== null && $lastVal !== null) {
                 $change = $thisVal - $lastVal;
                 $comparison[$metric] = [
@@ -578,21 +578,21 @@ class ReportController extends BaseController
     private function compareMedications(int $userId, int $medId1, int $medId2): array
     {
         if ($medId1 === 0 || $medId2 === 0) {
-            return ['error' => 'Bitte zwei Medikamente zum Vergleich auswählen'];
+            return ['error' => 'Bitte zwei Medikamente zum Vergleich auswÃ¤hlen'];
         }
 
         $sql = 'SELECT e.*, m.name AS medication_name
-                FROM entries e 
-                LEFT JOIN medications m ON e.medication_id = m.id 
+                FROM entries e
+                LEFT JOIN medications m ON e.medication_id = m.id
                 WHERE e.user_id = ? AND e.medication_id = ?
                 ORDER BY e.date DESC
                 LIMIT 50';
 
         $stmt = $this->pdo->prepare($sql);
-        
+
         $stmt->execute([$userId, $medId1]);
         $entries1 = $stmt->fetchAll();
-        
+
         $stmt->execute([$userId, $medId2]);
         $entries2 = $stmt->fetchAll();
 
@@ -606,7 +606,7 @@ class ReportController extends BaseController
         foreach (['mood', 'focus', 'sleep', 'appetite', 'irritability'] as $metric) {
             $val1 = $stats1[$metric] ?? null;
             $val2 = $stats2[$metric] ?? null;
-            
+
             if ($val1 !== null && $val2 !== null) {
                 $diff = $val1 - $val2;
                 $comparison[$metric] = [
@@ -641,7 +641,7 @@ class ReportController extends BaseController
         foreach (['mood', 'focus', 'sleep', 'appetite'] as $metric) {
             $val1 = $period1['averages'][$metric];
             $val2 = $period2['averages'][$metric];
-            
+
             if ($val1 !== null && $val2 !== null) {
                 $change = $val2 - $val1;
                 $comparison[$metric] = [
@@ -695,10 +695,10 @@ class ReportController extends BaseController
 
     private function buildDetailedCSV(array $entries): string
     {
-        $headers = ['Datum', 'Uhrzeit', 'Benutzer', 'Medikament', 'Dosis', 'Stimmung', 'Fokus', 
-                    'Schlaf', 'Appetit', 'Reizbarkeit', 'Hyperaktivität', 'Gewicht', 
+        $headers = ['Datum', 'Uhrzeit', 'Benutzer', 'Medikament', 'Dosis', 'Stimmung', 'Fokus',
+                    'Schlaf', 'Appetit', 'Reizbarkeit', 'HyperaktivitÃ¤t', 'Gewicht',
                     'Nebenwirkungen', 'Besondere Ereignisse', 'Tags', 'Notizen'];
-        
+
         $csv = implode(';', $headers) . "\n";
 
         foreach ($entries as $entry) {
@@ -731,14 +731,14 @@ class ReportController extends BaseController
     {
         $csv = "FokusLog Zusammenfassung\n";
         $csv .= "Zeitraum: " . $this->formatGermanDate($dateFrom) . " - " . $this->formatGermanDate($dateTo) . "\n";
-        $csv .= "Anzahl Einträge: " . count($entries) . "\n\n";
+        $csv .= "Anzahl EintrÃ¤ge: " . count($entries) . "\n\n";
 
         $csv .= "Durchschnittswerte:\n";
         $csv .= "Metrik;Durchschnitt\n";
-        
-        $metrics = ['mood' => 'Stimmung', 'focus' => 'Fokus', 'sleep' => 'Schlaf', 
+
+        $metrics = ['mood' => 'Stimmung', 'focus' => 'Fokus', 'sleep' => 'Schlaf',
                     'appetite' => 'Appetit', 'irritability' => 'Reizbarkeit'];
-        
+
         foreach ($metrics as $key => $label) {
             $avg = $this->calculateAverage($entries, $key);
             $csv .= "$label;" . ($avg !== null ? number_format($avg, 1, ',', '') : '-') . "\n";
@@ -754,7 +754,7 @@ class ReportController extends BaseController
         $stmt->execute([$userId]);
         $userInfo = $stmt->fetch();
 
-        $csv = "MEDIKAMENTEN-TAGEBUCH EXPORT FÜR ARZTBESUCH\n";
+        $csv = "MEDIKAMENTEN-TAGEBUCH EXPORT FÃœR ARZTBESUCH\n";
         $csv .= "==========================================\n\n";
         $csv .= "Patient: " . ($userInfo['username'] ?? 'Unbekannt') . "\n";
         $csv .= "Zeitraum: " . $this->formatGermanDate($dateFrom) . " - " . $this->formatGermanDate($dateTo) . "\n";
@@ -764,12 +764,12 @@ class ReportController extends BaseController
         $csv .= "ZUSAMMENFASSUNG\n";
         $csv .= "---------------\n";
         $csv .= "Anzahl dokumentierter Tage: " . count(array_unique(array_column($entries, 'date'))) . "\n";
-        $csv .= "Anzahl Einträge gesamt: " . count($entries) . "\n\n";
+        $csv .= "Anzahl EintrÃ¤ge gesamt: " . count($entries) . "\n\n";
 
         $csv .= "DURCHSCHNITTSWERTE (Skala 1-5):\n";
-        $metrics = ['mood' => 'Stimmung', 'focus' => 'Fokus', 'sleep' => 'Schlafqualität', 
+        $metrics = ['mood' => 'Stimmung', 'focus' => 'Fokus', 'sleep' => 'SchlafqualitÃ¤t',
                     'appetite' => 'Appetit', 'irritability' => 'Reizbarkeit'];
-        
+
         foreach ($metrics as $key => $label) {
             $avg = $this->calculateAverage($entries, $key);
             $csv .= "  $label: " . ($avg !== null ? number_format($avg, 1, ',', '') . "/5" : 'keine Daten') . "\n";
@@ -811,3 +811,4 @@ class ReportController extends BaseController
         return $date;
     }
 }
+

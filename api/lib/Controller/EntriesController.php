@@ -9,22 +9,22 @@ use PDOException;
 use Throwable;
 
 /**
- * Controller für Einträge (Tagebucheinträge).
+ * Controller fÃ¼r EintrÃ¤ge (TagebucheintrÃ¤ge).
  */
 class EntriesController extends BaseController
 {
     /**
      * GET /entries
-     * Gibt Einträge zurück. Child/Adult sehen nur eigene, Parent kann alle in der Familie sehen.
+     * Gibt EintrÃ¤ge zurÃ¼ck. Child/Adult sehen nur eigene, Parent kann alle in der Familie sehen.
      */
     public function index(): void
     {
         try {
             $user = $this->requireAuth();
-            
+
             if ($user['role'] === 'teacher') {
                 app_log('WARNING', 'entries_get_denied_for_teacher', ['user_id' => $user['id']]);
-                $this->respond(403, ['error' => 'Lehrer dürfen keine Einträge einsehen']);
+                $this->respond(403, ['error' => 'Lehrer dÃ¼rfen keine EintrÃ¤ge einsehen']);
             }
 
             $params = $this->getQueryParams();
@@ -51,9 +51,9 @@ class EntriesController extends BaseController
             $limit = isset($params['limit']) ? (int)$params['limit'] : null;
 
             $sql = 'SELECT e.*, m.name AS medication_name, u.username, GROUP_CONCAT(t.name SEPARATOR ", ") as tags, GROUP_CONCAT(t.id) as tag_ids
-                    FROM entries e 
-                    LEFT JOIN medications m ON e.medication_id = m.id 
-                    LEFT JOIN users u ON e.user_id = u.id 
+                    FROM entries e
+                    LEFT JOIN medications m ON e.medication_id = m.id
+                    LEFT JOIN users u ON e.user_id = u.id
                     LEFT JOIN entry_tags et ON e.id = et.entry_id
                     LEFT JOIN tags t ON et.tag_id = t.id
                     WHERE e.user_id = ?';
@@ -93,7 +93,7 @@ class EntriesController extends BaseController
             $this->respond(200, ['entries' => $entries]);
         } catch (Throwable $e) {
             app_log('ERROR', 'entries_get_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Laden der Einträge: ' . $e->getMessage()]);
+            $this->respond(500, ['error' => 'Fehler beim Laden der EintrÃ¤ge: ' . $e->getMessage()]);
         }
     }
 
@@ -106,10 +106,10 @@ class EntriesController extends BaseController
         try {
             $user = $this->requireAuth();
             $data = $this->getJsonBody();
-            
+
             $targetUserId = (int)$user['id'];
 
-            // Eltern/Erwachsene dürfen Einträge für Familienmitglieder bearbeiten/erstellen
+            // Eltern/Erwachsene dÃ¼rfen EintrÃ¤ge fÃ¼r Familienmitglieder bearbeiten/erstellen
             if (($user['role'] === 'parent' || $user['role'] === 'adult') && !empty($data['target_user_id'])) {
                 $tId = (int)$data['target_user_id'];
                 $stmt = $this->pdo->prepare('SELECT id FROM users WHERE id = ? AND family_id = ?');
@@ -121,14 +121,14 @@ class EntriesController extends BaseController
             } elseif ($user['role'] === 'teacher') {
                 if (empty($data['child_id'])) {
                     app_log('WARNING', 'entry_create_validation_failed', ['user_id' => $user['id'], 'error' => 'child_id_missing_for_teacher']);
-                    $this->respond(400, ['error' => 'child_id ist erforderlich für teacher']);
+                    $this->respond(400, ['error' => 'child_id ist erforderlich fÃ¼r teacher']);
                 }
                 $stmt = $this->pdo->prepare('SELECT id FROM users WHERE id = ? AND family_id = ? AND role = ?');
                 $stmt->execute([(int)$data['child_id'], $user['family_id'], 'child']);
                 $child = $stmt->fetch();
                 if (!$child) {
                     app_log('WARNING', 'entry_create_invalid_child', ['user_id' => $user['id'], 'child_id' => $data['child_id']]);
-                    $this->respond(403, ['error' => 'Ungültiges Kind für diesen Lehrer']);
+                    $this->respond(403, ['error' => 'UngÃ¼ltiges Kind fÃ¼r diesen Lehrer']);
                 }
                 $targetUserId = (int)$data['child_id'];
             }
@@ -154,16 +154,16 @@ class EntriesController extends BaseController
             }
 
             try {
-                $sql = 'INSERT INTO entries (user_id, medication_id, dose, date, time, sleep, hyperactivity, mood, irritability, appetite, focus, weight, other_effects, side_effects, special_events, menstruation_phase, teacher_feedback, emotional_reactions) 
+                $sql = 'INSERT INTO entries (user_id, medication_id, dose, date, time, sleep, hyperactivity, mood, irritability, appetite, focus, weight, other_effects, side_effects, special_events, menstruation_phase, teacher_feedback, emotional_reactions)
                         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                        ON DUPLICATE KEY UPDATE 
+                        ON DUPLICATE KEY UPDATE
                         id=LAST_INSERT_ID(id), medication_id=VALUES(medication_id), dose=VALUES(dose), sleep=VALUES(sleep), hyperactivity=VALUES(hyperactivity), mood=VALUES(mood), irritability=VALUES(irritability), appetite=VALUES(appetite), focus=VALUES(focus), weight=VALUES(weight), other_effects=VALUES(other_effects), side_effects=VALUES(side_effects), special_events=VALUES(special_events), menstruation_phase=VALUES(menstruation_phase), teacher_feedback=VALUES(teacher_feedback), emotional_reactions=VALUES(emotional_reactions)';
 
                 $stmt = $this->pdo->prepare($sql);
 
                 $sleep = EntryPayload::intOrNull($data['sleep'] ?? null);
 
-                // Prüfe existierende Schlafdaten für den Tag
+                // PrÃ¼fe existierende Schlafdaten fÃ¼r den Tag
                 $check = $this->pdo->prepare('SELECT id FROM entries WHERE user_id = ? AND date = ? AND sleep IS NOT NULL AND time != ? LIMIT 1');
                 $check->execute([$targetUserId, $date, $time]);
                 if ($check->fetch()) {
@@ -200,7 +200,7 @@ class EntriesController extends BaseController
                 // Tags speichern
                 if ($entryId) {
                     $this->pdo->prepare('DELETE FROM entry_tags WHERE entry_id = ?')->execute([$entryId]);
-                    
+
                     if (!empty($data['tags']) && is_array($data['tags'])) {
                         $stmtTag = $this->pdo->prepare('INSERT IGNORE INTO entry_tags (entry_id, tag_id) VALUES (?, ?)');
                         foreach ($data['tags'] as $tagId) {
@@ -212,7 +212,7 @@ class EntriesController extends BaseController
                 app_log('ERROR', 'entry_create_failed', ['error' => $e->getMessage(), 'code' => $e->getCode()]);
                 if ((int)$e->getCode() === 23000) {
                     app_log('WARNING', 'entry_create_duplicate', ['user_id' => $targetUserId, 'date' => $date, 'time' => $time]);
-                    $this->respond(409, ['error' => 'Für diesen Zeitpunkt existiert bereits ein Eintrag']);
+                    $this->respond(409, ['error' => 'FÃ¼r diesen Zeitpunkt existiert bereits ein Eintrag']);
                 }
                 $this->respond(500, ['error' => 'Fehler beim Speichern des Eintrags: ' . $e->getMessage()]);
             }
@@ -235,7 +235,7 @@ class EntriesController extends BaseController
 
     /**
      * DELETE /entries/{id}
-     * Löscht einen Eintrag.
+     * LÃ¶scht einen Eintrag.
      */
     public function destroy(string $id): void
     {
@@ -251,7 +251,7 @@ class EntriesController extends BaseController
                 $this->respond(404, ['error' => 'Eintrag nicht gefunden']);
             }
 
-            // Berechtigungsprüfung
+            // BerechtigungsprÃ¼fung
             if ($user['role'] !== 'parent' && $user['role'] !== 'adult' && $entryData['user_id'] !== $user['id']) {
                 $this->respond(403, ['error' => 'Zugriff verweigert']);
             }
@@ -266,7 +266,7 @@ class EntriesController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'entry_delete_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Löschen des Eintrags']);
+            $this->respond(500, ['error' => 'Fehler beim LÃ¶schen des Eintrags']);
         }
     }
 
@@ -309,7 +309,7 @@ class EntriesController extends BaseController
         $newlyEarnedBadges = [];
         if ($newStreak > 0) {
             $stmtCheckBadges = $this->pdo->prepare(
-                'SELECT b.id, b.name, b.description, b.icon_class FROM badges b 
+                'SELECT b.id, b.name, b.description, b.icon_class FROM badges b
                  LEFT JOIN user_badges ub ON b.id = ub.badge_id AND ub.user_id = ?
                  WHERE b.required_streak <= ? AND ub.id IS NULL'
             );
@@ -328,7 +328,7 @@ class EntriesController extends BaseController
         if (date('N', strtotime($date)) >= 6) {
             $specialBadgeNames[] = 'Wochenend-Warrior';
         }
-        if ($time === 'morning') $specialBadgeNames[] = 'Früher Vogel';
+        if ($time === 'morning') $specialBadgeNames[] = 'FrÃ¼her Vogel';
         if ($time === 'evening') $specialBadgeNames[] = 'Nachteule';
 
         if (!empty($specialBadgeNames)) {
@@ -348,7 +348,7 @@ class EntriesController extends BaseController
             }
         }
 
-        // Nächstes Badge
+        // NÃ¤chstes Badge
         $nextBadge = null;
         $stmtNext = $this->pdo->prepare('SELECT name, required_streak, icon_class FROM badges WHERE required_streak > ? ORDER BY required_streak ASC LIMIT 1');
         $stmtNext->execute([$newStreak]);
@@ -370,3 +370,4 @@ class EntriesController extends BaseController
         ];
     }
 }
+

@@ -7,13 +7,13 @@ use PDO;
 use Throwable;
 
 /**
- * Controller für Badges/Abzeichen.
+ * Controller fÃ¼r Badges/Abzeichen.
  */
 class BadgesController extends BaseController
 {
     /**
      * GET /badges
-     * Gibt alle verfügbaren Badges und den Fortschritt des aktuellen Benutzers zurück.
+     * Gibt alle verfÃ¼gbaren Badges und den Fortschritt des aktuellen Benutzers zurÃ¼ck.
      */
     public function index(): void
     {
@@ -50,3 +50,4 @@ class BadgesController extends BaseController
         }
     }
 }
+

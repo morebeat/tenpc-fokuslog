@@ -6,23 +6,23 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller für Tags.
+ * Controller fÃ¼r Tags.
  */
 class TagsController extends BaseController
 {
     /**
      * GET /tags
-     * Gibt alle Tags der Familie zurück.
+     * Gibt alle Tags der Familie zurÃ¼ck.
      */
     public function index(): void
     {
         try {
             $user = $this->requireAuth();
-            
+
             $stmt = $this->pdo->prepare('SELECT id, name FROM tags WHERE family_id = ? ORDER BY name');
             $stmt->execute([$user['family_id']]);
             $tags = $stmt->fetchAll();
-            
+
             $this->respond(200, ['tags' => $tags]);
         } catch (Throwable $e) {
             app_log('ERROR', 'tags_get_failed', ['error' => $e->getMessage()]);
@@ -39,7 +39,7 @@ class TagsController extends BaseController
         try {
             $user = $this->requireAuth();
             $this->requireRole($user, ['parent', 'adult']);
-            
+
             $data = $this->getJsonBody();
             $name = trim($data['name'] ?? '');
 
@@ -60,7 +60,7 @@ class TagsController extends BaseController
 
     /**
      * DELETE /tags/{id}
-     * Löscht einen Tag.
+     * LÃ¶scht einen Tag.
      */
     public function destroy(string $id): void
     {
@@ -71,11 +71,12 @@ class TagsController extends BaseController
 
             $stmt = $this->pdo->prepare('DELETE FROM tags WHERE id = ? AND family_id = ?');
             $stmt->execute([$tagId, $user['family_id']]);
-            
+
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'tags_delete_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Löschen des Tags']);
+            $this->respond(500, ['error' => 'Fehler beim LÃ¶schen des Tags']);
         }
     }
 }
+

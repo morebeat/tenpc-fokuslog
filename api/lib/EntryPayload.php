@@ -6,8 +6,8 @@ use InvalidArgumentException;
 
 final class EntryPayload
 {
-    private const DATE_ERROR = 'Ungültiges oder fehlendes Datum';
-    private const FUTURE_ERROR = 'Einträge in der Zukunft sind nicht erlaubt.';
+    private const DATE_ERROR = 'UngÃ¼ltiges oder fehlendes Datum';
+    private const FUTURE_ERROR = 'EintrÃ¤ge in der Zukunft sind nicht erlaubt.';
     private const VALID_TIMES = ['morning', 'noon', 'evening'];
 
     public static function normalizeDate(string $value, ?DateTimeImmutable $today = null): string
@@ -35,7 +35,7 @@ final class EntryPayload
     {
         $value = trim($value);
         if (!in_array($value, self::VALID_TIMES, true)) {
-            throw new InvalidArgumentException('Ungültiger time Slot');
+            throw new InvalidArgumentException('UngÃ¼ltiger time Slot');
         }
 
         return $value;
@@ -85,7 +85,7 @@ final class EntryPayload
             return '';
         }
 
-        // Entferne unsichtbare Steuerzeichen und geschützte Leerzeichen
+        // Entferne unsichtbare Steuerzeichen und geschÃ¼tzte Leerzeichen
         $value = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{202A}\x{202C}\x{2060}\x{00A0}]/u', '', $value) ?? $value;
 
         // Ersetze sprachspezifische oder typografische Bindestriche durch ASCII-
@@ -104,7 +104,7 @@ final class EntryPayload
         // Erlaube alternative Trenner
         $value = str_replace(['/', '.'], '-', $value);
 
-        // ISO-Zeiten (2024-01-01T12:00:00Z) auf reinen Datumsanteil kürzen
+        // ISO-Zeiten (2024-01-01T12:00:00Z) auf reinen Datumsanteil kÃ¼rzen
         if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $value, $matches)) {
             $value = $matches[1];
         }
@@ -112,3 +112,4 @@ final class EntryPayload
         return $value;
     }
 }
+

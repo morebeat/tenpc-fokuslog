@@ -6,9 +6,9 @@ require_once __DIR__ . '/ApiTest.php';
 // ist die URL meist http://localhost:8000/api
 $apiUrl = getenv('API_URL') ?: 'https://10.35.249.140/api';
 
-echo "Führe Tests gegen $apiUrl aus...\n\n";
+echo "FÃ¼hre Tests gegen $apiUrl aus...\n\n";
 
-// Prüfen, ob Server erreichbar ist
+// PrÃ¼fen, ob Server erreichbar ist
 if (@file_get_contents($apiUrl) === false && strpos($http_response_header[0] ?? '', '404') === false) {
     die("Fehler: API unter $apiUrl nicht erreichbar. Bitte starte den PHP-Server (z.B. 'php -S localhost:8000' im Projektordner).\n");
 }

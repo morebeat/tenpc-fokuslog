@@ -6,7 +6,7 @@ namespace FokusLog\Controller;
 use PDO;
 
 /**
- * Basis-Controller mit gemeinsamen Methoden für alle Controller.
+ * Basis-Controller mit gemeinsamen Methoden fÃ¼r alle Controller.
  */
 abstract class BaseController
 {
@@ -30,7 +30,7 @@ abstract class BaseController
     }
 
     /**
-     * Liest JSON-Body und gibt Array zurück.
+     * Liest JSON-Body und gibt Array zurÃ¼ck.
      */
     protected function getJsonBody(): array
     {
@@ -53,7 +53,7 @@ abstract class BaseController
     }
 
     /**
-     * Prüft ob Benutzer eingeloggt ist, sonst 401.
+     * PrÃ¼ft ob Benutzer eingeloggt ist, sonst 401.
      */
     protected function requireAuth(): array
     {
@@ -69,7 +69,7 @@ abstract class BaseController
     }
 
     /**
-     * Prüft ob Benutzer eine der erlaubten Rollen hat, sonst 403.
+     * PrÃ¼ft ob Benutzer eine der erlaubten Rollen hat, sonst 403.
      */
     protected function requireRole(array $user, array $roles): void
     {
@@ -84,7 +84,7 @@ abstract class BaseController
     }
 
     /**
-     * Fügt Eintrag ins Audit-Log ein.
+     * FÃ¼gt Eintrag ins Audit-Log ein.
      */
     protected function logAction(?int $userId, string $action, $details = null): void
     {
@@ -109,10 +109,11 @@ abstract class BaseController
     }
 
     /**
-     * Gibt GET-Parameter zurück.
+     * Gibt GET-Parameter zurÃ¼ck.
      */
     protected function getQueryParams(): array
     {
         return $_GET;
     }
 }
+

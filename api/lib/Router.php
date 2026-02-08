@@ -6,7 +6,7 @@ namespace FokusLog;
 use PDO;
 
 /**
- * Einfacher Router für die FokusLog API.
+ * Einfacher Router fÃ¼r die FokusLog API.
  */
 class Router
 {
@@ -20,7 +20,7 @@ class Router
 
     /**
      * Registriert eine Route.
-     * 
+     *
      * @param string $method HTTP-Methode (GET, POST, PUT, DELETE)
      * @param string $pattern URL-Pattern (z.B. '/users/{id}')
      * @param string $controller Controller-Klassenname
@@ -38,7 +38,7 @@ class Router
     }
 
     /**
-     * Shortcut für GET-Routen.
+     * Shortcut fÃ¼r GET-Routen.
      */
     public function get(string $pattern, string $controller, string $action): self
     {
@@ -46,7 +46,7 @@ class Router
     }
 
     /**
-     * Shortcut für POST-Routen.
+     * Shortcut fÃ¼r POST-Routen.
      */
     public function post(string $pattern, string $controller, string $action): self
     {
@@ -54,7 +54,7 @@ class Router
     }
 
     /**
-     * Shortcut für PUT-Routen.
+     * Shortcut fÃ¼r PUT-Routen.
      */
     public function put(string $pattern, string $controller, string $action): self
     {
@@ -62,7 +62,7 @@ class Router
     }
 
     /**
-     * Shortcut für DELETE-Routen.
+     * Shortcut fÃ¼r DELETE-Routen.
      */
     public function delete(string $pattern, string $controller, string $action): self
     {
@@ -70,8 +70,8 @@ class Router
     }
 
     /**
-     * Führt das Routing aus.
-     * 
+     * FÃ¼hrt das Routing aus.
+     *
      * @param string $method HTTP-Methode
      * @param string $path URL-Pfad
      */
@@ -98,9 +98,9 @@ class Router
     }
 
     /**
-     * Prüft ob eine Route zum Pfad passt und extrahiert Parameter.
-     * 
-     * @return array|null Parameter-Array oder null wenn keine Übereinstimmung
+     * PrÃ¼ft ob eine Route zum Pfad passt und extrahiert Parameter.
+     *
+     * @return array|null Parameter-Array oder null wenn keine Ãœbereinstimmung
      */
     private function matchRoute(string $pattern, string $path): ?array
     {
@@ -109,7 +109,7 @@ class Router
         $regex = '#^' . $regex . '$#';
 
         if (preg_match($regex, $path, $matches)) {
-            // Nur benannte Gruppen zurückgeben (keine numerischen Keys)
+            // Nur benannte Gruppen zurÃ¼ckgeben (keine numerischen Keys)
             return array_filter($matches, fn($key) => !is_int($key), ARRAY_FILTER_USE_KEY);
         }
 
@@ -117,12 +117,12 @@ class Router
     }
 
     /**
-     * Instanziiert Controller und führt Action aus.
+     * Instanziiert Controller und fÃ¼hrt Action aus.
      */
     private function executeController(string $controllerClass, string $action, array $params): void
     {
         $fullClass = "FokusLog\\Controller\\{$controllerClass}";
-        
+
         if (!class_exists($fullClass)) {
             http_response_code(500);
             echo json_encode(['error' => "Controller nicht gefunden: {$controllerClass}"]);
@@ -141,3 +141,4 @@ class Router
         $controller->$action(...array_values($params));
     }
 }
+

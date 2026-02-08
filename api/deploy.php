@@ -1,10 +1,10 @@
 <?php
+
 /**
  * Deploy-Webhook für automatisches Deployment via Git Pull
- * 
+ *
  * POST /api/deploy.php?token=YOUR_TOKEN
  */
-
 
 // Logging explizit ins Dateisystem
 ini_set('error_log', __DIR__ . '/../logs/deploy.log');
@@ -46,11 +46,11 @@ error_log("[Deploy] Deployment-Versuch von IP: " . ($_SERVER['REMOTE_ADDR'] ?? '
 // Verifiziere Token
 // if (empty($token) || !hash_equals($expectedToken, $token)) {
 //     http_response_code(403);
-//     error_log("[Deploy] Zugriff verweigert: Ungültiger Token.");
-//     echo json_encode(['error' => 'Ungültiger Token ' .  $token . " extccpected " . $expectedToken]);
+//     error_log("[Deploy] Zugriff verweigert: UngÃ¼ltiger Token.");
+//     echo json_encode(['error' => 'UngÃ¼ltiger Token ' .  $token . " extccpected " . $expectedToken]);
 //     exit;
 // }
- 
+
 // Optional: Neuer .env Inhalt aus Request (z.B. von GitHub Secrets)
 $newEnvContent = $inputData['env_content'] ?? null;
 $skipGit = isset($inputData['skip_git']) && $inputData['skip_git'];
@@ -58,9 +58,9 @@ $skipGit = isset($inputData['skip_git']) && $inputData['skip_git'];
 // Deployment-Directory
 $deployDir = dirname(__DIR__);
 
-// Git-Operationen nur wenn nicht übersprungen (z.B. nach FTP-Deployment)
+// Git-Operationen nur wenn nicht Ã¼bersprungen (z.B. nach FTP-Deployment)
 if (!$skipGit) {
-    // Überprüfe ob .git existiert
+    // ÃœberprÃ¼fe ob .git existiert
     if (!is_dir($deployDir . '/.git')) {
         http_response_code(400);
         echo json_encode(['error' => 'Git-Repository nicht vorhanden: ' . $deployDir]);
@@ -74,7 +74,7 @@ if (!$skipGit) {
         copy($envFile, $envBackup);
     }
 
-    // Führe git pull aus
+    // FÃ¼hre git pull aus
     chdir($deployDir);
     $output = [];
     $return = 0;
@@ -107,10 +107,15 @@ if (!$skipGit) {
         // Neue .env aus Request schreiben
         if (file_put_contents($envFile, $newEnvContent) !== false) {
             $migrationOutput[] = '.env Datei wurde aktualisiert.';
-            if (is_file($envBackup)) unlink($envBackup);
+            if (is_file($envBackup)) {
+                unlink($envBackup);
+            }
         } else {
             $migrationOutput[] = 'Fehler: Konnte neue .env nicht schreiben.';
-            if (is_file($envBackup)) { copy($envBackup, $envFile); unlink($envBackup); }
+            if (is_file($envBackup)) {
+                copy($envBackup, $envFile);
+                unlink($envBackup);
+            }
         }
     } elseif (is_file($envBackup)) {
         copy($envBackup, $envFile);
@@ -129,35 +134,38 @@ $helpImportScript = $deployDir . '/app/help/import_help.php';
 $helpImportOutput = [];
 if (is_file($helpImportScript)) {
     error_log("[Deploy] Starting help/glossary import...");
-    
+
     // Output buffering, da HelpImporter echo verwendet
     ob_start();
-    
+
     // HelpImporter Klasse laden
     require_once $helpImportScript;
-    
+
     // .env neu laden falls aktualisiert
     $env = parse_ini_file($envFile) ?: [];
-    
+
     try {
         $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";
         $pdo = new PDO($dsn, $env['DB_USER'], $env['DB_PASS'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]);
-        
+
         $importer = new HelpImporter($pdo, dirname($helpImportScript));
         $stats = $importer->setForce(false)->run();
-        
+
         // Buffered output ins Log schreiben
         $bufferedOutput = ob_get_clean();
         if ($bufferedOutput) {
             error_log("[Deploy] Help import output: " . substr($bufferedOutput, 0, 1000));
         }
-        
+
         $helpImportOutput[] = sprintf(
             'Help Import: %d importiert, %d aktualisiert, %d übersprungen, %d gelöscht',
-            $stats['imported'], $stats['updated'], $stats['skipped'], $stats['deleted']
+            $stats['imported'],
+            $stats['updated'],
+            $stats['skipped'],
+            $stats['deleted']
         );
         error_log("[Deploy] Help import completed: " . json_encode($stats));
     } catch (Throwable $e) {
@@ -170,7 +178,7 @@ if (is_file($helpImportScript)) {
     error_log("[Deploy] Help import script not found: " . $helpImportScript);
 }
 
-// Hole aktuellen Commit (falls Git verfügbar)
+// Hole aktuellen Commit (falls Git verfÃ¼gbar)
 $commit = [];
 $commitHash = 'unknown';
 if (!$skipGit && is_dir($deployDir . '/.git')) {
@@ -180,7 +188,7 @@ if (!$skipGit && is_dir($deployDir . '/.git')) {
 }
 
 if (empty($migrationOutput)) {
-    $migrationOutput[] = $skipGit ? 'Git übersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
+    $migrationOutput[] = $skipGit ? 'Git Ã¼bersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
 }
 
 error_log("[Deploy] Erfolg: Commit $commitHash deployed. Migrationen: " . implode(', ', $migrationOutput) . " Help: " . implode(', ', $helpImportOutput));
@@ -194,3 +202,4 @@ echo json_encode([
     'commit' => $commitHash,
     'timestamp' => date('Y-m-d H:i:s')
 ]);
+

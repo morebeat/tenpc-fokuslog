@@ -6,24 +6,24 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller für Benutzerverwaltung.
+ * Controller fÃ¼r Benutzerverwaltung.
  */
 class UsersController extends BaseController
 {
     /**
      * GET /users
-     * Gibt alle Benutzer der eigenen Familie zurück (nur für Parent/Adult).
+     * Gibt alle Benutzer der eigenen Familie zurÃ¼ck (nur fÃ¼r Parent/Adult).
      */
     public function index(): void
     {
         try {
             $user = $this->requireAuth();
             $this->requireRole($user, ['parent', 'adult']);
-            
+
             $stmt = $this->pdo->prepare('SELECT id, username, role, created_at, gender, initial_weight FROM users WHERE family_id = ? ORDER BY created_at ASC');
             $stmt->execute([$user['family_id']]);
             $users = $stmt->fetchAll();
-            
+
             $this->respond(200, ['users' => $users]);
         } catch (Throwable $e) {
             app_log('ERROR', 'users_get_failed', ['error' => $e->getMessage()]);
@@ -33,7 +33,7 @@ class UsersController extends BaseController
 
     /**
      * GET /users/{id}
-     * Gibt einen einzelnen Benutzer der eigenen Familie zurück.
+     * Gibt einen einzelnen Benutzer der eigenen Familie zurÃ¼ck.
      */
     public function show(string $id): void
     {
@@ -66,7 +66,7 @@ class UsersController extends BaseController
         try {
             $user = $this->requireAuth();
             $this->requireRole($user, ['parent', 'adult']);
-            
+
             $data = $this->getJsonBody();
             $username = trim($data['username'] ?? '');
             $password = $data['password'] ?? '';
@@ -74,8 +74,8 @@ class UsersController extends BaseController
             $gender = $data['gender'] ?? null;
             $initialWeight = (isset($data['initial_weight']) && $data['initial_weight'] !== '') ? $data['initial_weight'] : null;
 
-            if ($username === '' || $password === '' || !in_array($role, ['child', 'teacher', 'adult'], true) 
-                || ($gender !== null && !in_array($gender, ['male', 'female', 'diverse', ''])) 
+            if ($username === '' || $password === '' || !in_array($role, ['child', 'teacher', 'adult'], true)
+                || ($gender !== null && !in_array($gender, ['male', 'female', 'diverse', '']))
                 || ($initialWeight !== null && !is_numeric($initialWeight))) {
                 app_log('WARNING', 'user_create_validation_failed', [
                     'creator_id' => $user['id'],
@@ -83,10 +83,10 @@ class UsersController extends BaseController
                     'role' => $role,
                     'gender' => $gender
                 ]);
-                $this->respond(400, ['error' => 'username, password, role sind erforderlich. gender/initial_weight sind ungültig.']);
+                $this->respond(400, ['error' => 'username, password, role sind erforderlich. gender/initial_weight sind ungÃ¼ltig.']);
             }
 
-            // Prüfe Unique
+            // PrÃ¼fe Unique
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
             $stmt->execute([$username]);
             if ($stmt->fetch()) {
@@ -127,19 +127,19 @@ class UsersController extends BaseController
             $gender = $data['gender'] ?? null;
             $initialWeight = (isset($data['initial_weight']) && $data['initial_weight'] !== '') ? $data['initial_weight'] : null;
 
-            if ($username === '' || !in_array($role, ['child', 'teacher', 'adult'], true) 
-                || ($gender !== null && !in_array($gender, ['male', 'female', 'diverse', ''])) 
+            if ($username === '' || !in_array($role, ['child', 'teacher', 'adult'], true)
+                || ($gender !== null && !in_array($gender, ['male', 'female', 'diverse', '']))
                 || ($initialWeight !== null && !is_numeric($initialWeight))) {
-                $this->respond(400, ['error' => 'username und role sind erforderlich. gender/initial_weight sind ungültig.']);
+                $this->respond(400, ['error' => 'username und role sind erforderlich. gender/initial_weight sind ungÃ¼ltig.']);
             }
 
             // Parent darf sich nicht selbst bearbeiten
             if ($userId === (int)$user['id']) {
                 app_log('WARNING', 'user_update_self_edit_forbidden', ['user_id' => $user['id']]);
-                $this->respond(403, ['error' => 'Sie können sich nicht selbst bearbeiten']);
+                $this->respond(403, ['error' => 'Sie kÃ¶nnen sich nicht selbst bearbeiten']);
             }
 
-            // Prüfen, ob der zu bearbeitende Benutzer zur Familie gehört
+            // PrÃ¼fen, ob der zu bearbeitende Benutzer zur Familie gehÃ¶rt
             $stmt = $this->pdo->prepare('SELECT id, username FROM users WHERE id = ? AND family_id = ?');
             $stmt->execute([$userId, $user['family_id']]);
             $targetUser = $stmt->fetch();
@@ -148,7 +148,7 @@ class UsersController extends BaseController
                 $this->respond(404, ['error' => 'Benutzer nicht gefunden oder Zugriff verweigert']);
             }
 
-            // Prüfen, ob der neue Benutzername bereits von einem anderen Benutzer verwendet wird
+            // PrÃ¼fen, ob der neue Benutzername bereits von einem anderen Benutzer verwendet wird
             if ($username !== $targetUser['username']) {
                 $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
                 $stmt->execute([$username]);
@@ -176,7 +176,7 @@ class UsersController extends BaseController
 
     /**
      * DELETE /users/{id}
-     * Löscht einen Benutzer (nur Parent/Adult).
+     * LÃ¶scht einen Benutzer (nur Parent/Adult).
      */
     public function destroy(string $id): void
     {
@@ -187,10 +187,10 @@ class UsersController extends BaseController
 
             if ($userId === (int)$user['id']) {
                 app_log('WARNING', 'user_delete_self_delete_forbidden', ['user_id' => $user['id']]);
-                $this->respond(403, ['error' => 'Sie können sich nicht selbst löschen']);
+                $this->respond(403, ['error' => 'Sie kÃ¶nnen sich nicht selbst lÃ¶schen']);
             }
 
-            // Prüfen, ob der zu löschende Benutzer zur Familie gehört
+            // PrÃ¼fen, ob der zu lÃ¶schende Benutzer zur Familie gehÃ¶rt
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE id = ? AND family_id = ?');
             $stmt->execute([$userId, $user['family_id']]);
             if (!$stmt->fetch()) {
@@ -198,11 +198,11 @@ class UsersController extends BaseController
                 $this->respond(404, ['error' => 'Benutzer nicht gefunden oder Zugriff verweigert']);
             }
 
-            // Business Rule: Benutzer mit Einträgen dürfen nicht gelöscht werden
+            // Business Rule: Benutzer mit EintrÃ¤gen dÃ¼rfen nicht gelÃ¶scht werden
             $stmt = $this->pdo->prepare('SELECT id FROM entries WHERE user_id = ? LIMIT 1');
             $stmt->execute([$userId]);
             if ($stmt->fetch()) {
-                $this->respond(409, ['error' => 'Benutzer kann nicht gelöscht werden, da Einträge vorhanden sind.']);
+                $this->respond(409, ['error' => 'Benutzer kann nicht gelÃ¶scht werden, da EintrÃ¤ge vorhanden sind.']);
             }
 
             $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = ?');
@@ -212,7 +212,8 @@ class UsersController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'user_delete_failed', ['user_id' => $id, 'error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Löschen des Benutzers: ' . $e->getMessage()]);
+            $this->respond(500, ['error' => 'Fehler beim LÃ¶schen des Benutzers: ' . $e->getMessage()]);
         }
     }
 }
+
