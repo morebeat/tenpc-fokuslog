@@ -353,4 +353,3 @@ class GlossaryController extends BaseController
         }
     }
 }
-

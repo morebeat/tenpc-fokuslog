@@ -51,4 +51,3 @@ class BadgesController extends BaseController
         }
     }
 }
-

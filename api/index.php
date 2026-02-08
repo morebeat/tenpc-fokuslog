@@ -228,4 +228,3 @@ $router->post('/admin/backup', 'AdminController', 'backup');
 
 // Request an Router weiterleiten
 $router->dispatch($method, $path);
-

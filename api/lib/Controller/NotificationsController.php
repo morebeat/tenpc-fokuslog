@@ -360,4 +360,3 @@ class NotificationsController extends BaseController
         return "$protocol://$host";
     }
 }
-

@@ -375,4 +375,3 @@ class EntriesController extends BaseController
         ];
     }
 }
-

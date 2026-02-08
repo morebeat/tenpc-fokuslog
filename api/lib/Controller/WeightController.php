@@ -86,4 +86,3 @@ class WeightController extends BaseController
         }
     }
 }
-

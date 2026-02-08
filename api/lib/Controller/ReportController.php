@@ -352,11 +352,11 @@ class ReportController extends BaseController
                 $slot = $entry['time'];
                 if (isset($timeSlotStats[$slot])) {
                     if ($entry['mood']) {
-                    $timeSlotStats[$slot]['mood'][] = $entry['mood'];
-                }
-                if ($entry['focus']) {
-                    $timeSlotStats[$slot]['focus'][] = $entry['focus'];
-                }
+                        $timeSlotStats[$slot]['mood'][] = $entry['mood'];
+                    }
+                    if ($entry['focus']) {
+                        $timeSlotStats[$slot]['focus'][] = $entry['focus'];
+                    }
                 }
             }
 
@@ -812,4 +812,3 @@ class ReportController extends BaseController
         return $date;
     }
 }
-

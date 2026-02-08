@@ -142,4 +142,3 @@ class Router
         $controller->$action(...array_values($params));
     }
 }
-

@@ -202,4 +202,3 @@ echo json_encode([
     'commit' => $commitHash,
     'timestamp' => date('Y-m-d H:i:s')
 ]);
-

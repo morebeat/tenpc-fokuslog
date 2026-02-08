@@ -80,4 +80,3 @@ class TagsController extends BaseController
         }
     }
 }
-

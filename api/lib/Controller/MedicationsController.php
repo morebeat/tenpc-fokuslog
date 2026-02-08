@@ -144,4 +144,3 @@ class MedicationsController extends BaseController
         }
     }
 }
-

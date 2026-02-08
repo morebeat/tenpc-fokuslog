@@ -117,4 +117,3 @@ abstract class BaseController
         return $_GET;
     }
 }
-
