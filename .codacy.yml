@@ -1,0 +1,32 @@
+---
+engines:
+  eslint:
+    enabled: true
+  phpcs:
+    enabled: true
+  phpmd:
+    enabled: true
+  csslint:
+    enabled: true
+  jshint:
+    enabled: false  # Using ESLint instead
+  pmd:
+    enabled: false  # No Java in project
+  pmd-legacy:
+    enabled: false  # No Java in project
+  stylelint:
+    enabled: true
+  shellcheck:
+    enabled: true
+  hadolint:
+    enabled: true
+  remark-lint:
+    enabled: true
+
+exclude_paths:
+  - "vendor/**"
+  - "node_modules/**"
+  - "*.min.js"
+  - "docs/**"
+  - "logs/**"
+  - "db/backups/**"
