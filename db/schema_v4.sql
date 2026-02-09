@@ -200,7 +200,7 @@ CREATE TABLE `notification_log` (
   `type` varchar(50) NOT NULL,
   `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
   `sent_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -226,7 +226,7 @@ CREATE TABLE `notification_settings` (
   `email_digest_day` tinyint(1) NOT NULL DEFAULT '0' COMMENT '0=Sonntag',
   `email_missing_alert` tinyint(1) NOT NULL DEFAULT '0',
   `email_missing_days` int NOT NULL DEFAULT '3'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
