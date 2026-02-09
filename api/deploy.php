@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Deploy-Webhook für automatisches Deployment via Git Pull

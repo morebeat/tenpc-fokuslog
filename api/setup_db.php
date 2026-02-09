@@ -1,4 +1,4 @@
-﻿    }
+    }
 }
 
 // Nachträgliche Schema-Anpassungen (Migrationen) für existierende Tabellen
