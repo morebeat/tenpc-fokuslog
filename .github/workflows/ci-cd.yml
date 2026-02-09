@@ -219,7 +219,6 @@ jobs:
             --exclude='.env.*' \
             --exclude='.DS_Store' \
             --exclude='node_modules' \
-            --exclude='vendor' \
             .
           mv "/tmp/$ARCHIVE" .
           echo "artifact=$ARCHIVE" >> $GITHUB_OUTPUT
