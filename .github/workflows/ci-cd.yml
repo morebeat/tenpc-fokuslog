@@ -226,6 +226,7 @@ jobs:
             --exclude='.DS_Store' \
             --exclude='node_modules' \
             --exclude='vendor' \
+            --exclude='*.tar.gz' \
             .
           echo "artifact=$ARCHIVE" >> $GITHUB_OUTPUT
 
