@@ -250,7 +250,7 @@ class GlossaryController extends BaseController
             $body = $this->getJsonBody();
             $force = false;
 
-            if (is_array($body) && array_key_exists('force', $body)) {
+            if (array_key_exists('force', $body)) {
                 $force = (bool)$body['force'];
             } elseif (isset($_GET['force'])) {
                 $force = filter_var($_GET['force'], FILTER_VALIDATE_BOOLEAN);
