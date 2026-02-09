@@ -645,7 +645,8 @@
                 let url = `/api/report/export/excel?date_from=${dateFrom}&date_to=${dateTo}&format=detailed`;
                 if (userId) url += `&user_id=${userId}`;
                 
-                
+                await triggerServerExport(url, `fokuslog_export_${dateFrom}_${dateTo}.csv`);
+            };
 
             // Arzt-Export
             const exportForDoctor = async () => {
@@ -661,7 +662,8 @@
                 let url = `/api/report/export/excel?date_from=${dateFrom}&date_to=${dateTo}&format=doctor`;
                 if (userId) url += `&user_id=${userId}`;
                 
-                
+                await triggerServerExport(url, `fokuslog_arztbericht_${dateFrom}_${dateTo}.csv`);
+            };
 
             const loadWeightData = async () => {
                 const dateFrom = dateFromInput?.value;
