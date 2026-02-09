@@ -31,7 +31,7 @@
 # ================================================
 # DEPENDENCY MANAGEMENT
 # ================================================
-vendor/
+# vendor/ - NOT ignored, contains frontend JS libs (jsPDF, Chart.js)
 node_modules/
 composer.lock
 package-lock.json
@@ -50,7 +50,7 @@ api/php_error.log
 # ================================================
 # DATABASE & BACKUPS
 # ================================================
-*.sql
+
 *.sqlite
 *.sqlite3
 *.db

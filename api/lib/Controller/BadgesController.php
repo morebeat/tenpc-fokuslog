@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FokusLog\Controller;
+
+use PDO;
+use Throwable;
+
+/**
+ * Controller für Badges/Abzeichen.
+ */
+class BadgesController extends BaseController
+{
+    /**
+     * GET /badges
+     * Gibt alle verfügbaren Badges und den Fortschritt des aktuellen Benutzers zurück.
+     */
+    public function index(): void
+    {
+        try {
+            $user = $this->requireAuth();
+
+            // Alle Badges laden
+            $stmtAll = $this->pdo->prepare('SELECT id, name, description, required_streak, icon_class FROM badges ORDER BY required_streak ASC');
+            $stmtAll->execute();
+            $allBadges = $stmtAll->fetchAll();
+
+            // Verdiente Badges des Users
+            $stmtEarned = $this->pdo->prepare('SELECT badge_id, earned_at FROM user_badges WHERE user_id = ?');
+            $stmtEarned->execute([$user['id']]);
+            $earnedMap = [];
+            foreach ($stmtEarned->fetchAll() as $row) {
+                $earnedMap[$row['badge_id']] = $row['earned_at'];
+            }
+
+            // Kombinieren
+            foreach ($allBadges as &$badge) {
+                $badge['earned'] = isset($earnedMap[$badge['id']]);
+                $badge['earned_at'] = $badge['earned'] ? $earnedMap[$badge['id']] : null;
+            }
+
+            $this->respond(200, [
+                'badges' => $allBadges,
+                'current_streak' => (int)($user['streak_current'] ?? 0),
+                'points' => (int)($user['points'] ?? 0)
+            ]);
+        } catch (Throwable $e) {
+            app_log('ERROR', 'badges_get_failed', ['error' => $e->getMessage()]);
+            $this->respond(500, ['error' => 'Fehler beim Laden der Abzeichen: ' . $e->getMessage()]);
+        }
+    }
+}

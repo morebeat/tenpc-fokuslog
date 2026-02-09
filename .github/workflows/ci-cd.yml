@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop, main, release/* ]
+    branches: [ dev, main, release/* ]
   pull_request:
-    branches: [ develop, main ]
+    branches: [ dev, main ]
   schedule:
     - cron: '0 2 * * *'
 
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['7.4', '8.0', '8.1']
+        php-version: ['8.0', '8.1', '8.2']
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,7 +41,7 @@ jobs:
 
       - name: PHP CodeSniffer
         run: |
-          phpcs --standard=PSR12 api/
+          phpcs api/
 
       - name: PHPStan Analysis
         env:
@@ -52,6 +52,10 @@ jobs:
   security:
     name: Security Scanning
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
 
@@ -70,7 +74,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -102,55 +106,34 @@ jobs:
           path: fokuslog-sbom.json
           retention-days: 30
 
-  database:
-    name: Database Schema Validation
+  js-tests:
+    name: JavaScript Tests
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: fokuslog_test
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        ports:
-          - 3306:3306
     steps:
       - uses: actions/checkout@v4
 
-      - name: Wait for MySQL
-        run: |
-          until mysqladmin ping -h 127.0.0.1 -u root -proot --silent; do
-            echo 'waiting for mysql...'
-            sleep 1
-          done
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Load schema v4
-        run: |
-          mysql -h 127.0.0.1 -u root -proot fokuslog_test < db/schema_v4.sql
-
-      - name: Validate schema integrity
-        run: |
-          mysql -h 127.0.0.1 -u root -proot fokuslog_test -e "SHOW TABLES;" | grep -q "users"
+      - name: Run JS unit tests
+        run: node --test tests/js
 
   api-tests:
-    name: API Tests
+    name: API & Database Tests
     runs-on: ubuntu-latest
-    needs: database
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: fokuslog_test
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=5
         ports:
           - 3306:3306
     steps:
@@ -159,22 +142,37 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
+          php-version: '8.2'
+          extensions: pdo_mysql
 
       - name: Wait for MySQL
         run: |
           until mysqladmin ping -h 127.0.0.1 -u root -proot --silent; do
-            sleep 1
+            sleep 2
           done
 
-      - name: Load test database
+      - name: Load schema and validate
         run: |
           mysql -h 127.0.0.1 -u root -proot fokuslog_test < db/schema_v4.sql
+          mysql -h 127.0.0.1 -u root -proot fokuslog_test -e "SHOW TABLES;" | grep -q "users"
 
-      - name: Run API tests
+      - name: Write test environment
         run: |
-          cd api
-          php ApiTest.php
+          cat <<'EOF' > .env
+          DB_HOST=127.0.0.1
+          DB_NAME=fokuslog_test
+          DB_USER=root
+          DB_PASS=root
+          APP_ENV=ci
+          EOF
+
+      - name: Start PHP server and run tests
+        env:
+          API_URL: http://127.0.0.1:8000/api
+        run: |
+          php -S 127.0.0.1:8000 router.php > /tmp/php.log 2>&1 &
+          sleep 2
+          php api/run_tests.php
 
   frontend:
     name: Frontend Validation
@@ -201,7 +199,7 @@ jobs:
   build:
     name: Build Artifact
     runs-on: ubuntu-latest
-    needs: [lint, security, sbom, api-tests, frontend]
+    needs: [lint, js-tests, security, sbom, api-tests, frontend]
     outputs:
       artifact-name: ${{ steps.archive.outputs.artifact }}
     steps:
@@ -212,16 +210,17 @@ jobs:
         run: |
           VERSION=$(git describe --tags --always)
           ARCHIVE="fokuslog-${VERSION}-${GITHUB_SHA::7}.tar.gz"
-          tar -czf "$ARCHIVE" \
+          tar -czf "/tmp/$ARCHIVE" \
             --exclude='.git' \
             --exclude='logs' \
             --exclude='backups' \
             --exclude='.env' \
+            --exclude='docs' \
             --exclude='.env.*' \
             --exclude='.DS_Store' \
             --exclude='node_modules' \
-            --exclude='vendor' \
             .
+          mv "/tmp/$ARCHIVE" .
           echo "artifact=$ARCHIVE" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
@@ -234,31 +233,40 @@ jobs:
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
     needs: build
     environment: development
     env:
       HEALTHCHECK_URL: ${{ secrets.DEV_HEALTHCHECK_URL }}
+      DEPLOY_READY: ${{ secrets.DEV_FTP_HOST != '' && secrets.DEV_FTP_USER != '' && secrets.DEV_FTP_PASS != '' }}
     steps:
+      - name: Skip DEV deploy (missing secrets)
+        if: env.DEPLOY_READY != 'true'
+        run: |
+          echo 'DEV deploy skipped: required FTP secrets are not configured.'
+
       - name: Download build artifact
+        if: env.DEPLOY_READY == 'true'
         uses: actions/download-artifact@v4
         with:
           name: fokuslog-build
           path: artifact
 
       - name: Extract artifact
+        if: env.DEPLOY_READY == 'true'
         run: |
           cd artifact
           tar -xzf *.tar.gz
 
       - name: Deploy to DEV via FTP
+        if: env.DEPLOY_READY == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.DEV_FTP_HOST }}
           username: ${{ secrets.DEV_FTP_USER }}
           password: ${{ secrets.DEV_FTP_PASS }}
           server-dir: ${{ secrets.DEV_FTP_PATH }}
-          local-dir: artifact
+          local-dir: artifact/
           protocol: ftp
           exclude: |
             .git/**
@@ -268,48 +276,7 @@ jobs:
             *.tar.gz
 
       - name: Health check (DEV)
-        if: ${{ env.HEALTHCHECK_URL != '' }}
-        run: |
-          curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
-
-  deploy-qa:
-    name: Deploy to QA
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
-    environment: qa
-    env:
-      HEALTHCHECK_URL: ${{ secrets.QA_HEALTHCHECK_URL }}
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: fokuslog-build
-          path: artifact
-
-      - name: Extract artifact
-        run: |
-          cd artifact
-          tar -xzf *.tar.gz
-
-      - name: Deploy to QA via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.QA_FTP_HOST }}
-          username: ${{ secrets.QA_FTP_USER }}
-          password: ${{ secrets.QA_FTP_PASS }}
-          server-dir: ${{ secrets.QA_FTP_PATH }}
-          local-dir: artifact
-          protocol: ftp
-          exclude: |
-            .git/**
-            logs/**
-            backups/**
-            *.sql
-            *.tar.gz
-
-      - name: Health check (QA)
-        if: ${{ env.HEALTHCHECK_URL != '' }}
+        if: env.DEPLOY_READY == 'true' && env.HEALTHCHECK_URL != ''
         run: |
           curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
 
@@ -321,26 +288,35 @@ jobs:
     environment: production
     env:
       HEALTHCHECK_URL: ${{ secrets.PROD_HEALTHCHECK_URL }}
+      DEPLOY_READY: ${{ secrets.PROD_FTP_HOST != '' && secrets.PROD_FTP_USER != '' && secrets.PROD_FTP_PASS != '' }}
     steps:
+      - name: Skip PROD deploy (missing secrets)
+        if: env.DEPLOY_READY != 'true'
+        run: |
+          echo 'Production deploy skipped: required FTP secrets are not configured.'
+
       - name: Download build artifact
+        if: env.DEPLOY_READY == 'true'
         uses: actions/download-artifact@v4
         with:
           name: fokuslog-build
           path: artifact
 
       - name: Extract artifact
+        if: env.DEPLOY_READY == 'true'
         run: |
           cd artifact
           tar -xzf *.tar.gz
 
       - name: Deploy to Production via FTP
+        if: env.DEPLOY_READY == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.PROD_FTP_HOST }}
           username: ${{ secrets.PROD_FTP_USER }}
           password: ${{ secrets.PROD_FTP_PASS }}
           server-dir: ${{ secrets.PROD_FTP_PATH }}
-          local-dir: artifact
+          local-dir: artifact/
           protocol: ftp
           exclude: |
             .git/**
@@ -350,7 +326,7 @@ jobs:
             *.tar.gz
 
       - name: Health check (Production)
-        if: ${{ env.HEALTHCHECK_URL != '' }}
+        if: env.DEPLOY_READY == 'true' && env.HEALTHCHECK_URL != ''
         run: |
           curl --fail --retry 5 --retry-delay 5 "$HEALTHCHECK_URL"
 

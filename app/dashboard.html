@@ -22,61 +22,68 @@
         
         <!-- Gamification Stats werden hier per JS eingefügt -->
 
-        <div class="dashboard-section">
-            <h3>Mein Tagebuch</h3>
-            <div class="dashboard-grid">
-                <a class="dashboard-card" href="entry.html">
-                    <div class="icon">📝</div>
-                    <div class="label">Neuer Eintrag</div>
-                </a>
-                <a class="dashboard-card" href="report.html">
-                    <div class="icon">📊</div>
-                    <div class="label">Auswertung</div>
-                </a>
-                <a class="dashboard-card" href="badges.html">
-                    <div class="icon">🏆</div>
-                    <div class="label">Meine Erfolge</div>
-                </a>
+        <div class="dashboard-sections-wrapper">
+            <div class="dashboard-section">
+                <h3>Mein Tagebuch</h3>
+                <div class="dashboard-grid">
+                    <a class="dashboard-card" href="entry.html">
+                        <div class="icon">📝</div>
+                        <div class="label">Neuer Eintrag</div>
+                    </a>
+                    <a class="dashboard-card" href="report.html">
+                        <div class="icon">📊</div>
+                        <div class="label">Auswertung</div>
+                    </a>
+                    <a class="dashboard-card" href="badges.html">
+                        <div class="icon">🏆</div>
+                        <div class="label">Meine Erfolge</div>
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <div class="dashboard-section" id="admin-section">
-            <h3>Verwaltung</h3>
-            <div class="dashboard-grid">
-                <a class="dashboard-card" href="manage_users.html">
-                    <div class="icon">👨‍👩‍👧‍👦</div>
-                    <div class="label">Benutzer</div>
-                </a>
-                <a class="dashboard-card" href="manage-medications.html">
-                    <div class="icon">💊</div>
-                    <div class="label">Medikamente</div>
-                </a>
-                <a class="dashboard-card" href="manage_tags.html">
-                    <div class="icon">🏷️</div>
-                    <div class="label">Tags</div>
-                </a>
+            <div class="dashboard-section" id="admin-section">
+                <h3>Verwaltung</h3>
+                <div class="dashboard-grid">
+                    <a class="dashboard-card" href="manage_users.html">
+                        <div class="icon">👨‍👩‍👧‍👦</div>
+                        <div class="label">Benutzer</div>
+                    </a>
+                    <a class="dashboard-card" href="manage-medications.html">
+                        <div class="icon">💊</div>
+                        <div class="label">Medikamente</div>
+                    </a>
+                    <a class="dashboard-card" href="manage_tags.html">
+                        <div class="icon">🏷️</div>
+                        <div class="label">Tags</div>
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <div class="dashboard-section">
-            <h3>Einstellungen & Hilfe</h3>
-            <div class="dashboard-grid">
-                <a class="dashboard-card" href="account.html">
-                    <div class="icon">⚙️</div>
-                    <div class="label">Mein Konto</div>
-                </a>
-                <a class="dashboard-card" href="help/index.html">
-                    <div class="icon">❓</div>
-                    <div class="label">Hilfe</div>
-                </a>
-                <a class="dashboard-card" href="privacy.html">
-                    <div class="icon">🔒</div>
-                    <div class="label">Datenschutz</div>
-                </a>
+            <div class="dashboard-section">
+                <h3>Einstellungen & Hilfe</h3>
+                <div class="dashboard-grid">
+                    <a class="dashboard-card" href="account.html">
+                        <div class="icon">⚙️</div>
+                        <div class="label">Mein Konto</div>
+                    </a>
+                    <a class="dashboard-card" href="notifications.html">
+                        <div class="icon">🔔</div>
+                        <div class="label">Benachrichtigungen</div>
+                    </a>
+                    <a class="dashboard-card" href="help/index.html">
+                        <div class="icon">❓</div>
+                        <div class="label">Hilfe</div>
+                    </a>
+                    <a class="dashboard-card" href="privacy.html">
+                        <div class="icon">🔒</div>
+                        <div class="label">Datenschutz</div>
+                    </a>
+                </div>
             </div>
         </div>
 
     </main>
+    <script src="js/utils/common.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
