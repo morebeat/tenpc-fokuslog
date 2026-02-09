@@ -44,12 +44,12 @@ $expectedToken = $env['DEPLOY_TOKEN'];
 error_log("[Deploy] Deployment-Versuch von IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
 
 // Verifiziere Token
-// if (empty($token) || !hash_equals($expectedToken, $token)) {
-//     http_response_code(403);
-//     error_log("[Deploy] Zugriff verweigert: UngÃ¼ltiger Token.");
-//     echo json_encode(['error' => 'UngÃ¼ltiger Token ' .  $token . " extccpected " . $expectedToken]);
-//     exit;
-// }
+if (empty($token) || !hash_equals($expectedToken, $token)) {
+    http_response_code(403);
+    error_log("[Deploy] Zugriff verweigert: Ungültiger Token.");
+    echo json_encode(['error' => 'Ungültiger Token']);
+    exit;
+}
 
 // Optional: Neuer .env Inhalt aus Request (z.B. von GitHub Secrets)
 $newEnvContent = $inputData['env_content'] ?? null;

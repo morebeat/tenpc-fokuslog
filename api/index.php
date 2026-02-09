@@ -76,12 +76,13 @@ require_once __DIR__ . '/RateLimiter.php';
 // Router laden
 use FokusLog\Router;
 
-// Session-Sicherheit erhÃ¶hen
+// Session-Sicherheit erhöhen
+$isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
     'domain' => '',
-    'secure' => true,
+    'secure' => $isSecure,
     'httponly' => true,
     'samesite' => 'Strict'
 ]);
