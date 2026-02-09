@@ -41,7 +41,7 @@ jobs:
 
       - name: PHP CodeSniffer
         run: |
-          phpcs --standard=PSR12 api/
+          phpcs api/
 
       - name: PHPStan Analysis
         env:

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<ruleset name="FokusLog">
+    <description>PSR-12 with project-specific exclusions</description>
+
+    <!-- Use PSR-12 as base -->
+    <rule ref="PSR12">
+        <!-- Allow longer lines (SQL queries, error messages) -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
+
+    <!-- Warn on lines > 150 chars instead of 120 -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="150"/>
+            <property name="absoluteLineLimit" value="200"/>
+        </properties>
+    </rule>
+
+    <!-- Exclude test and utility files from namespace requirements -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>api/ApiTest.php</exclude-pattern>
+        <exclude-pattern>api/SimpleTestRunner.php</exclude-pattern>
+        <exclude-pattern>api/RateLimiter.php</exclude-pattern>
+        <exclude-pattern>api/lib/EntryPayload.php</exclude-pattern>
+    </rule>
+
+    <!-- Allow multiple classes in test runner file -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>api/SimpleTestRunner.php</exclude-pattern>
+    </rule>
+
+    <!-- Allow underscore in test method names -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>api/ApiTest.php</exclude-pattern>
+    </rule>
+
+    <!-- Allow side effects in entry point and test files -->
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>api/index.php</exclude-pattern>
+        <exclude-pattern>api/ApiTest.php</exclude-pattern>
+    </rule>
+
+    <!-- Allow docblock after declare in index.php -->
+    <rule ref="PSR12.Files.FileHeader.IncorrectOrder">
+        <exclude-pattern>api/index.php</exclude-pattern>
+    </rule>
+
+    <!-- Exclude empty/stub files -->
+    <exclude-pattern>api/setup_db.php</exclude-pattern>
+
+    <!-- Standard exclusions -->
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>node_modules/*</exclude-pattern>
+    <exclude-pattern>*.min.js</exclude-pattern>
+</ruleset>
