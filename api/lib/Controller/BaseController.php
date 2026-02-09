@@ -20,6 +20,7 @@ abstract class BaseController
 
     /**
      * Sendet eine JSON-Antwort und beendet das Script.
+     * @return never
      */
     protected function respond(int $code, array $data = []): void
     {

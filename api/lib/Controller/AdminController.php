@@ -31,6 +31,7 @@ class AdminController extends BaseController
                 $this->respond(401, ['error' => 'Authorization token erforderlich']);
             }
 
+            /** @var array<int, string> $matches */
             if ($matches[1] !== $expectedToken) {
                 app_log('WARNING', 'migration_invalid_token', ['ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
                 $this->respond(403, ['error' => 'UngÃ¼ltiger token']);
@@ -153,6 +154,7 @@ class AdminController extends BaseController
                 $this->respond(401, ['error' => 'Authorization token erforderlich']);
             }
 
+            /** @var array<int, string> $matches */
             if ($matches[1] !== $expectedToken) {
                 app_log('WARNING', 'backup_invalid_token', ['ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
                 $this->respond(403, ['error' => 'UngÃ¼ltiger token']);

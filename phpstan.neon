@@ -1,0 +1,16 @@
+parameters:
+    level: 5
+    paths:
+        - api/
+
+    # Exclude dynamically loaded classes
+    ignoreErrors:
+        # HelpImporter is loaded via require_once at runtime
+        - '#Instantiated class HelpImporter not found#'
+        - '#Call to method .+ on an unknown class HelpImporter#'
+
+        # Empty check is intentional for optional array
+        - '#Variable \$migrationOutput in empty\(\) always exists and is always falsy#'
+
+        # Mixed type comparisons are acceptable in this context
+        - '#Strict comparison using !== between mixed and null will always evaluate to true#'

@@ -270,7 +270,7 @@ class GlossaryController extends BaseController
             $force = isset($_POST['force']) && $_POST['force'];
             $stats = $importer->setForce($force)->run();
 
-            $this->logAction('GLOSSARY_IMPORT', null, $stats);
+            $this->logAction((int)$user['id'], 'GLOSSARY_IMPORT', $stats);
 
             $this->respond(200, [
                 'message' => 'Import abgeschlossen',
