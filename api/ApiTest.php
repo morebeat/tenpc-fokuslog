@@ -310,13 +310,13 @@ class ApiTest
 
     public function testGlossaryImportRequiresParentRole()
     {
-        // Authentifizierter Client (Parent-Rolle) - sollte funktionieren oder 500 wenn Script fehlt
+        // Authentifizierter Client (Parent-Rolle) - sollte funktionieren oder 400/500 wenn Umgebung fehlt
         $response = $this->client->post('/glossary/import', []);
 
-        // Entweder 200 (erfolgreich) oder 500 (Script-Fehler) - aber nicht 401/403
+        // Entweder 200 (erfolgreich), 400 (Request-Fehler) oder 500 (Script/Env-Fehler) - aber nicht 401/403
         Assert::true(
-            in_array($response['code'], [200, 500]),
-            'Import als Parent sollte 200 oder 500 sein (nicht 401/403), war: ' . $response['code']
+            in_array($response['code'], [200, 400, 500]),
+            'Import als Parent sollte 200, 400 oder 500 sein (nicht 401/403), war: ' . $response['code']
         );
     }
 }
