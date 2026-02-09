@@ -7,13 +7,13 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fü¼r Admin-Funktionen (Migration, Backup).
+ * Controller für Admin-Funktionen (Migration, Backup).
  */
 class AdminController extends BaseController
 {
     /**
      * POST /admin/migrate
-     * Fü¼hrt Datenbank-Migrationen aus.
+     * Führt Datenbank-Migrationen aus.
      */
     public function migrate(): void
     {
@@ -33,7 +33,7 @@ class AdminController extends BaseController
 
             if ($matches[1] !== $expectedToken) {
                 app_log('WARNING', 'migration_invalid_token', ['ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
-                $this->respond(403, ['error' => 'Ungü¼ltiger token']);
+                $this->respond(403, ['error' => 'Ungültiger token']);
             }
 
             $data = $this->getJsonBody();
@@ -97,7 +97,7 @@ class AdminController extends BaseController
                 }
             }
 
-            // 3. Seed: Lade Test-Datensü¤tze
+            // 3. Seed: Lade Test-Datensätze
             if ($seed) {
                 $seedFile = __DIR__ . '/../../db/seed.sql';
                 if (!is_file($seedFile)) {
@@ -122,7 +122,7 @@ class AdminController extends BaseController
             ]);
 
             $this->respond(200, [
-                'message' => 'Migrationen erfolgreich ausgefü¼hrt',
+                'message' => 'Migrationen erfolgreich ausgeführt',
                 'reset' => $reset,
                 'seed' => $seed,
                 'migrations' => $migrationResults
@@ -155,7 +155,7 @@ class AdminController extends BaseController
 
             if ($matches[1] !== $expectedToken) {
                 app_log('WARNING', 'backup_invalid_token', ['ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
-                $this->respond(403, ['error' => 'Ungü¼ltiger token']);
+                $this->respond(403, ['error' => 'Ungültiger token']);
             }
 
             $backupDir = __DIR__ . '/../../backups';
@@ -220,7 +220,7 @@ class AdminController extends BaseController
 
                 $fileSize = filesize($backupFile);
 
-                // Aufrü¤umen: Entferne Backups ü¤lter als 30 Tage
+                // Aufräumen: Entferne Backups älter als 30 Tage
                 $thirtyDaysAgo = time() - (30 * 24 * 60 * 60);
                 foreach (glob($backupDir . "/backup_*.sql*") as $file) {
                     if (filemtime($file) < $thirtyDaysAgo) {

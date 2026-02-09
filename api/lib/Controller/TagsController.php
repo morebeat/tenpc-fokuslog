@@ -7,13 +7,13 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fü¼r Tags.
+ * Controller für Tags.
  */
 class TagsController extends BaseController
 {
     /**
      * GET /tags
-     * Gibt alle Tags der Familie zurü¼ck.
+     * Gibt alle Tags der Familie zurück.
      */
     public function index(): void
     {
@@ -61,7 +61,7 @@ class TagsController extends BaseController
 
     /**
      * DELETE /tags/{id}
-     * Lü¶scht einen Tag.
+     * Löscht einen Tag.
      */
     public function destroy(string $id): void
     {
@@ -76,7 +76,7 @@ class TagsController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'tags_delete_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Lü¶schen des Tags']);
+            $this->respond(500, ['error' => 'Fehler beim Löschen des Tags']);
         }
     }
 }

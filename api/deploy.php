@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Deploy-Webhook für automatisches Deployment via Git Pull
+ * Deploy-Webhook fÜr automatisches Deployment via Git Pull
  *
  * POST /api/deploy.php?token=YOUR_TOKEN
  */
@@ -46,8 +46,8 @@ error_log("[Deploy] Deployment-Versuch von IP: " . ($_SERVER['REMOTE_ADDR'] ?? '
 // Verifiziere Token
 if (empty($token) || !hash_equals($expectedToken, $token)) {
     http_response_code(403);
-    error_log("[Deploy] Zugriff verweigert: Ungültiger Token.");
-    echo json_encode(['error' => 'Ungültiger Token']);
+    error_log("[Deploy] Zugriff verweigert: UngÜltiger Token.");
+    echo json_encode(['error' => 'UngÜltiger Token']);
     exit;
 }
 
@@ -58,9 +58,12 @@ $skipGit = isset($inputData['skip_git']) && $inputData['skip_git'];
 // Deployment-Directory
 $deployDir = dirname(__DIR__);
 
-// Git-Operationen nur wenn nicht ü¼bersprungen (z.B. nach FTP-Deployment)
+// Initialize output arrays early (used inside and outside git block)
+$migrationOutput = [];
+
+// Git-Operationen nur wenn nicht übersprungen (z.B. nach FTP-Deployment)
 if (!$skipGit) {
-    // üœberprü¼fe ob .git existiert
+    // Überprüfe ob .git existiert
     if (!is_dir($deployDir . '/.git')) {
         http_response_code(400);
         echo json_encode(['error' => 'Git-Repository nicht vorhanden: ' . $deployDir]);
@@ -74,7 +77,7 @@ if (!$skipGit) {
         copy($envFile, $envBackup);
     }
 
-    // Fü¼hre git pull aus
+    // Führe git pull aus
     chdir($deployDir);
     $output = [];
     $return = 0;
@@ -127,7 +130,6 @@ if (!$skipGit) {
 
 // .env Pfad setzen (falls nicht via Git)
 $envFile = $deployDir . '/.env';
-$migrationOutput = [];
 
 // Hilfe-Inhalte in Glossary-Tabelle importieren
 $helpImportScript = $deployDir . '/app/help/import_help.php';
@@ -161,7 +163,7 @@ if (is_file($helpImportScript)) {
         }
 
         $helpImportOutput[] = sprintf(
-            'Help Import: %d importiert, %d aktualisiert, %d übersprungen, %d gelöscht',
+            'Help Import: %d importiert, %d aktualisiert, %d Übersprungen, %d gelöscht',
             $stats['imported'],
             $stats['updated'],
             $stats['skipped'],
@@ -178,7 +180,7 @@ if (is_file($helpImportScript)) {
     error_log("[Deploy] Help import script not found: " . $helpImportScript);
 }
 
-// Hole aktuellen Commit (falls Git verfü¼gbar)
+// Hole aktuellen Commit (falls Git verfügbar)
 $commit = [];
 $commitHash = 'unknown';
 if (!$skipGit && is_dir($deployDir . '/.git')) {
@@ -188,7 +190,7 @@ if (!$skipGit && is_dir($deployDir . '/.git')) {
 }
 
 if (empty($migrationOutput)) {
-    $migrationOutput[] = $skipGit ? 'Git ü¼bersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
+    $migrationOutput[] = $skipGit ? 'Git übersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
 }
 
 error_log("[Deploy] Erfolg: Commit $commitHash deployed. Migrationen: " . implode(', ', $migrationOutput) . " Help: " . implode(', ', $helpImportOutput));

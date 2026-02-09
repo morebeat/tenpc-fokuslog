@@ -10,13 +10,13 @@ use PDOException;
 use Throwable;
 
 /**
- * Controller fü¼r Eintrü¤ge (Tagebucheintrü¤ge).
+ * Controller für Einträge (Tagebucheinträge).
  */
 class EntriesController extends BaseController
 {
     /**
      * GET /entries
-     * Gibt Eintrü¤ge zurü¼ck. Child/Adult sehen nur eigene, Parent kann alle in der Familie sehen.
+     * Gibt Einträge zurück. Child/Adult sehen nur eigene, Parent kann alle in der Familie sehen.
      */
     public function index(): void
     {
@@ -25,7 +25,7 @@ class EntriesController extends BaseController
 
             if ($user['role'] === 'teacher') {
                 app_log('WARNING', 'entries_get_denied_for_teacher', ['user_id' => $user['id']]);
-                $this->respond(403, ['error' => 'Lehrer dü¼rfen keine Eintrü¤ge einsehen']);
+                $this->respond(403, ['error' => 'Lehrer dürfen keine Einträge einsehen']);
             }
 
             $params = $this->getQueryParams();
@@ -94,7 +94,7 @@ class EntriesController extends BaseController
             $this->respond(200, ['entries' => $entries]);
         } catch (Throwable $e) {
             app_log('ERROR', 'entries_get_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Laden der Eintrü¤ge: ' . $e->getMessage()]);
+            $this->respond(500, ['error' => 'Fehler beim Laden der Einträge: ' . $e->getMessage()]);
         }
     }
 
@@ -110,7 +110,7 @@ class EntriesController extends BaseController
 
             $targetUserId = (int)$user['id'];
 
-            // Eltern/Erwachsene dü¼rfen Eintrü¤ge fü¼r Familienmitglieder bearbeiten/erstellen
+            // Eltern/Erwachsene dürfen Einträge für Familienmitglieder bearbeiten/erstellen
             if (($user['role'] === 'parent' || $user['role'] === 'adult') && !empty($data['target_user_id'])) {
                 $tId = (int)$data['target_user_id'];
                 $stmt = $this->pdo->prepare('SELECT id FROM users WHERE id = ? AND family_id = ?');
@@ -122,14 +122,14 @@ class EntriesController extends BaseController
             } elseif ($user['role'] === 'teacher') {
                 if (empty($data['child_id'])) {
                     app_log('WARNING', 'entry_create_validation_failed', ['user_id' => $user['id'], 'error' => 'child_id_missing_for_teacher']);
-                    $this->respond(400, ['error' => 'child_id ist erforderlich fü¼r teacher']);
+                    $this->respond(400, ['error' => 'child_id ist erforderlich für teacher']);
                 }
                 $stmt = $this->pdo->prepare('SELECT id FROM users WHERE id = ? AND family_id = ? AND role = ?');
                 $stmt->execute([(int)$data['child_id'], $user['family_id'], 'child']);
                 $child = $stmt->fetch();
                 if (!$child) {
                     app_log('WARNING', 'entry_create_invalid_child', ['user_id' => $user['id'], 'child_id' => $data['child_id']]);
-                    $this->respond(403, ['error' => 'Ungü¼ltiges Kind fü¼r diesen Lehrer']);
+                    $this->respond(403, ['error' => 'Ungültiges Kind für diesen Lehrer']);
                 }
                 $targetUserId = (int)$data['child_id'];
             }
@@ -164,7 +164,7 @@ class EntriesController extends BaseController
 
                 $sleep = EntryPayload::intOrNull($data['sleep'] ?? null);
 
-                // Prü¼fe existierende Schlafdaten fü¼r den Tag
+                // Prüfe existierende Schlafdaten für den Tag
                 $check = $this->pdo->prepare('SELECT id FROM entries WHERE user_id = ? AND date = ? AND sleep IS NOT NULL AND time != ? LIMIT 1');
                 $check->execute([$targetUserId, $date, $time]);
                 if ($check->fetch()) {
@@ -213,7 +213,7 @@ class EntriesController extends BaseController
                 app_log('ERROR', 'entry_create_failed', ['error' => $e->getMessage(), 'code' => $e->getCode()]);
                 if ((int)$e->getCode() === 23000) {
                     app_log('WARNING', 'entry_create_duplicate', ['user_id' => $targetUserId, 'date' => $date, 'time' => $time]);
-                    $this->respond(409, ['error' => 'Fü¼r diesen Zeitpunkt existiert bereits ein Eintrag']);
+                    $this->respond(409, ['error' => 'Für diesen Zeitpunkt existiert bereits ein Eintrag']);
                 }
                 $this->respond(500, ['error' => 'Fehler beim Speichern des Eintrags: ' . $e->getMessage()]);
             }
@@ -236,7 +236,7 @@ class EntriesController extends BaseController
 
     /**
      * DELETE /entries/{id}
-     * Lü¶scht einen Eintrag.
+     * Löscht einen Eintrag.
      */
     public function destroy(string $id): void
     {
@@ -252,7 +252,7 @@ class EntriesController extends BaseController
                 $this->respond(404, ['error' => 'Eintrag nicht gefunden']);
             }
 
-            // Berechtigungsprü¼fung
+            // Berechtigungsprüfung
             if ($user['role'] !== 'parent' && $user['role'] !== 'adult' && $entryData['user_id'] !== $user['id']) {
                 $this->respond(403, ['error' => 'Zugriff verweigert']);
             }
@@ -267,7 +267,7 @@ class EntriesController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'entry_delete_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim Lü¶schen des Eintrags']);
+            $this->respond(500, ['error' => 'Fehler beim Löschen des Eintrags']);
         }
     }
 
@@ -353,7 +353,7 @@ class EntriesController extends BaseController
             }
         }
 
-        // Nü¤chstes Badge
+        // Nächstes Badge
         $nextBadge = null;
         $stmtNext = $this->pdo->prepare('SELECT name, required_streak, icon_class FROM badges WHERE required_streak > ? ORDER BY required_streak ASC LIMIT 1');
         $stmtNext->execute([$newStreak]);

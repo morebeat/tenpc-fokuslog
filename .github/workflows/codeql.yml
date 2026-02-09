@@ -18,6 +18,9 @@ jobs:
       security-events: write
     strategy:
       matrix:
+        # Note: PHP is not supported by CodeQL. PHP security analysis is handled
+        # by PHPStan (static analysis) in the ci-cd.yml workflow instead.
+        # See: https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/
         language: [ 'javascript-typescript' ]
     steps:
       - name: Checkout

@@ -7,7 +7,7 @@ namespace FokusLog;
 use PDO;
 
 /**
- * Einfacher Router fü¼r die FokusLog API.
+ * Einfacher Router für die FokusLog API.
  */
 class Router
 {
@@ -39,7 +39,7 @@ class Router
     }
 
     /**
-     * Shortcut fü¼r GET-Routen.
+     * Shortcut für GET-Routen.
      */
     public function get(string $pattern, string $controller, string $action): self
     {
@@ -47,7 +47,7 @@ class Router
     }
 
     /**
-     * Shortcut fü¼r POST-Routen.
+     * Shortcut für POST-Routen.
      */
     public function post(string $pattern, string $controller, string $action): self
     {
@@ -55,7 +55,7 @@ class Router
     }
 
     /**
-     * Shortcut fü¼r PUT-Routen.
+     * Shortcut für PUT-Routen.
      */
     public function put(string $pattern, string $controller, string $action): self
     {
@@ -63,7 +63,7 @@ class Router
     }
 
     /**
-     * Shortcut fü¼r DELETE-Routen.
+     * Shortcut für DELETE-Routen.
      */
     public function delete(string $pattern, string $controller, string $action): self
     {
@@ -71,7 +71,7 @@ class Router
     }
 
     /**
-     * Fü¼hrt das Routing aus.
+     * Führt das Routing aus.
      *
      * @param string $method HTTP-Methode
      * @param string $path URL-Pfad
@@ -99,9 +99,9 @@ class Router
     }
 
     /**
-     * Prü¼ft ob eine Route zum Pfad passt und extrahiert Parameter.
+     * Prüft ob eine Route zum Pfad passt und extrahiert Parameter.
      *
-     * @return array|null Parameter-Array oder null wenn keine üœbereinstimmung
+     * @return array|null Parameter-Array oder null wenn keine Übereinstimmung
      */
     private function matchRoute(string $pattern, string $path): ?array
     {
@@ -110,7 +110,7 @@ class Router
         $regex = '#^' . $regex . '$#';
 
         if (preg_match($regex, $path, $matches)) {
-            // Nur benannte Gruppen zurü¼ckgeben (keine numerischen Keys)
+            // Nur benannte Gruppen zurückgeben (keine numerischen Keys)
             return array_filter($matches, fn($key) => !is_int($key), ARRAY_FILTER_USE_KEY);
         }
 
@@ -118,7 +118,7 @@ class Router
     }
 
     /**
-     * Instanziiert Controller und fü¼hrt Action aus.
+     * Instanziiert Controller und führt Action aus.
      */
     private function executeController(string $controllerClass, string $action, array $params): void
     {

@@ -13,7 +13,7 @@ class RateLimiter
     }
 
     /**
-     * Prü¼ft, ob eine IP blockiert ist.
+     * Prüft, ob eine IP blockiert ist.
      * Limit: 5 Versuche pro 60 Sekunden.
      */
     public function check(string $ip, int $limit = 5, int $seconds = 60): bool

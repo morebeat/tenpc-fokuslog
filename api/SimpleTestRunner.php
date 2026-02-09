@@ -9,18 +9,18 @@ class SimpleTestRunner
     public function run($testClass)
     {
         $methods = get_class_methods($testClass);
-        echo "Starte Tests fü¼r " . get_class($testClass) . "...\n\n";
+        echo "Starte Tests für " . get_class($testClass) . "...\n\n";
 
         foreach ($methods as $method) {
             if (strpos($method, 'test') === 0) {
                 try {
-                    // Hook: setUp() vor jedem Test ausfü¼hren, falls vorhanden
+                    // Hook: setUp() vor jedem Test ausführen, falls vorhanden
                     if (method_exists($testClass, 'setUp')) {
                         $testClass->setUp();
                     }
 
                     $testClass->$method();
-                    echo "âœ… $method: OK\n";
+                    echo "… $method: OK\n";
                     $this->passed++;
                 } catch (Exception $e) {
                     echo "âŒ $method: FEHLGESCHLAGEN - " . $e->getMessage() . "\n";
@@ -30,7 +30,7 @@ class SimpleTestRunner
                         'message' => $e->getMessage()
                     ];
                 } finally {
-                    // Hook: tearDown() nach jedem Test ausfü¼hren, falls vorhanden
+                    // Hook: tearDown() nach jedem Test ausführen, falls vorhanden
                     if (method_exists($testClass, 'tearDown')) {
                         $testClass->tearDown();
                     }
@@ -65,7 +65,7 @@ class Assert
     public static function true($condition, $message = '')
     {
         if ($condition !== true) {
-            throw new Exception("$message (Bedingung nicht erfü¼llt)");
+            throw new Exception("$message (Bedingung nicht erfüllt)");
         }
     }
 }
@@ -78,7 +78,7 @@ class HttpClient
     public function __construct($baseUrl)
     {
         $this->baseUrl = rtrim($baseUrl, '/');
-        // Temporü¤re Datei fü¼r Cookies (Session-Simulation)
+        // Temporäre Datei für Cookies (Session-Simulation)
         $this->cookieJar = tempnam(sys_get_temp_dir(), 'cookie_');
     }
 
