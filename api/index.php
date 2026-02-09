@@ -168,6 +168,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 // Router konfigurieren
 $router = new Router($pdo);
 
+// Health-Check Endpoint (für CI/CD Monitoring)
+$router->get('/health', 'HealthController', 'check');
+
 // Auth-Routen
 $router->post('/register', 'AuthController', 'register');
 $router->post('/login', 'AuthController', 'login');

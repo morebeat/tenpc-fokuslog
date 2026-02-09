@@ -43,6 +43,7 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 4) Controller Reference
 | Controller | Routes | Purpose |
 |------------|--------|---------|
+| HealthController | /health | CI/CD health check |
 | AuthController | /register, /login, /logout, /me | Authentication |
 | UsersController | /users, /users/{id} | User CRUD |
 | MedicationsController | /medications, /medications/{id} | Medications |
