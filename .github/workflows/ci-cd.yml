@@ -210,7 +210,7 @@ jobs:
         run: |
           VERSION=$(git describe --tags --always)
           ARCHIVE="fokuslog-${VERSION}-${GITHUB_SHA::7}.tar.gz"
-          tar -czf "$ARCHIVE" \
+          tar -czf "/tmp/$ARCHIVE" \
             --exclude='.git' \
             --exclude='logs' \
             --exclude='backups' \
@@ -220,8 +220,8 @@ jobs:
             --exclude='.DS_Store' \
             --exclude='node_modules' \
             --exclude='vendor' \
-            --exclude='*.tar.gz' \
             .
+          mv "/tmp/$ARCHIVE" .
           echo "artifact=$ARCHIVE" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
