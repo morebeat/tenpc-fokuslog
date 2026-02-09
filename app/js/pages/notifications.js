@@ -314,9 +314,17 @@
             };
 
             const getVapidPublicKey = async () => {
-                // TODO: Implement endpoint to get VAPID public key
-                // For now, return null (push uses fallback)
-                return null;
+                try {
+                    const response = await fetch('/api/notifications/vapid-key');
+                    if (!response.ok) {
+                        return null;
+                    }
+                    const data = await response.json();
+                    return data.vapid_public_key || null;
+                } catch (error) {
+                    console.warn('Failed to fetch VAPID key:', error);
+                    return null;
+                }
             };
 
             const urlBase64ToUint8Array = (base64String) => {

@@ -359,4 +359,19 @@ class NotificationsController extends BaseController
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         return "$protocol://$host";
     }
+
+    /**
+     * GET /notifications/vapid-key
+     * Gibt den VAPID Public Key für Push-Subscriptions zurück.
+     */
+    public function getVapidKey(): void
+    {
+        $vapidPublicKey = $_ENV['VAPID_PUBLIC_KEY'] ?? getenv('VAPID_PUBLIC_KEY') ?: null;
+
+        if ($vapidPublicKey) {
+            $this->respond(200, ['vapid_public_key' => $vapidPublicKey]);
+        } else {
+            $this->respond(404, ['error' => 'VAPID public key not configured']);
+        }
+    }
 }

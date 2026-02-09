@@ -224,6 +224,7 @@ $router->get('/report/export/excel', 'ReportController', 'exportExcel');
 // Notifications-Routen (Benachrichtigungen)
 $router->get('/notifications/settings', 'NotificationsController', 'getSettings');
 $router->put('/notifications/settings', 'NotificationsController', 'updateSettings');
+$router->get('/notifications/vapid-key', 'NotificationsController', 'getVapidKey');
 $router->post('/notifications/push/subscribe', 'NotificationsController', 'subscribePush');
 $router->post('/notifications/push/unsubscribe', 'NotificationsController', 'unsubscribePush');
 $router->post('/notifications/email/verify', 'NotificationsController', 'verifyEmail');
