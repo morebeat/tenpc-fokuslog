@@ -58,7 +58,7 @@ jobs:
             **/backups/**
             **/.env
             **/.env.*
-            **/*.sql
+            **/*.sql.log
             **/.DS_Store
             **/node_modules/**
             **/vendor/**
