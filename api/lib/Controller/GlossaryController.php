@@ -174,7 +174,6 @@ class GlossaryController extends BaseController
 
             if (!$entry) {
                 $this->respond(404, ['error' => 'Eintrag nicht gefunden']);
-                return;
             }
 
             // JSON-Feld dekodieren
@@ -232,7 +231,6 @@ class GlossaryController extends BaseController
             // Nur Parents (als "Admins" der Familie) dÃ¼rfen importieren
             if ($user['role'] !== 'parent') {
                 $this->respond(403, ['error' => 'Keine Berechtigung']);
-                return;
             }
 
             // Import-Skript einbinden und ausfÃ¼hren
@@ -240,7 +238,6 @@ class GlossaryController extends BaseController
 
             if (!file_exists($importScript)) {
                 $this->respond(500, ['error' => 'Import-Skript nicht gefunden']);
-                return;
             }
 
             // Umgebungsvariablen laden
@@ -251,7 +248,6 @@ class GlossaryController extends BaseController
 
             if (!file_exists($envFile)) {
                 $this->respond(500, ['error' => '.env nicht gefunden']);
-                return;
             }
 
             $env = parse_ini_file($envFile);
