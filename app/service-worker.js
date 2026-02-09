@@ -7,7 +7,7 @@
  * Daten verwendet werden.
  */
 
-const CACHE_NAME = 'fokuslog-cache-v7';
+const CACHE_NAME = 'fokuslog-cache-v8';
 const OFFLINE_URLS = [
   '/app/index.html',
   '/app/style.css',

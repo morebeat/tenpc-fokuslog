@@ -31,7 +31,7 @@
 # ================================================
 # DEPENDENCY MANAGEMENT
 # ================================================
-vendor/
+# vendor/ - NOT ignored, contains frontend JS libs (jsPDF, Chart.js)
 node_modules/
 composer.lock
 package-lock.json
