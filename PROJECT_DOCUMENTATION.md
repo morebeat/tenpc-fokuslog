@@ -204,7 +204,10 @@ LOG_FILE=/path/to/app.log
 ### Installation
 1.  Configure Web Server (Apache/Nginx) to serve the `app/` directory as public and route `/api` requests to `api/index.php`.
 2.  Import `db/schema.sql` into your MySQL database.
-3.  Ensure `api/php_error.log` or the configured log path is writable by the web server user.
+3.  Ensure the `logs/` directory is writable by the web server user. Log files:
+    - `logs/error.log` - PHP errors
+    - `logs/app.log` - Application logs
+    - `logs/deploy.log` - Deployment logs
 
 ---
 

@@ -9,7 +9,7 @@
  * 3. Alerts bei fehlenden Einträgen
  * 
  * Cron-Beispiel (alle 5 Minuten):
- * */5 * * * * php /path/to/fokuslog/scripts/notification-worker.php >> /var/log/fokuslog-notifications.log 2>&1
+ * */5 * * * * php /path/to/fokuslog/scripts/notification-worker.php >> /path/to/fokuslog/logs/notifications.log 2>&1
  */
 
 declare(strict_types=1);

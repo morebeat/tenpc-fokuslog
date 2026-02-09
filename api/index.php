@@ -14,7 +14,7 @@ declare(strict_types=1);
 // Fehler-Reporting aktivieren und in Datei umleiten
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
-ini_set('error_log', __DIR__ . '../logs/php_error.log');
+ini_set('error_log', __DIR__ . '/../logs/error.log');
 error_reporting(E_ALL);
 
 // Shutdown-Handler fÃ¼r fatale Fehler registrieren, damit immer JSON zurÃ¼ckkommt
@@ -61,7 +61,11 @@ if (file_exists(__DIR__ . '/lib/logger.php')) {
 } else {
     function app_log($level, $msg, $ctx = [])
     {
-        error_log("[$level] $msg " . json_encode($ctx));
+        $logFile = __DIR__ . '/../logs/app.log';
+        $line = json_encode(['ts' => date('c'), 'level' => $level, 'msg' => $msg, 'ctx' => $ctx], JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        if (@file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX) === false) {
+            error_log("[$level] $msg " . json_encode($ctx));
+        }
     }
 }
 
