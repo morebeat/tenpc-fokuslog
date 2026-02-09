@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -8,7 +8,7 @@ use PDO;
 use Throwable;
 
 /**
- * Controller fÃ¼r Benachrichtigungseinstellungen und Push-Subscriptions.
+ * Controller fü¼r Benachrichtigungseinstellungen und Push-Subscriptions.
  */
 class NotificationsController extends BaseController
 {
@@ -26,7 +26,7 @@ class NotificationsController extends BaseController
             $settings = $stmt->fetch();
 
             if (!$settings) {
-                // Standardeinstellungen zurÃ¼ckgeben
+                // Standardeinstellungen zurü¼ckgeben
                 $settings = [
                     'push_enabled' => false,
                     'push_morning' => true,
@@ -76,7 +76,7 @@ class NotificationsController extends BaseController
             $user = $this->requireAuth();
             $data = $this->getJsonBody();
 
-            // PrÃ¼fen ob Einstellungen existieren
+            // Prü¼fen ob Einstellungen existieren
             $stmt = $this->pdo->prepare('SELECT id FROM notification_settings WHERE user_id = ?');
             $stmt->execute([$user['id']]);
             $exists = $stmt->fetch();
@@ -106,9 +106,9 @@ class NotificationsController extends BaseController
             // E-Mail-Validierung
             if (isset($updateData['email']) && $updateData['email'] !== null) {
                 if (!filter_var($updateData['email'], FILTER_VALIDATE_EMAIL)) {
-                    $this->respond(400, ['error' => 'UngÃ¼ltige E-Mail-Adresse']);
+                    $this->respond(400, ['error' => 'Ungü¼ltige E-Mail-Adresse']);
                 }
-                // Bei Ã„nderung der E-Mail: Verifizierung zurÃ¼cksetzen
+                // Bei ü„nderung der E-Mail: Verifizierung zurü¼cksetzen
                 $updateData['email_verified'] = 0;
                 $updateData['email_verification_token'] = bin2hex(random_bytes(32));
             }
@@ -224,7 +224,7 @@ class NotificationsController extends BaseController
             $stmt->execute([$data['token']]);
 
             if ($stmt->rowCount() === 0) {
-                $this->respond(400, ['error' => 'UngÃ¼ltiger oder abgelaufener Token']);
+                $this->respond(400, ['error' => 'Ungü¼ltiger oder abgelaufener Token']);
             }
 
             $this->respond(200, ['success' => true, 'message' => 'E-Mail-Adresse verifiziert']);
@@ -272,7 +272,7 @@ class NotificationsController extends BaseController
 
     /**
      * GET /notifications/status
-     * Gibt Status der fehlenden EintrÃ¤ge zurÃ¼ck (fÃ¼r Dashboard-Anzeige).
+     * Gibt Status der fehlenden Eintrü¤ge zurü¼ck (fü¼r Dashboard-Anzeige).
      */
     public function getStatus(): void
     {
@@ -294,7 +294,7 @@ class NotificationsController extends BaseController
                 $daysSinceEntry = $today->diff($lastDate)->days;
             }
 
-            // Fehlende EintrÃ¤ge fÃ¼r heute
+            // Fehlende Eintrü¤ge fü¼r heute
             $today = date('Y-m-d');
             $stmt = $this->pdo->prepare('SELECT time FROM entries WHERE user_id = ? AND date = ?');
             $stmt->execute([$user['id'], $today]);
@@ -331,9 +331,9 @@ class NotificationsController extends BaseController
         $baseUrl = $this->getBaseUrl();
         $verifyUrl = "$baseUrl/app/verify-email.html?token=$token";
 
-        $subject = 'FokusLog: E-Mail-Adresse bestÃ¤tigen';
+        $subject = 'FokusLog: E-Mail-Adresse bestü¤tigen';
         $body = "Hallo $username,\n\n";
-        $body .= "bitte bestÃ¤tige deine E-Mail-Adresse fÃ¼r FokusLog-Benachrichtigungen:\n\n";
+        $body .= "bitte bestü¤tige deine E-Mail-Adresse fü¼r FokusLog-Benachrichtigungen:\n\n";
         $body .= "$verifyUrl\n\n";
         $body .= "Wenn du diese E-Mail nicht angefordert hast, kannst du sie ignorieren.\n\n";
         $body .= "Dein FokusLog-Team";

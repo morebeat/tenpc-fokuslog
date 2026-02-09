@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -13,7 +13,7 @@ class RateLimiter
     }
 
     /**
-     * PrÃ¼ft, ob eine IP blockiert ist.
+     * Prü¼ft, ob eine IP blockiert ist.
      * Limit: 5 Versuche pro 60 Sekunden.
      */
     public function check(string $ip, int $limit = 5, int $seconds = 60): bool

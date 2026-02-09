@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/SimpleTestRunner.php';
 
@@ -14,7 +14,7 @@ class ApiTest
 
     /**
      * Wird vom SimpleTestRunner vor jedem Test aufgerufen.
-     * Stellt sicher, dass jeder Test mit einem frischen, authentifizierten Client lÃ¤uft.
+     * Stellt sicher, dass jeder Test mit einem frischen, authentifizierten Client lü¤uft.
      */
     public function setUp(): void
     {
@@ -30,7 +30,7 @@ class ApiTest
     }
 
     /**
-     * Erstellt einen neuen Benutzer, loggt ihn ein und gibt einen authentifizierten Client zurÃ¼ck.
+     * Erstellt einen neuen Benutzer, loggt ihn ein und gibt einen authentifizierten Client zurü¼ck.
      */
     private function getAuthenticatedClient(): HttpClient
     {
@@ -54,7 +54,7 @@ class ApiTest
 
     public function testRegister()
     {
-        // Dieser Test benÃ¶tigt keinen authentifizierten Client und erstellt seinen eigenen.
+        // Dieser Test benü¶tigt keinen authentifizierten Client und erstellt seinen eigenen.
         $client = $this->getApiClient();
         $username = 'register_test_' . bin2hex(random_bytes(4));
 
@@ -64,8 +64,8 @@ class ApiTest
             'password' => 'secret123'
         ]);
 
-        Assert::equals(201, $response['code'], 'Registrierung sollte 201 zurÃ¼ckgeben');
-        Assert::equals('Registrierung erfolgreich', $response['body']['message'] ?? '', 'Erfolgsmeldung prÃ¼fen');
+        Assert::equals(201, $response['code'], 'Registrierung sollte 201 zurü¼ckgeben');
+        Assert::equals('Registrierung erfolgreich', $response['body']['message'] ?? '', 'Erfolgsmeldung prü¼fen');
     }
 
     public function testLogin()
@@ -81,8 +81,8 @@ class ApiTest
         // Jetzt den Login testen
         $response = $client->post('/login', ['username' => $username, 'password' => $password]);
 
-        Assert::equals(200, $response['code'], 'Login sollte 200 zurÃ¼ckgeben');
-        Assert::equals('Anmeldung erfolgreich', $response['body']['message'] ?? '', 'Login Nachricht prÃ¼fen');
+        Assert::equals(200, $response['code'], 'Login sollte 200 zurü¼ckgeben');
+        Assert::equals('Anmeldung erfolgreich', $response['body']['message'] ?? '', 'Login Nachricht prü¼fen');
     }
 
     public function testMe_InitialState()
@@ -90,8 +90,8 @@ class ApiTest
         // $this->client wird von setUp() bereitgestellt
         $response = $this->client->get('/me');
 
-        Assert::equals(200, $response['code'], '/me sollte 200 zurÃ¼ckgeben');
-        Assert::true(strpos($response['body']['username'], 'user_') === 0, 'Benutzername in /me prÃ¼fen');
+        Assert::equals(200, $response['code'], '/me sollte 200 zurü¼ckgeben');
+        Assert::true(strpos($response['body']['username'], 'user_') === 0, 'Benutzername in /me prü¼fen');
         Assert::equals('parent', $response['body']['role'] ?? '', 'Rolle sollte parent sein');
         // Zu Beginn sollten keine Daten vorhanden sein
         Assert::equals(false, $response['body']['has_medications'] ?? null, '/me: has_medications sollte anfangs false sein');
@@ -124,10 +124,10 @@ class ApiTest
         $medId = $medResponse['body']['id'];
         $this->client->post('/entries', ['date' => date('Y-m-d'), 'time' => 'morning', 'medication_id' => $medId, 'mood' => 3]);
 
-        // Eigentlicher Test: EintrÃ¤ge abrufen
+        // Eigentlicher Test: Eintrü¤ge abrufen
         $response = $this->client->get('/entries');
 
-        Assert::equals(200, $response['code'], 'EintrÃ¤ge abrufen sollte 200 sein');
+        Assert::equals(200, $response['code'], 'Eintrü¤ge abrufen sollte 200 sein');
         Assert::true(is_array($response['body']['entries']), 'Entries sollte ein Array sein');
         Assert::true(count($response['body']['entries']) > 0, 'Sollte mindestens den eben erstellten Eintrag enthalten');
     }
@@ -139,10 +139,10 @@ class ApiTest
         $medId = $medResponse['body']['id'];
         $this->client->post('/entries', ['date' => date('Y-m-d'), 'time' => 'morning', 'medication_id' => $medId, 'mood' => 3]);
 
-        // Nach dem Erstellen von EintrÃ¤gen und Meds sollte /me das widerspiegeln
+        // Nach dem Erstellen von Eintrü¤gen und Meds sollte /me das widerspiegeln
         $response = $this->client->get('/me');
 
-        Assert::equals(200, $response['code'], '/me sollte auch mit Daten 200 zurÃ¼ckgeben');
+        Assert::equals(200, $response['code'], '/me sollte auch mit Daten 200 zurü¼ckgeben');
         Assert::equals(true, $response['body']['has_medications'] ?? null, '/me: has_medications sollte nach Erstellung true sein');
         Assert::equals(true, $response['body']['has_entries'] ?? null, '/me: has_entries sollte nach Erstellung true sein');
     }
@@ -161,20 +161,20 @@ class ApiTest
     {
         // Hole die ID des aktuellen Benutzers
         $meResponse = $this->client->get('/me');
-        Assert::equals(200, $meResponse['code'], 'Konnte Benutzer-ID fÃ¼r Test nicht abrufen');
+        Assert::equals(200, $meResponse['code'], 'Konnte Benutzer-ID fü¼r Test nicht abrufen');
         $userId = $meResponse['body']['id'];
 
-        // Versuche, sich selbst zu lÃ¶schen
+        // Versuche, sich selbst zu lü¶schen
         $deleteResponse = $this->client->delete('/users/' . $userId);
 
-        // PrÃ¼fe, ob der Server dies mit 403 verhindert
-        Assert::equals(403, $deleteResponse['code'], 'SelbstlÃ¶schung sollte 403 Forbidden zurÃ¼ckgeben');
-        Assert::equals('Sie kÃ¶nnen sich nicht selbst lÃ¶schen', $deleteResponse['body']['error'] ?? '', 'Fehlermeldung fÃ¼r SelbstlÃ¶schung prÃ¼fen');
+        // Prü¼fe, ob der Server dies mit 403 verhindert
+        Assert::equals(403, $deleteResponse['code'], 'Selbstlü¶schung sollte 403 Forbidden zurü¼ckgeben');
+        Assert::equals('Sie kü¶nnen sich nicht selbst lü¶schen', $deleteResponse['body']['error'] ?? '', 'Fehlermeldung fü¼r Selbstlü¶schung prü¼fen');
     }
 
     public function testParentSeesFamilyEntriesInMe()
     {
-        // Szenario: Elternteil hat selbst keine EintrÃ¤ge, aber das Kind hat welche.
+        // Szenario: Elternteil hat selbst keine Eintrü¤ge, aber das Kind hat welche.
         // Das Dashboard sollte trotzdem nicht den "Willkommen"-Screen zeigen (has_entries = true).
 
         $client = $this->getAuthenticatedClient();
@@ -202,9 +202,9 @@ class ApiTest
             'mood' => 4
         ]);
 
-        // 4. Als Elternteil wieder /me prÃ¼fen
+        // 4. Als Elternteil wieder /me prü¼fen
         $meRes = $client->get('/me');
-        Assert::equals(true, $meRes['body']['has_entries'] ?? false, 'Eltern sollten has_entries=true haben, wenn Kind EintrÃ¤ge hat');
+        Assert::equals(true, $meRes['body']['has_entries'] ?? false, 'Eltern sollten has_entries=true haben, wenn Kind Eintrü¤ge hat');
     }
 
     // =========================================================================
@@ -213,7 +213,7 @@ class ApiTest
 
     public function testGlossaryIndex()
     {
-        // Glossary ist Ã¶ffentlich abrufbar
+        // Glossary ist ü¶ffentlich abrufbar
         $client = $this->getApiClient();
         $response = $client->get('/glossary');
 
@@ -234,7 +234,7 @@ class ApiTest
         // Mit Limit
         $response = $client->get('/glossary?limit=5');
         Assert::equals(200, $response['code'], 'Glossar mit limit sollte 200 sein');
-        Assert::true(count($response['body']['glossary']) <= 5, 'Sollte maximal 5 EintrÃ¤ge zurÃ¼ckgeben');
+        Assert::true(count($response['body']['glossary']) <= 5, 'Sollte maximal 5 Eintrü¤ge zurü¼ckgeben');
     }
 
     public function testGlossaryCategories()
@@ -260,7 +260,7 @@ class ApiTest
     {
         $client = $this->getApiClient();
 
-        // Zuerst prÃ¼fen ob EintrÃ¤ge existieren
+        // Zuerst prü¼fen ob Eintrü¤ge existieren
         $listResponse = $client->get('/glossary?limit=1');
         if (empty($listResponse['body']['glossary'])) {
             // Kein Eintrag vorhanden - 404 erwarten
@@ -275,7 +275,7 @@ class ApiTest
 
         Assert::equals(200, $response['code'], 'Einzelner Eintrag sollte 200 sein');
         Assert::true(isset($response['body']['entry']), 'Response sollte entry-Objekt enthalten');
-        Assert::equals($slug, $response['body']['entry']['slug'], 'Slug sollte Ã¼bereinstimmen');
+        Assert::equals($slug, $response['body']['entry']['slug'], 'Slug sollte ü¼bereinstimmen');
     }
 
     public function testGlossaryShowWithFormats()
@@ -301,7 +301,7 @@ class ApiTest
 
     public function testGlossaryImportRequiresAuth()
     {
-        // Ohne Authentifizierung sollte Import 401 zurÃ¼ckgeben
+        // Ohne Authentifizierung sollte Import 401 zurü¼ckgeben
         $client = $this->getApiClient();
         $response = $client->post('/glossary/import', []);
 

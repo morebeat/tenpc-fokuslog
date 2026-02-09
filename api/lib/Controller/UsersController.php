@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -7,13 +7,13 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fÃ¼r Benutzerverwaltung.
+ * Controller fü¼r Benutzerverwaltung.
  */
 class UsersController extends BaseController
 {
     /**
      * GET /users
-     * Gibt alle Benutzer der eigenen Familie zurÃ¼ck (nur fÃ¼r Parent/Adult).
+     * Gibt alle Benutzer der eigenen Familie zurü¼ck (nur fü¼r Parent/Adult).
      */
     public function index(): void
     {
@@ -34,7 +34,7 @@ class UsersController extends BaseController
 
     /**
      * GET /users/{id}
-     * Gibt einen einzelnen Benutzer der eigenen Familie zurÃ¼ck.
+     * Gibt einen einzelnen Benutzer der eigenen Familie zurü¼ck.
      */
     public function show(string $id): void
     {
@@ -88,10 +88,10 @@ class UsersController extends BaseController
                     'role' => $role,
                     'gender' => $gender
                 ]);
-                $this->respond(400, ['error' => 'username, password, role sind erforderlich. gender/initial_weight sind ungÃ¼ltig.']);
+                $this->respond(400, ['error' => 'username, password, role sind erforderlich. gender/initial_weight sind ungü¼ltig.']);
             }
 
-            // PrÃ¼fe Unique
+            // Prü¼fe Unique
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
             $stmt->execute([$username]);
             if ($stmt->fetch()) {
@@ -144,10 +144,10 @@ class UsersController extends BaseController
             // Parent darf sich nicht selbst bearbeiten
             if ($userId === (int)$user['id']) {
                 app_log('WARNING', 'user_update_self_edit_forbidden', ['user_id' => $user['id']]);
-                $this->respond(403, ['error' => 'Sie kÃ¶nnen sich nicht selbst bearbeiten']);
+                $this->respond(403, ['error' => 'Sie kü¶nnen sich nicht selbst bearbeiten']);
             }
 
-            // PrÃ¼fen, ob der zu bearbeitende Benutzer zur Familie gehÃ¶rt
+            // Prü¼fen, ob der zu bearbeitende Benutzer zur Familie gehü¶rt
             $stmt = $this->pdo->prepare('SELECT id, username FROM users WHERE id = ? AND family_id = ?');
             $stmt->execute([$userId, $user['family_id']]);
             $targetUser = $stmt->fetch();
@@ -156,7 +156,7 @@ class UsersController extends BaseController
                 $this->respond(404, ['error' => 'Benutzer nicht gefunden oder Zugriff verweigert']);
             }
 
-            // PrÃ¼fen, ob der neue Benutzername bereits von einem anderen Benutzer verwendet wird
+            // Prü¼fen, ob der neue Benutzername bereits von einem anderen Benutzer verwendet wird
             if ($username !== $targetUser['username']) {
                 $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
                 $stmt->execute([$username]);
@@ -184,7 +184,7 @@ class UsersController extends BaseController
 
     /**
      * DELETE /users/{id}
-     * LÃ¶scht einen Benutzer (nur Parent/Adult).
+     * Lü¶scht einen Benutzer (nur Parent/Adult).
      */
     public function destroy(string $id): void
     {
@@ -195,10 +195,10 @@ class UsersController extends BaseController
 
             if ($userId === (int)$user['id']) {
                 app_log('WARNING', 'user_delete_self_delete_forbidden', ['user_id' => $user['id']]);
-                $this->respond(403, ['error' => 'Sie kÃ¶nnen sich nicht selbst lÃ¶schen']);
+                $this->respond(403, ['error' => 'Sie kü¶nnen sich nicht selbst lü¶schen']);
             }
 
-            // PrÃ¼fen, ob der zu lÃ¶schende Benutzer zur Familie gehÃ¶rt
+            // Prü¼fen, ob der zu lü¶schende Benutzer zur Familie gehü¶rt
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE id = ? AND family_id = ?');
             $stmt->execute([$userId, $user['family_id']]);
             if (!$stmt->fetch()) {
@@ -206,11 +206,11 @@ class UsersController extends BaseController
                 $this->respond(404, ['error' => 'Benutzer nicht gefunden oder Zugriff verweigert']);
             }
 
-            // Business Rule: Benutzer mit EintrÃ¤gen dÃ¼rfen nicht gelÃ¶scht werden
+            // Business Rule: Benutzer mit Eintrü¤gen dü¼rfen nicht gelü¶scht werden
             $stmt = $this->pdo->prepare('SELECT id FROM entries WHERE user_id = ? LIMIT 1');
             $stmt->execute([$userId]);
             if ($stmt->fetch()) {
-                $this->respond(409, ['error' => 'Benutzer kann nicht gelÃ¶scht werden, da EintrÃ¤ge vorhanden sind.']);
+                $this->respond(409, ['error' => 'Benutzer kann nicht gelü¶scht werden, da Eintrü¤ge vorhanden sind.']);
             }
 
             $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = ?');
@@ -220,7 +220,7 @@ class UsersController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'user_delete_failed', ['user_id' => $id, 'error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim LÃ¶schen des Benutzers: ' . $e->getMessage()]);
+            $this->respond(500, ['error' => 'Fehler beim Lü¶schen des Benutzers: ' . $e->getMessage()]);
         }
     }
 }

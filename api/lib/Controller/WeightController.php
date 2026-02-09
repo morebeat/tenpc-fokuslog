@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -7,13 +7,13 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fÃ¼r Gewichtsdaten.
+ * Controller fü¼r Gewichtsdaten.
  */
 class WeightController extends BaseController
 {
     /**
      * GET /weight
-     * Gibt den Gewichtsverlauf fÃ¼r einen Benutzer zurÃ¼ck.
+     * Gibt den Gewichtsverlauf fü¼r einen Benutzer zurü¼ck.
      */
     public function index(): void
     {
@@ -21,7 +21,7 @@ class WeightController extends BaseController
             $user = $this->requireAuth();
 
             if ($user['role'] === 'teacher') {
-                $this->respond(403, ['error' => 'Lehrer dÃ¼rfen keine Gewichtsdaten einsehen']);
+                $this->respond(403, ['error' => 'Lehrer dü¼rfen keine Gewichtsdaten einsehen']);
             }
 
             $params = $this->getQueryParams();
@@ -66,7 +66,7 @@ class WeightController extends BaseController
 
     /**
      * GET /me/latest-weight
-     * Gibt das letzte eingetragene Gewicht oder das Initialgewicht zurÃ¼ck.
+     * Gibt das letzte eingetragene Gewicht oder das Initialgewicht zurü¼ck.
      */
     public function latestWeight(): void
     {

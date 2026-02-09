@@ -1,14 +1,14 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
 /**
  * FokusLog REST API - Haupteinstiegspunkt
  *
- * Dieses Skript dient als einziger Endpunkt fÃ¼r alle API-Routen. Es nutzt
- * PHP-Sessions fÃ¼r Authentifizierung und PDO fÃ¼r den Datenbankzugriff.
+ * Dieses Skript dient als einziger Endpunkt fü¼r alle API-Routen. Es nutzt
+ * PHP-Sessions fü¼r Authentifizierung und PDO fü¼r den Datenbankzugriff.
  * Jeder Request muss mit Content-Type: application/json gesendet werden
- * (auÃŸer GET). RÃ¼ckgaben erfolgen als JSON.
+ * (auüŸer GET). Rü¼ckgaben erfolgen als JSON.
  */
 
 // Fehler-Reporting aktivieren und in Datei umleiten
@@ -17,7 +17,7 @@ ini_set('log_errors', '1');
 ini_set('error_log', __DIR__ . '/../logs/error.log');
 error_reporting(E_ALL);
 
-// Shutdown-Handler fÃ¼r fatale Fehler registrieren, damit immer JSON zurÃ¼ckkommt
+// Shutdown-Handler fü¼r fatale Fehler registrieren, damit immer JSON zurü¼ckkommt
 register_shutdown_function(function () {
     $error = error_get_last();
     if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
@@ -29,16 +29,16 @@ register_shutdown_function(function () {
     }
 });
 
-// Autoloader fÃ¼r Controller und Lib
+// Autoloader fü¼r Controller und Lib
 spl_autoload_register(function ($class) {
-    // Namespace-Prefix fÃ¼r FokusLog
+    // Namespace-Prefix fü¼r FokusLog
     $prefix = 'FokusLog\\';
     $baseDir = __DIR__ . '/lib/';
 
-    // PrÃ¼fen ob die Klasse den Prefix nutzt
+    // Prü¼fen ob die Klasse den Prefix nutzt
     $len = strlen($prefix);
     if (strncmp($prefix, $class, $len) !== 0) {
-        // Nicht unser Namespace, nÃ¤chster Autoloader
+        // Nicht unser Namespace, nü¤chster Autoloader
         return;
     }
 
@@ -89,7 +89,7 @@ session_set_cookie_params([
 session_start();
 
 header('Content-Type: application/json; charset=utf-8');
-// ZusÃ¤tzliche Security Headers
+// Zusü¤tzliche Security Headers
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
@@ -131,7 +131,7 @@ foreach ($requiredVars as $var) {
     }
 }
 
-// Optional: Migration/Backup Token fÃ¼r admin Endpoints
+// Optional: Migration/Backup Token fü¼r admin Endpoints
 $GLOBALS['MIGRATION_TOKEN'] = $env['MIGRATION_TOKEN'] ?? null;
 $GLOBALS['BACKUP_TOKEN'] = $env['BACKUP_TOKEN'] ?? null;
 
@@ -205,7 +205,7 @@ $router->get('/badges', 'BadgesController', 'index');
 $router->get('/weight', 'WeightController', 'index');
 $router->get('/me/latest-weight', 'WeightController', 'latestWeight');
 
-// Glossary-Routen (Hilfe-Inhalte fÃ¼r eigene und externe Anwendungen)
+// Glossary-Routen (Hilfe-Inhalte fü¼r eigene und externe Anwendungen)
 $router->get('/glossary', 'GlossaryController', 'index');
 $router->get('/glossary/categories', 'GlossaryController', 'categories');
 $router->get('/glossary/export', 'GlossaryController', 'export');

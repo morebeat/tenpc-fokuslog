@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 /**
  * Deploy-Webhook für automatisches Deployment via Git Pull
@@ -58,9 +58,9 @@ $skipGit = isset($inputData['skip_git']) && $inputData['skip_git'];
 // Deployment-Directory
 $deployDir = dirname(__DIR__);
 
-// Git-Operationen nur wenn nicht Ã¼bersprungen (z.B. nach FTP-Deployment)
+// Git-Operationen nur wenn nicht ü¼bersprungen (z.B. nach FTP-Deployment)
 if (!$skipGit) {
-    // ÃœberprÃ¼fe ob .git existiert
+    // üœberprü¼fe ob .git existiert
     if (!is_dir($deployDir . '/.git')) {
         http_response_code(400);
         echo json_encode(['error' => 'Git-Repository nicht vorhanden: ' . $deployDir]);
@@ -74,7 +74,7 @@ if (!$skipGit) {
         copy($envFile, $envBackup);
     }
 
-    // FÃ¼hre git pull aus
+    // Fü¼hre git pull aus
     chdir($deployDir);
     $output = [];
     $return = 0;
@@ -178,7 +178,7 @@ if (is_file($helpImportScript)) {
     error_log("[Deploy] Help import script not found: " . $helpImportScript);
 }
 
-// Hole aktuellen Commit (falls Git verfÃ¼gbar)
+// Hole aktuellen Commit (falls Git verfü¼gbar)
 $commit = [];
 $commitHash = 'unknown';
 if (!$skipGit && is_dir($deployDir . '/.git')) {
@@ -188,7 +188,7 @@ if (!$skipGit && is_dir($deployDir . '/.git')) {
 }
 
 if (empty($migrationOutput)) {
-    $migrationOutput[] = $skipGit ? 'Git Ã¼bersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
+    $migrationOutput[] = $skipGit ? 'Git ü¼bersprungen (FTP-Deployment).' : 'Keine neuen Migrationen gefunden.';
 }
 
 error_log("[Deploy] Erfolg: Commit $commitHash deployed. Migrationen: " . implode(', ', $migrationOutput) . " Help: " . implode(', ', $helpImportOutput));

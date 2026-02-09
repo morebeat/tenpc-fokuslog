@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -8,7 +8,7 @@ use RateLimiter;
 use Throwable;
 
 /**
- * Controller fÃ¼r Authentifizierung: Register, Login, Logout, Me.
+ * Controller fü¼r Authentifizierung: Register, Login, Logout, Me.
  */
 class AuthController extends BaseController
 {
@@ -39,7 +39,7 @@ class AuthController extends BaseController
         }
 
         try {
-            // PrÃ¼fe, ob Benutzername bereits existiert
+            // Prü¼fe, ob Benutzername bereits existiert
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
             $stmt->execute([$username]);
             if ($stmt->fetch()) {
@@ -115,7 +115,7 @@ class AuthController extends BaseController
                 $limiter->increment($ip);
                 app_log('WARNING', 'login_failed', ['username' => $username, 'ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
                 $this->logAction(null, 'login_fail', $username);
-                $this->respond(401, ['error' => 'UngÃ¼ltige Anmeldedaten']);
+                $this->respond(401, ['error' => 'Ungü¼ltige Anmeldedaten']);
             }
 
             // Login erfolgreich
@@ -174,19 +174,19 @@ class AuthController extends BaseController
             $stmtFamily->execute([$user['family_id']]);
             $familyCount = $stmtFamily->fetchColumn();
 
-            // PrÃ¼fen, ob der User selbst EintrÃ¤ge hat
+            // Prü¼fen, ob der User selbst Eintrü¤ge hat
             $stmt = $this->pdo->prepare("SELECT 1 FROM entries WHERE user_id = ? LIMIT 1");
             $stmt->execute([$user['id']]);
             $hasEntries = (bool)$stmt->fetchColumn();
 
-            // Wenn nicht, und der User ist 'parent' oder 'adult', prÃ¼fen wir, ob IRGENDJEMAND in der Familie EintrÃ¤ge hat
+            // Wenn nicht, und der User ist 'parent' oder 'adult', prü¼fen wir, ob IRGENDJEMAND in der Familie Eintrü¤ge hat
             if (!$hasEntries && ($user['role'] === 'parent' || $user['role'] === 'adult')) {
                 $stmtEntries = $this->pdo->prepare('SELECT 1 FROM entries e JOIN users u ON e.user_id = u.id WHERE u.family_id = ? LIMIT 1');
                 $stmtEntries->execute([$user['family_id']]);
                 $hasEntries = $stmtEntries->fetch() !== false;
             }
 
-            // Medikamente werden immer familienweit geprÃ¼ft
+            // Medikamente werden immer familienweit geprü¼ft
             $stmtMeds = $this->pdo->prepare('SELECT 1 FROM medications WHERE family_id = ? LIMIT 1');
             $stmtMeds->execute([$user['family_id']]);
             $hasMedications = $stmtMeds->fetch() !== false;
@@ -211,7 +211,7 @@ class AuthController extends BaseController
 
     /**
      * POST /users/me/password
-     * Passwort Ã¤ndern.
+     * Passwort ü¤ndern.
      */
     public function changePassword(): void
     {
@@ -228,7 +228,7 @@ class AuthController extends BaseController
             }
 
             if ($newPassword !== $confirmPassword) {
-                $this->respond(400, ['error' => 'Das neue Passwort stimmt nicht mit der BestÃ¤tigung Ã¼berein.']);
+                $this->respond(400, ['error' => 'Das neue Passwort stimmt nicht mit der Bestü¤tigung ü¼berein.']);
             }
 
             if (strlen($newPassword) < 6) {
@@ -247,7 +247,7 @@ class AuthController extends BaseController
             $this->logAction($user['id'], 'password_change_success');
             app_log('INFO', 'password_change_success', ['user_id' => $user['id']]);
 
-            $this->respond(200, ['message' => 'Passwort erfolgreich geÃ¤ndert.']);
+            $this->respond(200, ['message' => 'Passwort erfolgreich geü¤ndert.']);
         } catch (Throwable $e) {
             app_log('ERROR', 'password_change_exception', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Ein Fehler ist aufgetreten: ' . $e->getMessage()]);

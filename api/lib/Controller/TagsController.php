@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -7,13 +7,13 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fÃ¼r Tags.
+ * Controller fü¼r Tags.
  */
 class TagsController extends BaseController
 {
     /**
      * GET /tags
-     * Gibt alle Tags der Familie zurÃ¼ck.
+     * Gibt alle Tags der Familie zurü¼ck.
      */
     public function index(): void
     {
@@ -61,7 +61,7 @@ class TagsController extends BaseController
 
     /**
      * DELETE /tags/{id}
-     * LÃ¶scht einen Tag.
+     * Lü¶scht einen Tag.
      */
     public function destroy(string $id): void
     {
@@ -76,7 +76,7 @@ class TagsController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'tags_delete_failed', ['error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim LÃ¶schen des Tags']);
+            $this->respond(500, ['error' => 'Fehler beim Lü¶schen des Tags']);
         }
     }
 }

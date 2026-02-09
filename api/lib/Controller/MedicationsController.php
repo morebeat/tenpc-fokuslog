@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -7,13 +7,13 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fÃ¼r Medikamentenverwaltung.
+ * Controller fü¼r Medikamentenverwaltung.
  */
 class MedicationsController extends BaseController
 {
     /**
      * GET /medications
-     * Gibt alle Medikamente der eigenen Familie zurÃ¼ck.
+     * Gibt alle Medikamente der eigenen Familie zurü¼ck.
      */
     public function index(): void
     {
@@ -84,7 +84,7 @@ class MedicationsController extends BaseController
                 $this->respond(400, ['error' => 'name ist erforderlich']);
             }
 
-            // PrÃ¼fen, ob das Medikament zur Familie des Benutzers gehÃ¶rt
+            // Prü¼fen, ob das Medikament zur Familie des Benutzers gehü¶rt
             $stmt = $this->pdo->prepare('SELECT id FROM medications WHERE id = ? AND family_id = ?');
             $stmt->execute([$medId, $user['family_id']]);
             if (!$stmt->fetch()) {
@@ -107,7 +107,7 @@ class MedicationsController extends BaseController
 
     /**
      * DELETE /medications/{id}
-     * LÃ¶scht ein Medikament (nur Parent/Adult).
+     * Lü¶scht ein Medikament (nur Parent/Adult).
      */
     public function destroy(string $id): void
     {
@@ -116,7 +116,7 @@ class MedicationsController extends BaseController
             $this->requireRole($user, ['parent', 'adult']);
             $medId = (int)$id;
 
-            // PrÃ¼fen, ob das Medikament zur Familie des Benutzers gehÃ¶rt
+            // Prü¼fen, ob das Medikament zur Familie des Benutzers gehü¶rt
             $stmt = $this->pdo->prepare('SELECT id FROM medications WHERE id = ? AND family_id = ?');
             $stmt->execute([$medId, $user['family_id']]);
             if (!$stmt->fetch()) {
@@ -124,11 +124,11 @@ class MedicationsController extends BaseController
                 $this->respond(404, ['error' => 'Medikament nicht gefunden oder Zugriff verweigert']);
             }
 
-            // Business Rule: Medikamente mit EintrÃ¤gen dÃ¼rfen nicht gelÃ¶scht werden
+            // Business Rule: Medikamente mit Eintrü¤gen dü¼rfen nicht gelü¶scht werden
             $stmt = $this->pdo->prepare('SELECT id FROM entries WHERE medication_id = ? LIMIT 1');
             $stmt->execute([$medId]);
             if ($stmt->fetch()) {
-                $this->respond(409, ['error' => 'Medikament kann nicht gelÃ¶scht werden, da es in EintrÃ¤gen verwendet wird.']);
+                $this->respond(409, ['error' => 'Medikament kann nicht gelü¶scht werden, da es in Eintrü¤gen verwendet wird.']);
             }
 
             $stmt = $this->pdo->prepare('DELETE FROM medications WHERE id = ?');
@@ -140,7 +140,7 @@ class MedicationsController extends BaseController
             $this->respond(204);
         } catch (Throwable $e) {
             app_log('ERROR', 'med_delete_failed', ['med_id' => $id, 'error' => $e->getMessage()]);
-            $this->respond(500, ['error' => 'Fehler beim LÃ¶schen des Medikaments: ' . $e->getMessage()]);
+            $this->respond(500, ['error' => 'Fehler beim Lü¶schen des Medikaments: ' . $e->getMessage()]);
         }
     }
 }

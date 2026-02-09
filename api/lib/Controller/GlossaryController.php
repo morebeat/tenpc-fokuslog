@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -7,24 +7,24 @@ namespace FokusLog\Controller;
 use Throwable;
 
 /**
- * Controller fÃ¼r Glossar/Lexikon.
+ * Controller fü¼r Glossar/Lexikon.
  *
- * Stellt Hilfe-Inhalte in verschiedenen Formaten bereit fÃ¼r die
+ * Stellt Hilfe-Inhalte in verschiedenen Formaten bereit fü¼r die
  * Verwendung in der eigenen App sowie in externen Anwendungen.
  */
 class GlossaryController extends BaseController
 {
     /**
      * GET /glossary
-     * Gibt das Glossar/Lexikon zurÃ¼ck.
+     * Gibt das Glossar/Lexikon zurü¼ck.
      *
      * Query-Parameter:
      * - category: Filter nach Kategorie (z.B. "Wissen", "Alltag")
      * - audience: Filter nach Zielgruppe (eltern, kinder, erwachsene, lehrer, aerzte, alle)
      * - search: Volltextsuche in Titel, Inhalt und Keywords
      * - format: Ausgabeformat (list, full, plain) - default: list
-     * - limit: Maximale Anzahl EintrÃ¤ge
-     * - offset: Offset fÃ¼r Pagination
+     * - limit: Maximale Anzahl Eintrü¤ge
+     * - offset: Offset fü¼r Pagination
      */
     public function index(): void
     {
@@ -67,7 +67,7 @@ class GlossaryController extends BaseController
 
             // Filter: Volltextsuche
             if ($search && strlen($search) >= 2) {
-                // PrÃ¼fe ob Fulltext-Index existiert, sonst LIKE-Fallback
+                // Prü¼fe ob Fulltext-Index existiert, sonst LIKE-Fallback
                 $sql .= ' AND (title LIKE ? OR content LIKE ? OR keywords LIKE ?)';
                 $searchParam = '%' . $search . '%';
                 $params[] = $searchParam;
@@ -96,7 +96,7 @@ class GlossaryController extends BaseController
                 }
             }
 
-            // Gesamtanzahl fÃ¼r Pagination
+            // Gesamtanzahl fü¼r Pagination
             $countSql = "SELECT COUNT(*) as total FROM glossary WHERE 1=1";
             $countParams = [];
             if ($category) {
@@ -136,7 +136,7 @@ class GlossaryController extends BaseController
 
     /**
      * GET /glossary/categories
-     * Gibt alle verfÃ¼gbaren Kategorien zurÃ¼ck.
+     * Gibt alle verfü¼gbaren Kategorien zurü¼ck.
      */
     public function categories(): void
     {
@@ -153,7 +153,7 @@ class GlossaryController extends BaseController
 
     /**
      * GET /glossary/{slug}
-     * Gibt einen einzelnen Glossar-Eintrag mit vollem Inhalt zurÃ¼ck.
+     * Gibt einen einzelnen Glossar-Eintrag mit vollem Inhalt zurü¼ck.
      *
      * Query-Parameter:
      * - format: Ausgabeformat (full, plain, sections) - default: full
@@ -220,20 +220,20 @@ class GlossaryController extends BaseController
 
     /**
      * POST /glossary/import
-     * Triggert den Import der Hilfe-Dateien (nur fÃ¼r Admins).
+     * Triggert den Import der Hilfe-Dateien (nur fü¼r Admins).
      */
     public function import(): void
     {
         try {
-            // Authentifizierung prÃ¼fen
+            // Authentifizierung prü¼fen
             $user = $this->requireAuth();
 
-            // Nur Parents (als "Admins" der Familie) dÃ¼rfen importieren
+            // Nur Parents (als "Admins" der Familie) dü¼rfen importieren
             if ($user['role'] !== 'parent') {
                 $this->respond(403, ['error' => 'Keine Berechtigung']);
             }
 
-            // Import-Skript einbinden und ausfÃ¼hren
+            // Import-Skript einbinden und ausfü¼hren
             $importScript = __DIR__ . '/../../../app/help/import_help.php';
 
             if (!file_exists($importScript)) {
@@ -280,7 +280,7 @@ class GlossaryController extends BaseController
 
     /**
      * GET /glossary/export
-     * Exportiert alle Glossar-EintrÃ¤ge in einem Format fÃ¼r externe Nutzung.
+     * Exportiert alle Glossar-Eintrü¤ge in einem Format fü¼r externe Nutzung.
      *
      * Query-Parameter:
      * - format: json (default), csv
@@ -292,7 +292,7 @@ class GlossaryController extends BaseController
             $format = $_GET['format'] ?? 'json';
             $include = isset($_GET['include']) ? explode(',', $_GET['include']) : null;
 
-            // Alle verfÃ¼gbaren Felder
+            // Alle verfü¼gbaren Felder
             $allFields = ['slug', 'title', 'content', 'content_plain', 'full_content',
                          'link', 'category', 'keywords', 'target_audience', 'reading_time_min'];
 
@@ -303,7 +303,7 @@ class GlossaryController extends BaseController
                     $fields = $allFields;
                 }
             } else {
-                // Standard: Alle auÃŸer full_content (zu groÃŸ)
+                // Standard: Alle auüŸer full_content (zu groüŸ)
                 $fields = ['slug', 'title', 'content', 'content_plain', 'link',
                           'category', 'keywords', 'target_audience', 'reading_time_min'];
             }
