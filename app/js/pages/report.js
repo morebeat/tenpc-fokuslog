@@ -512,15 +512,15 @@
                             <span class="stat-label">Tage</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">${avg.mood != null ? avg.mood.toFixed(1) : '-'}</span>
+                            <span class="stat-value">${avg.mood != null ? valueToEmoji(Math.round(avg.mood)) + ' ' + avg.mood.toFixed(1) : '-'}</span>
                             <span class="stat-label">Ø Stimmung</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">${avg.focus != null ? avg.focus.toFixed(1) : '-'}</span>
+                            <span class="stat-value">${avg.focus != null ? valueToEmoji(Math.round(avg.focus)) + ' ' + avg.focus.toFixed(1) : '-'}</span>
                             <span class="stat-label">Ø Fokus</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">${avg.sleep != null ? avg.sleep.toFixed(1) : '-'}</span>
+                            <span class="stat-value">${avg.sleep != null ? avg.sleep.toFixed(1) + 'h' : '-'}</span>
                             <span class="stat-label">Ø Schlaf</span>
                         </div>
                     `;
