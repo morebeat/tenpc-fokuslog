@@ -81,7 +81,7 @@ class ReportController extends BaseController
                     $insights[] = [
                         'type' => 'focus_improving',
                         'message' => 'Der Fokus verbessert sich tendenziell',
-                        'icon' => 'ðŸ“ˆ'
+                        'icon' => '📈'
                     ];
                 }
 
@@ -134,14 +134,14 @@ class ReportController extends BaseController
                     $insights[] = [
                         'type' => 'mood_good',
                         'message' => 'Stimmung ist durchschnittlich gut (' . round($avgMood, 1) . '/5)',
-                        'icon' => 'ðŸ˜Š'
+                        'icon' => '😊'
                     ];
                 }
                 if ($avgFocus !== null && $avgFocus >= 4) {
                     $insights[] = [
                         'type' => 'focus_good',
                         'message' => 'Fokus ist durchschnittlich gut (' . round($avgFocus, 1) . '/5)',
-                        'icon' => 'ðŸŽ¯'
+                        'icon' => '🎯'
                     ];
                 }
             }
