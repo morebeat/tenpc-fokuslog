@@ -29,11 +29,7 @@ INSERT INTO `tags` (`id`, `family_id`, `name`) VALUES
 (1, 1, 'Schule'),
 (3, 1, 'Wochenende');
 
--- 5. Badges definieren (global für alle)
-INSERT INTO `badges` (`id`, `name`, `description`, `required_streak`, `icon_class`) VALUES
-(1, 'Erster Schritt', 'Du hast deinen ersten Eintrag gemacht!', 1, 'badge-bronze'),
-(2, 'Dranbleiber', 'Drei Tage in Folge einen Eintrag erstellt.', 3, 'badge-silver'),
-(3, 'Wochen-Champion', 'Sieben Tage in Folge einen Eintrag erstellt.', 7, 'badge-gold');
+-- 5. Badges werden bereits in schema_v4.sql angelegt (global für alle)
 
 -- 6. Einträge für das Kind 'MaxMuster' (user_id = 2) erstellen (Daten aus Dump)
 INSERT INTO `entries` (`id`, `user_id`, `medication_id`, `dose`, `date`, `time`, `sleep`, `hyperactivity`, `mood`, `irritability`, `appetite`, `focus`, `weight`, `other_effects`, `side_effects`, `special_events`, `menstruation_phase`, `teacher_feedback`, `emotional_reactions`, `created_at`, `updated_at`) VALUES
