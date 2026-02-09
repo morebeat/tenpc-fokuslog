@@ -53,7 +53,10 @@
 
             if (resetPasswordBtn) {
                 resetPasswordBtn.addEventListener('click', () => {
-                    const newPassword = Math.random().toString(36).substring(2, 10);
+                    // Use crypto.getRandomValues for secure password generation
+                    const array = new Uint8Array(8);
+                    crypto.getRandomValues(array);
+                    const newPassword = Array.from(array, b => b.toString(36).padStart(2, '0')).join('').substring(0, 10);
                     if (passwordInput && passwordHint) {
                         passwordInput.value = newPassword;
                         passwordInput.type = 'text';
