@@ -171,7 +171,9 @@ if (is_file($helpImportScript)) {
         );
         error_log("[Deploy] Help import completed: " . json_encode($stats));
     } catch (Throwable $e) {
-        ob_end_clean();
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         $helpImportOutput[] = 'Help Import fehlgeschlagen: ' . $e->getMessage();
         error_log("[Deploy] Help import failed: " . $e->getMessage());
     }

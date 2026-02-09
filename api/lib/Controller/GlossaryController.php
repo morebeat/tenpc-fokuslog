@@ -240,30 +240,21 @@ class GlossaryController extends BaseController
                 $this->respond(500, ['error' => 'Import-Skript nicht gefunden']);
             }
 
-            // Umgebungsvariablen laden
-            $envFile = __DIR__ . '/../../.env';
-            if (!file_exists($envFile)) {
-                $envFile = __DIR__ . '/../../../.env';
-            }
-
-            if (!file_exists($envFile)) {
-                $this->respond(500, ['error' => '.env nicht gefunden']);
-            }
-
-            $env = parse_ini_file($envFile);
-            $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";
-            $pdo = new \PDO($dsn, $env['DB_USER'], $env['DB_PASS'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-            ]);
-
             // HelpImporter Klasse laden
             require_once $importScript;
 
             $helpDir = __DIR__ . '/../../../app/help';
-            $importer = new \HelpImporter($pdo, $helpDir);
+            $importer = new \HelpImporter($this->pdo, $helpDir);
 
-            $force = isset($_POST['force']) && $_POST['force'];
+            // force-Flag aus JSON-Body oder Query-Parameter lesen
+            $body = $this->getJsonBody();
+            $force = false;
+
+            if (is_array($body) && array_key_exists('force', $body)) {
+                $force = (bool)$body['force'];
+            } elseif (isset($_GET['force'])) {
+                $force = filter_var($_GET['force'], FILTER_VALIDATE_BOOLEAN);
+            }
             $stats = $importer->setForce($force)->run();
 
             $this->logAction((int)$user['id'], 'GLOSSARY_IMPORT', $stats);

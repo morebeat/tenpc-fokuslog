@@ -108,7 +108,7 @@ class NotificationsController extends BaseController
                 if (!filter_var($updateData['email'], FILTER_VALIDATE_EMAIL)) {
                     $this->respond(400, ['error' => 'Ungültige E-Mail-Adresse']);
                 }
-                // Bei ü„nderung der E-Mail: Verifizierung zurücksetzen
+                // Bei Änderung der E-Mail: Verifizierung zurücksetzen
                 $updateData['email_verified'] = 0;
                 $updateData['email_verification_token'] = bin2hex(random_bytes(32));
             }
