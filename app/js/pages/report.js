@@ -33,6 +33,18 @@
                 buildChartData
             } = reportUtils;
 
+            // Emoji-Mapping für Skala-Werte (1-5)
+            const valueToEmoji = (value) => {
+                const emojiMap = {
+                    1: '😭',
+                    2: '😢',
+                    3: '😐',
+                    4: '🙂',
+                    5: '😊'
+                };
+                return emojiMap[value] || value || '-';
+            };
+
             const loadUsersForFilter = async () => {
                 try {
                     const meResponse = await fetch('/api/me');
@@ -144,8 +156,8 @@
                             <tr>
                                 <td>${timeLabel}</td>
                                 <td>${escapeHtml(entry.medication_name) || '-'} (${escapeHtml(entry.dose) || '-'})</td>
-                                <td style="text-align: center;">${entry.mood || '-'}</td>
-                                <td style="text-align: center;">${entry.focus || '-'}</td>
+                                <td style="text-align: center;">${valueToEmoji(entry.mood)}</td>
+                                <td style="text-align: center;">${valueToEmoji(entry.focus)}</td>
                                 <td style="text-align: center;">
                                     <a href="entry.html?date=${entry.date}&time=${entry.time}&user_id=${entry.user_id}">Bearbeiten</a>
                                 </td>
