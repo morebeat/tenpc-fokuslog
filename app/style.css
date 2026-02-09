@@ -215,6 +215,20 @@ summary.btn-toggle::-webkit-details-marker {
     gap: 1rem;
 }
 
+/* Multi-column section layout for wider screens */
+@media (min-width: 768px) {
+    .dashboard-sections-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        align-items: start;
+    }
+    
+    .dashboard-sections-wrapper .dashboard-section {
+        margin-bottom: 0;
+    }
+}
+
 .dashboard-card {
     background-color: rgba(255, 255, 255, 0.9);
     color: #013c4a;
