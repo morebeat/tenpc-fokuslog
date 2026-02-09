@@ -267,7 +267,7 @@ jobs:
           username: ${{ secrets.DEV_FTP_USER }}
           password: ${{ secrets.DEV_FTP_PASS }}
           server-dir: ${{ secrets.DEV_FTP_PATH }}
-          local-dir: artifact
+          local-dir: artifact/
           protocol: ftp
           exclude: |
             .git/**
@@ -317,7 +317,7 @@ jobs:
           username: ${{ secrets.PROD_FTP_USER }}
           password: ${{ secrets.PROD_FTP_PASS }}
           server-dir: ${{ secrets.PROD_FTP_PATH }}
-          local-dir: artifact
+          local-dir: artifact/
           protocol: ftp
           exclude: |
             .git/**
