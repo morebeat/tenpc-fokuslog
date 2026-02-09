@@ -385,8 +385,10 @@ class HelpImporter
         // Deduplizieren und limitieren
         $keywords = array_unique(array_filter($keywords));
         $keywords = array_slice($keywords, 0, 20);
-        
-        return implode(', ', $keywords);
+
+        $result = implode(', ', $keywords);
+        // Auf 500 Zeichen begrenzen (VARCHAR(500) in DB)
+        return mb_substr($result, 0, 500);
     }
 
     /**
