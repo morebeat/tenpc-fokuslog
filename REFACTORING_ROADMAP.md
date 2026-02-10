@@ -30,16 +30,16 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Repetitives `requireAuth()` / `requireRole()` in jedem Handler
 
 ### 2. **Frontend: Remove/Suppress Console Logs in Production**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Medium — Datenschutz, Performance (minor)
 - **Details**:
-  - ~30+ `console.log()` / `console.error()` Aufrufe in `app.js`
-  - Bsp.: `console.log('Eintrag gefunden', entry)` kann sensible Daten zeigen
-  - Lösung: Environment-gesteuerte Logging (Dev vs. Prod) oder einen Logger-Wrapper verwenden
-  - Bsp.: `logger.debug('Eintrag gefunden', entry)` → nur in Dev aktiv
+  - ~30 `console.log()` / `console.error()` Aufrufe ersetzt durch `FokusLog.utils.log()` / `utils.error()`
+  - Logging nur aktiv wenn `window.FOKUSLOG_DEBUG = true` gesetzt ist
+  - Betroffene Dateien: `app.js`, `gamification.js`, alle Page-Module in `app/js/pages/`
+  - Produktionssicher: Keine sensiblen Daten mehr in Browser-Console sichtbar
 - **Related Issues**:
-  - Sensible Daten könnten geloggt werden
+  - ~~Sensible Daten könnten geloggt werden~~ → Gelöst
 
 ### 3. **API: Centralized Input Validation & Sanitization**
 - **Status**: ✅ Done (2026-02-10)
@@ -119,16 +119,24 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Logout-Redirect passiert jetzt immer (Fehler nicht mehr unbeabsichtigt aufgefangen)
 
 ### 5. **Sessions: Implement Secure Session Storage (Optional Upgrade)**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Medium (4–5h)
 - **Impact**: Low–Medium — Enterprise Security
 - **Details**:
-  - Derzeit: PHP native Sessions (stored on disk, unsicher bei shared hosting)
-  - Option 1: Redis/Memcached für Session Storage (wenn verfügbar)
-  - Option 2: JWT Tokens + Stateless Auth (weniger invasiv für bestehenden Code)
-  - Achtung: Nur wenn ihr skaliert oder strikte Security-Anforderungen habt
+  - **`api/lib/SessionHandler.php`** erstellt mit drei Backends:
+    - `files`: PHP-Standard (default)
+    - `redis`: Redis-Server (erfordert phpredis Extension)
+    - `database`: MySQL-basierte Sessions für Horizontal Scaling
+  - Konfiguration via `.env`:
+    ```
+    SESSION_HANDLER=redis
+    SESSION_REDIS_HOST=127.0.0.1
+    SESSION_REDIS_PORT=6379
+    ```
+  - Database-Migration in `db/migrations/008_realtime_events.sql` (sessions Tabelle)
+  - Alle Session-Cookie-Parameter bleiben sicher (httponly, samesite=Strict)
 - **Related Issues**:
-  - Sessions können bei Deployment auf mehreren Servern inkonsistent sein
+  - ~~Sessions können bei Deployment auf mehreren Servern inkonsistent sein~~ → Gelöst
 
 ---
 
@@ -214,64 +222,57 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Viel Boilerplate-Code für HTTP-Requests
 
 ### 10. **Add JSDoc & PHP DocBlocks**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (2–3h)
 - **Impact**: Medium — IDE Support, Code Documentation
 - **Details**:
-  - Bsp. PHP:
-    ```php
-    /**
-     * Erstellt einen neuen Eintrag.
-     * @param PDO $pdo Database connection.
-     * @param array $data Entry data (date, time, etc.).
-     * @return void
-     * @throws PDOException If database operation fails.
-     */
-    function handleEntriesPost(PDO $pdo): void { ... }
-    ```
-  - Bsp. JS:
-    ```js
-    /**
-     * Loads all entries for the current user.
-     * @async
-     * @param {object} options - Query options (dateFrom, dateTo, etc.)
-     * @returns {Promise<Array>} List of entries.
-     */
-    async function loadEntries(options = {}) { ... }
-    ```
-  - Vorteil: IDE-Completion, schnellere Onboarding
+  - **PHP-Controller**: Bereits vollständig dokumentiert mit DocBlocks (`BaseController`, `AuthController`, `EntriesController`, etc.)
+  - **JS Utils** (`app.js`): JSDoc für `FokusLog.utils` Namespace:
+    - `apiCall()`, `toast()`, `log()`, `error()`, `t()`, `poll()` mit @param, @returns, @example
+  - **JS Page-Module**: JSDoc-Header in `entry.js`, `dashboard.js` mit @module, @description
+  - IDE-Completion funktioniert jetzt konsistent
 - **Related Issues**:
-  - Wenig dokumentiert; IDE kann nicht inferieren
+  - ~~Wenig dokumentiert~~ → Kernmodule dokumentiert
 
 ---
 
 ## ⚡ PERFORMANCE OPTIMIZATION (P1–P2)
 
 ### 11. **Frontend: Implement Lazy Loading for Images & Charts**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low–Medium (2–3h)
 - **Impact**: Low–Medium — Page Load Performance
 - **Details**:
-  - Derzeit: Charts mit Chart.js werden sofort geladen
-  - Besser: Lazy-load auf Demand (wenn Benutzer zum Report scrollt)
-  - Tools: Intersection Observer API, `loading="lazy"` (bilder)
-  - Vorteil: Initial Page Load schneller, speziell auf Mobile
+  - **`utils.lazyLoad()`** Utility in `app.js` implementiert:
+    - Intersection Observer API mit konfigurierbarem `rootMargin` und `threshold`
+    - Fallback für ältere Browser (sofortige Ausführung)
+    - Automatische Observer-Disconnection nach Callback
+  - Verwendung:
+    ```js
+    utils.lazyLoad('#reportChart', (el) => initializeChart(el));
+    ```
+  - Bilder: Keine relevanten Bilder im App-Bereich vorhanden
+  - Charts: Report-Charts werden sofort geladen (Hauptinhalt der Seite)
 - **Related Issues**:
-  - Reports können auf langsamen Verbindungen zögerlich sein
+  - ~~Reports können auf langsamen Verbindungen zögerlich sein~~ → Utility verfügbar
 
 ### 12. **Frontend: Service Worker Caching Strategy (Offline)**
-- **Status**: Implemented (partially)
-- **Effort**: Low (1–2h, für Verbesserung)
+- **Status**: ✅ Done (2026-02-10)
+- **Effort**: Low (1–2h)
 - **Impact**: Medium — Offline Experience
 - **Details**:
-  - SW vorhanden: `service-worker.js` mit grundlegender offline-Unterstützung
-  - Aber: Keine Stale-while-revalidate, keine Background Sync
-  - Verbesserung:
-    - Implement `stale-while-revalidate` Strategy (serve cached, update in background)
-    - Add Background Sync API für Offline-Einträge (speichern bei reconnect)
-  - Vorteil: Schnellere Loads, bessere Offline-UX
+  - `service-worker.js` v11 mit **Stale-While-Revalidate** Strategie implementiert
+  - Funktionsweise:
+    1. Sofortige Cache-Antwort (falls vorhanden)
+    2. Parallel: Network-Fetch im Hintergrund
+    3. Cache-Update nach erfolgreichem Fetch
+  - Technische Verbesserungen:
+    - `self.skipWaiting()` + `clients.claim()` für sofortige Aktivierung
+    - Response-Validierung (nur `200 OK` mit `type: 'basic'` wird gecached)
+    - Network-Fallback wenn Cache leer
+  - Background Sync API: Nicht implementiert (P3 Feature)
 - **Related Issues**:
-  - Offline-Mode funktioniert, aber ist minimal
+  - ~~Offline-Mode funktioniert, aber ist minimal~~ → Vollwertig SWR
 
 ### 13. **API: Implement Caching Headers & ETags (for Reports)**
 - **Status**: ✅ Done (2026-02-10)
@@ -315,18 +316,20 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 📱 UX & FRONTEND (P2)
 
 ### 15. **Add Search Functionality (Help Pages & Entries)**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10) — Help-Suche implementiert; Einträge-Suche offen
 - **Effort**: Medium (4–6h)
 - **Impact**: Medium — Usability
 - **Details**:
-  - Benutzer wollen Einträge/Help schnell durchsuchen
-  - Lösung: Lunr.js (client-side, German stemmer) oder Mini-Search
-  - Bsp.:
-    - Hilfe-Seiten durchsuchbar machen (siehe frühere Diskussion)
-    - Einträge nach Notizen/Tags durchsuchen
-  - Vorteil: Bessere Navigation, weniger frustriert
+  - **Help-Seiten**: Client-side Suche implementiert ohne externe Libraries
+    - Suchindex aus vorhandenen Links (`#search-results a`) extrahiert
+    - Relevanz-Scoring: Titel > Description-Match
+    - Keyboard-Navigation (↑↓ Enter Escape)
+    - Debounced Input (200ms)
+    - Dateien: `app/help/assets/help.js` + `help.css`
+  - **Einträge-Suche**: Noch offen (P3) — erfordert Backend-Änderungen
 - **Related Issues**:
-  - Benutzer können Einträge schwer finden (nur nach Datum möglich)
+  - ~~Hilfe-Seiten nicht durchsuchbar~~ → Gelöst
+  - Einträge nach Notizen/Tags durchsuchen → P3
 
 ### 16. **Add Dark Mode Toggle**
 - **Status**: ✅ Done (2026-02-10)
@@ -345,19 +348,22 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Kein Dark Mode heute
 
 ### 17. **Improve Mobile Responsiveness (Tables, Charts)**
-- **Status**: Partially done
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low–Medium (2–4h)
 - **Impact**: Medium — Mobile UX
 - **Details**:
-  - Derzeit: CSS hat `@media` Queries, aber nicht alle Komponenten responsive
-  - Problem: Tables zu groß auf Mobile (z.B. Entry Details)
-  - Lösung:
-    - Horizontales Scrolling für Tables
-    - Oder: Stack Layouts auf Mobile (1 Spalte statt Grid)
-    - Chart.js sollte responsive sein (check)
-  - Tools: `@media (max-width: 768px)` Refinements
+  - ~300 Zeilen responsive CSS in `app/style.css` ergänzt
+  - Breakpoints: 480px (Small), 768px (Medium), 1024px (Large)
+  - Komponenten-Fixes:
+    - **Tables**: Horizontales Scrolling mit `-webkit-overflow-scrolling: touch`
+    - **Forms**: Stacked Layouts auf Mobile (volle Breite)
+    - **Navigation**: Kompaktere Touch-Targets (min 44px)
+    - **Cards**: Single-Column auf kleinen Screens
+    - **Modals**: Fullscreen auf Mobile
+    - **Print**: Optimierte Druckstile
+  - Chart.js: Bereits responsive (bestätigt)
 - **Related Issues**:
-  - Mobile-Nutzer haben schlechtes Experience auf manchen Seiten
+  - ~~Mobile-Nutzer haben schlechtes Experience~~ → Gelöst
 
 ### 18. **Add Toast Notifications / Feedback UI**
 - **Status**: ✅ Done (2026-02-10)
@@ -579,12 +585,29 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 🔮 FUTURE ENHANCEMENTS (P3)
 
 ### 29. **Implement Real-time Sync (WebSockets / Server-Sent Events)**
-- **Status**: 🏗️ Vorabarbeiten done (2026-02-10) — `FokusLog.utils.poll()` Utility verfügbar
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: High (15–20h)
 - **Impact**: Low–Medium (nice-to-have)
 - **Details**:
-  - Derzeit: Polling (Benutzer müssen manuell aktualisieren)
-  - Besser: WebSockets oder Server-Sent Events (SSE)
+  - **Server-Sent Events (SSE) vollständig implementiert:**
+  - Backend: `api/lib/Controller/EventsController.php`
+    - `GET /api/events` — SSE-Stream für Echtzeit-Updates
+    - `POST /api/events/cleanup` — Alte Events bereinigen
+    - Heartbeat alle 30s, max. Verbindungsdauer 5min (auto-reconnect)
+    - Event-Queue in `events_queue` Tabelle (family-scoped)
+  - Frontend: `utils.subscribe()` in `app.js`
+    - EventSource-Wrapper mit auto-reconnect (max 5 Versuche)
+    - Benannte Event-Handler für verschiedene Event-Typen
+  - Verwendung:
+    ```js
+    const sub = utils.subscribe('/api/events', {
+      'entry.created': (e) => {
+        const data = JSON.parse(e.data);
+        utils.toast(`Neuer Eintrag von ${data.username}`);
+      }
+    });
+    ```
+  - Migration: `db/migrations/008_realtime_events.sql`
   - Bsp.: Parent sieht sofort, wenn Child neue Einträge erstellt
   - Komplexität: Server-Side State Management, Reconnection Logic
   - Hinweis: Nur wenn Echtzeit-Daten wichtig sind

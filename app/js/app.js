@@ -189,6 +189,132 @@
             }
         };
     };
+
+    // ─── Lazy Loading (Intersection Observer) ─────────────────────────────────
+    /**
+     * Beobachtet ein Element und ruft callback auf, sobald es sichtbar wird.
+     * Nützlich für Lazy-Loading von Charts, Bildern oder schweren Komponenten.
+     * 
+     * @param {HTMLElement|string} elementOrSelector - Element oder CSS-Selektor
+     * @param {function(HTMLElement): void} callback - Wird aufgerufen wenn sichtbar
+     * @param {Object} [options] - IntersectionObserver-Optionen
+     * @param {string} [options.rootMargin='100px'] - Margin um Root
+     * @param {number} [options.threshold=0.1] - Sichtbarkeitsschwelle (0-1)
+     * @returns {{disconnect: function(): void}|null} Observer oder null bei Fehler
+     * @example
+     * utils.lazyLoad('#reportChart', (el) => {
+     *   initializeChart(el);
+     * });
+     */
+    utils.lazyLoad = function (elementOrSelector, callback, options = {}) {
+        const element = typeof elementOrSelector === 'string'
+            ? document.querySelector(elementOrSelector)
+            : elementOrSelector;
+        
+        if (!element) {
+            utils.log('lazyLoad: Element nicht gefunden', elementOrSelector);
+            return null;
+        }
+
+        if (!('IntersectionObserver' in global)) {
+            // Fallback: Sofort ausführen wenn IntersectionObserver nicht unterstützt
+            callback(element);
+            return { disconnect: () => {} };
+        }
+
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    obs.disconnect();
+                    callback(element);
+                }
+            });
+        }, {
+            rootMargin: options.rootMargin || '100px',
+            threshold: options.threshold || 0.1
+        });
+
+        observer.observe(element);
+        return observer;
+    };
+
+    // ─── Server-Sent Events (SSE) / Real-time ─────────────────────────────────
+    /**
+     * Verbindet sich mit einem SSE-Endpoint für Echtzeit-Updates.
+     * Automatische Reconnection bei Verbindungsabbruch.
+     * 
+     * @param {string} endpoint - SSE-Endpunkt (z.B. '/api/events')
+     * @param {Object<string, function(MessageEvent): void>} handlers - Event-Handler nach Typ
+     * @param {Object} [options] - Optionen
+     * @param {number} [options.reconnectDelay=3000] - Verzögerung bei Reconnect (ms)
+     * @param {number} [options.maxRetries=5] - Max. Reconnect-Versuche
+     * @returns {{close: function(): void}} Objekt mit close()-Methode
+     * @example
+     * const sub = utils.subscribe('/api/events', {
+     *   'entry.created': (e) => {
+     *     const data = JSON.parse(e.data);
+     *     utils.toast(`Neuer Eintrag von ${data.username}`, 'info');
+     *   },
+     *   'entry.updated': (e) => { ... }
+     * });
+     * // Später schließen:
+     * sub.close();
+     */
+    utils.subscribe = function (endpoint, handlers, options = {}) {
+        const reconnectDelay = options.reconnectDelay || 3000;
+        const maxRetries = options.maxRetries || 5;
+        let retries = 0;
+        let eventSource = null;
+        let closed = false;
+
+        function connect() {
+            if (closed) return;
+
+            eventSource = new EventSource(endpoint, { withCredentials: true });
+
+            eventSource.onopen = () => {
+                retries = 0;
+                utils.log('SSE verbunden:', endpoint);
+            };
+
+            eventSource.onerror = () => {
+                if (closed) return;
+                eventSource.close();
+                
+                if (retries < maxRetries) {
+                    retries++;
+                    utils.log(`SSE Reconnect ${retries}/${maxRetries} in ${reconnectDelay}ms`);
+                    setTimeout(connect, reconnectDelay);
+                } else {
+                    utils.error('SSE max retries erreicht');
+                }
+            };
+
+            // Standard message-Event
+            if (handlers.message) {
+                eventSource.onmessage = handlers.message;
+            }
+
+            // Benannte Events
+            Object.keys(handlers).forEach(eventType => {
+                if (eventType !== 'message') {
+                    eventSource.addEventListener(eventType, handlers[eventType]);
+                }
+            });
+        }
+
+        connect();
+
+        return {
+            close() {
+                closed = true;
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+            }
+        };
+    };
     // ─────────────────────────────────────────────────────────────────────────
 
     const PUBLIC_PAGES = new Set(['login', 'register', 'privacy', 'impressum', 'help']);

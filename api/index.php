@@ -72,11 +72,14 @@ if (file_exists(__DIR__ . '/lib/logger.php')) {
 // Library-Klassen laden (nicht im Namespace)
 require_once __DIR__ . '/lib/EntryPayload.php';
 require_once __DIR__ . '/RateLimiter.php';
+require_once __DIR__ . '/lib/SessionHandler.php';
 
 // Router laden
 use FokusLog\Router;
+use FokusLog\SessionHandler;
 
-// Session-Sicherheit erhöhen
+// Session-Konfiguration aus Umgebungsvariablen
+// (wird später überschrieben, wenn .env geladen wurde - hier Default)
 $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 session_set_cookie_params([
     'lifetime' => 0,
@@ -227,6 +230,10 @@ $router->post('/notifications/push/unsubscribe', 'NotificationsController', 'uns
 $router->post('/notifications/email/verify', 'NotificationsController', 'verifyEmail');
 $router->post('/notifications/email/resend-verification', 'NotificationsController', 'resendVerification');
 $router->get('/notifications/status', 'NotificationsController', 'getStatus');
+
+// Server-Sent Events (Echtzeit-Updates)
+$router->get('/events', 'EventsController', 'stream');
+$router->post('/events/cleanup', 'EventsController', 'cleanup');
 
 // Admin-Routen
 $router->post('/admin/migrate', 'AdminController', 'migrate');
