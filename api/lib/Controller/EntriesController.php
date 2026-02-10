@@ -126,8 +126,9 @@ class EntriesController extends BaseController
                 exit;
             }
 
+
             $responseData = ['entries' => $entries];
-            if ($usePagination && $total !== null) {
+            if ($usePagination && is_int($total)) {
                 $responseData['pagination'] = [
                     'total'    => $total,
                     'page'     => $page,
