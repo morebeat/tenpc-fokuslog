@@ -37,21 +37,15 @@ CREATE TABLE IF NOT EXISTS sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
--- Cleanup-Event für automatische Bereinigung (optional)
+-- Cleanup-Optionen (wähle EINE der folgenden Methoden)
 -- ============================================================================
--- Kann via MySQL Event Scheduler aktiviert werden:
--- SET GLOBAL event_scheduler = ON;
 
-DELIMITER //
-CREATE EVENT IF NOT EXISTS cleanup_old_events
-ON SCHEDULE EVERY 1 HOUR
-DO
-BEGIN
-    DELETE FROM events_queue WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR);
-    DELETE FROM sessions WHERE last_access < UNIX_TIMESTAMP() - 86400;
-END//
-DELIMITER ;
+-- OPTION A: MySQL Event Scheduler (erfordert SUPER oder SYSTEM_VARIABLES_ADMIN)
+-- Nur verfügbar mit Root/Admin-Zugang. Bei Shared Hosting meist nicht möglich.
 
--- Hinweis: Event Scheduler muss in MySQL/MariaDB aktiviert sein:
--- SET GLOBAL event_scheduler = ON;
--- Oder in my.cnf: event_scheduler = ON
+-- OPTION B: PHP-Script via Cron (empfohlen für Shared Hosting)
+-- Cron-Beispiel (jede Stunde):
+-- 0 * * * * php /path/to/scripts/cleanup-events.php
+
+-- OPTION C: API-Endpoint (bereits implementiert)
+-- POST /api/events/cleanup
