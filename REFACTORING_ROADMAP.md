@@ -406,22 +406,21 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Nur minimale Tests; könnte Bugs verschleppen
 
 ### 20. **Add Frontend Integration Tests (Playwright/Cypress)**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: High (10–15h)
 - **Impact**: Medium — E2E Quality
 - **Details**:
-  - Automatisierte Tests für User Flows:
-    - Register → Create Entry → View Report → Export PDF
-    - Parent → Create Child → Manage Child Entries
-    - Login/Logout Session Handling
-  - Tool: Playwright oder Cypress (modern, easy)
-  - Bsp.:
-    ```bash
-    npx playwright test
-    ```
-  - Vorteil: Catch UI/API Mismatches, Faster QA
+  - Playwright E2E Test Suite implementiert unter `tests/e2e/`:
+    - `auth.spec.ts` — Registration, Login, Logout, Session Management
+    - `entry.spec.ts` — Entry CRUD, Ratings, Validation, Time Slots
+    - `report.spec.ts` — Report Page, Date Filters, Charts, CSV/PDF Export
+    - `fixtures.ts` — Shared Test Utilities (login, register, createEntry helpers)
+    - `auth.setup.ts` — Global Auth State Setup
+  - Konfiguration: `playwright.config.ts` mit Multi-Browser Support (Chrome, Firefox, Safari, Mobile)
+  - NPM Scripts: `npm run test:e2e`, `npm run test:e2e:ui`, `npm run test:e2e:headed`
+  - Auto-Start: PHP Built-in Server via Playwright webServer Config
 - **Related Issues**:
-  - UI-Änderungen können unerwartete Breaking Changes haben
+  - ~~UI-Änderungen können unerwartete Breaking Changes haben~~ → E2E Tests fangen Regressions
 
 ### 21. **Add Static Analysis (PHPStan, ESLint)**
 - **Status**: ✅ Done (phpstan.neon Level 5 bereits vorhanden — 2026-02-10 verifiziert)
@@ -673,11 +672,11 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 - i18n Foundation (utils.t + de.js), Polling Utility (utils.poll)
 - Advanced Analytics Grundstruktur vorhanden (ReportController)
 
-### Phase 4 — Offen (zukünftige Sessions)
+### Phase 4 — Teilweise abgeschlossen (2026-02-10)
+- ✅ **#20**: Playwright E2E Tests (auth.spec.ts, entry.spec.ts, report.spec.ts)
+- ✅ **#29**: SSE Realtime (EventsController + utils.subscribe implementiert)
 - **#15**: Search (Lunr.js)
 - **#17**: Mobile Responsiveness
-- **#20**: Playwright E2E Tests
-- **#29**: Echte WebSocket/SSE Implementierung
 - **#30**: Weitere Sprachen (utils.t + i18n-Architektur bereit)
 - **#31**: ML-Analytics, Korrelationsanalyse
 - **#32**: Multi-Tenant Admin Dashboard
