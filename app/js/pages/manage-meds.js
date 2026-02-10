@@ -18,11 +18,11 @@
                         renderMeds(data.medications);
                     } else {
                         medsList.innerHTML = '<p>Fehler beim Laden.</p>';
-                        console.error('API Fehler beim Laden der Medikamente:', response.status);
+                        utils.error('API Fehler beim Laden der Medikamente:', response.status);
                     }
                 } catch (error) {
                     medsList.innerHTML = '<p>Verbindung nicht möglich.</p>';
-                    console.error('Netzwerkfehler beim Laden der Medikamente:', error);
+                    utils.error('Netzwerkfehler beim Laden der Medikamente:', error);
                 }
             };
 

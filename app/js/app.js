@@ -1,21 +1,44 @@
+/**
+ * FokusLog — Frontend Application Bootstrap
+ * 
+ * Dieses Modul initialisiert die PWA, definiert globale Utilities und
+ * lädt seitenspezifische Module dynamisch nach.
+ * 
+ * @namespace FokusLog
+ */
 (function (global) {
     const FokusLog = global.FokusLog || (global.FokusLog = {});
     const utils = FokusLog.utils || (FokusLog.utils = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
 
     // ─── Debug Logger ─────────────────────────────────────────────────────────
-    // Nur aktiv wenn window.FOKUSLOG_DEBUG === true (in .env: DEBUG_LOG=1 → HTML setzt flag)
+    /**
+     * Loggt eine Nachricht nur wenn FOKUSLOG_DEBUG aktiv ist.
+     * @param {...*} args - Beliebige Argumente für console.log
+     */
     utils.log = function (...args) {
         if (global.FOKUSLOG_DEBUG) console.log('[FokusLog]', ...args);
     };
+
+    /**
+     * Loggt einen Fehler nur wenn FOKUSLOG_DEBUG aktiv ist.
+     * @param {...*} args - Beliebige Argumente für console.error
+     */
     utils.error = function (...args) {
         if (global.FOKUSLOG_DEBUG) console.error('[FokusLog]', ...args);
     };
 
     // ─── i18n Lookup ──────────────────────────────────────────────────────────
-    // FokusLog.i18n wird von app/js/i18n/de.js befüllt.
-    // Verwendung: utils.t('error.network') → "Netzwerkfehler"
-    // Platzhalter: utils.t('greeting', { name: 'Alice' }) → "Hallo, Alice!"
+    /**
+     * Übersetzt einen Schlüssel in die aktuelle Sprache.
+     * Platzhalter im Format {key} werden ersetzt.
+     * 
+     * @param {string} key - Übersetzungsschlüssel (z.B. 'error.network')
+     * @param {Object<string, string>} [params] - Platzhalter-Werte
+     * @returns {string} Übersetzter Text oder der Schlüssel selbst
+     * @example
+     * utils.t('greeting', { name: 'Alice' }) // → "Hallo, Alice!"
+     */
     utils.t = function (key, params) {
         const dict = FokusLog.i18n || {};
         let text = dict[key] || key;
@@ -28,18 +51,40 @@
     };
 
     // ─── API Client ───────────────────────────────────────────────────────────
-    // Zentraler Fetch-Wrapper mit einheitlicher Fehlerbehandlung.
-    // Wirft ApiError bei HTTP-Fehlern (4xx, 5xx).
+    /**
+     * Fehlerklasse für HTTP-Fehler von der API.
+     * @extends Error
+     */
     class ApiError extends Error {
+        /**
+         * @param {number} status - HTTP-Statuscode
+         * @param {string} message - Fehlermeldung
+         * @param {*} body - Response-Body
+         */
         constructor(status, message, body) {
             super(message);
             this.name = 'ApiError';
+            /** @type {number} */
             this.status = status;
+            /** @type {*} */
             this.body = body;
         }
     }
     utils.ApiError = ApiError;
 
+    /**
+     * Zentraler Fetch-Wrapper mit einheitlicher Fehlerbehandlung.
+     * Wirft ApiError bei HTTP-Fehlern (4xx, 5xx).
+     * 
+     * @async
+     * @param {string} endpoint - API-Endpunkt (z.B. '/api/entries')
+     * @param {RequestInit} [options={}] - Fetch-Optionen
+     * @returns {Promise<*>} Response-Body als JSON oder Text
+     * @throws {ApiError} Bei HTTP-Fehlern
+     * @example
+     * const entries = await utils.apiCall('/api/entries');
+     * await utils.apiCall('/api/entries', { method: 'POST', body: JSON.stringify(data) });
+     */
     utils.apiCall = async function (endpoint, options = {}) {
         const defaults = {
             credentials: 'same-origin',
@@ -70,8 +115,16 @@
     };
 
     // ─── Toast Notifications ──────────────────────────────────────────────────
-    // utils.toast(message, type, duration)
-    // type: 'success' | 'error' | 'info' | 'warning'
+    /**
+     * Zeigt eine nicht-blockierende Toast-Benachrichtigung.
+     * 
+     * @param {string} message - Anzuzeigende Nachricht
+     * @param {'success'|'error'|'info'|'warning'} [type='info'] - Benachrichtigungstyp
+     * @param {number} [duration=3500] - Anzeigedauer in Millisekunden
+     * @example
+     * utils.toast('Eintrag gespeichert', 'success');
+     * utils.toast('Fehler beim Laden', 'error', 5000);
+     */
     utils.toast = function (message, type = 'info', duration = 3500) {
         let container = document.getElementById('fl-toast-container');
         if (!container) {
@@ -97,10 +150,22 @@
     };
 
     // ─── Polling Utility ──────────────────────────────────────────────────────
-    // Pollt einen Endpoint in regelmäßigen Abständen.
-    // Gibt ein Objekt mit stop()-Methode zurück.
-    // Verwendung: const p = utils.poll('/api/me', 30000, data => ...);
-    //             p.stop();
+    /**
+     * Pollt einen Endpoint in regelmäßigen Abständen.
+     * 
+     * @param {string} endpoint - API-Endpunkt
+     * @param {number} interval - Intervall in Millisekunden
+     * @param {function(Error|null, *): void} callback - Callback mit (error, data)
+     * @param {RequestInit} [options={}] - Fetch-Optionen
+     * @returns {{stop: function(): void}} Objekt mit stop()-Methode
+     * @example
+     * const poller = utils.poll('/api/me', 30000, (err, data) => {
+     *   if (err) return utils.error('Poll failed', err);
+     *   updateUI(data);
+     * });
+     * // Später stoppen:
+     * poller.stop();
+     */
     utils.poll = function (endpoint, interval, callback, options = {}) {
         let timerId = null;
         let stopped = false;

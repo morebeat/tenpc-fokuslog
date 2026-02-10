@@ -22,7 +22,7 @@
 
             const reportUtils = global.FokusLogReportUtils;
             if (!reportUtils) {
-                console.error('FokusLogReportUtils wurde nicht geladen.');
+                utils.error('FokusLogReportUtils wurde nicht geladen.');
                 return;
             }
 
@@ -78,7 +78,7 @@
                         userFilterContainer.style.display = 'none';
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden der Benutzer für den Filter:', error);
+                    utils.error('Fehler beim Laden der Benutzer für den Filter:', error);
                     if (userFilterContainer) userFilterContainer.style.display = 'none';
                 }
             };
@@ -119,7 +119,7 @@
                         entriesTable.innerHTML = '<p>Fehler beim Laden der Einträge.</p>';
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden der Einträge:', error);
+                    utils.error('Fehler beim Laden der Einträge:', error);
                     entriesTable.innerHTML = '<p>Verbindung nicht möglich.</p>';
                     if (document.getElementById('weight-history')) loadWeightData();
                 }
@@ -339,7 +339,7 @@
                         alert('Fehler beim Laden der Einträge.');
                     }
                 } catch (error) {
-                    console.error('Fehler beim Export:', error);
+                    utils.error('Fehler beim Export:', error);
                     alert('Fehler beim Exportieren der Daten.');
                 }
             };
@@ -374,7 +374,7 @@
                         throw new Error('Fehler beim Laden der Einträge für PDF-Export.');
                     }
                 } catch (error) {
-                    console.error(error);
+                    utils.error('PDF Export Fehler:', error);
                     alert(error.message);
                     return;
                 }
@@ -456,7 +456,7 @@
                         trendsSection.style.display = 'none';
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden der Trends:', error);
+                    utils.error('Fehler beim Laden der Trends:', error);
                     trendsSection.style.display = 'none';
                 }
             };
@@ -545,7 +545,7 @@
                         compareSection.style.display = 'none';
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden des Vergleichs:', error);
+                    utils.error('Fehler beim Laden des Vergleichs:', error);
                     compareSection.style.display = 'none';
                 }
             };
@@ -638,7 +638,7 @@
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(downloadUrl);
                 } catch (error) {
-                    console.error('Export fehlgeschlagen:', error);
+                    utils.error('Export fehlgeschlagen:', error);
                     alert('Der Export konnte nicht erstellt werden:\n' + error.message);
                 }
             };
@@ -708,7 +708,7 @@
                         weightContainer.style.display = 'none';
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden der Gewichtsdaten:', error);
+                    utils.error('Fehler beim Laden der Gewichtsdaten:', error);
                     weightContainer.style.display = 'none';
                 }
             };

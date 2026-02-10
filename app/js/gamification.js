@@ -12,7 +12,7 @@
  */
 function triggerConfetti() {
     if (typeof confetti === 'undefined') {
-        console.warn('Konfetti-Library nicht geladen.');
+        (window.FokusLog?.utils?.log || (() => {}))('Konfetti-Library nicht geladen.');
         return;
     }
 

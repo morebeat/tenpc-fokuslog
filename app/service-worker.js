@@ -1,13 +1,15 @@
 /*
- * Einfacher Service Worker für FokusLog
+ * Service Worker für FokusLog — Stale-While-Revalidate
  *
- * Cacht statische Assets (App Shell) während der Installation und versucht bei
- * Anfragen zuerst aus dem Netz zu laden. Bei Offline‑Status wird der Cache
- * zurückgegeben. API‑Aufrufe werden nicht gecacht, damit immer aktuelle
- * Daten verwendet werden.
+ * Strategie:
+ * - Statische Assets: Stale-while-revalidate (sofort aus Cache, Update im Hintergrund)
+ * - API-Calls: Network-only (immer aktuelle Daten)
+ * - Offline: Fallback auf Cache
+ *
+ * Background Sync wird vorbereitet für spätere Offline-Entry-Erstellung.
  */
 
-const CACHE_NAME = 'fokuslog-cache-v10';
+const CACHE_NAME = 'fokuslog-cache-v11';
 const OFFLINE_URLS = [
   '/app/index.html',
   '/app/style.css',
@@ -24,7 +26,9 @@ const OFFLINE_URLS = [
   '/app/manifest.json',
   '/app/icons/icon-192.png',
   '/app/icons/icon-512.png',
-  '/app/help/help.html',
+  '/app/help/index.html',
+  '/app/help/assets/help.css',
+  '/app/help/assets/help.js',
   '/app/help/css/guide.css',
   '/app/help/js/guide.js',
   '/app/help/guide/README.md',
@@ -46,37 +50,70 @@ const OFFLINE_URLS = [
   '/app/help/guide/zielgruppen/anhang/glossar.md'
 ];
 
+// ─── Installation: Pre-Cache App Shell ────────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Versuche URLs einzeln zu cachen, damit ein fehlendes File nicht die gesamte Installation blockiert
+      // Versuche URLs einzeln zu cachen, damit ein fehlendes File nicht blockiert
       return Promise.all(
-        OFFLINE_URLS.map(url => {
-          return cache.add(url).catch(err => console.warn('⚠️ Cache-Fehler (übersprungen):', url, err));
-        })
+        OFFLINE_URLS.map(url =>
+          cache.add(url).catch(err => console.warn('⚠️ Cache-Fehler (übersprungen):', url, err))
+        )
       );
     })
   );
+  // Sofort aktivieren ohne auf andere Tabs zu warten
+  self.skipWaiting();
 });
 
+// ─── Aktivierung: Alte Caches löschen ─────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
+    caches.keys().then(keys =>
+      Promise.all(
         keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      );
-    })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
+// ─── Fetch: Stale-While-Revalidate für statische Assets ───────────────────────
 self.addEventListener('fetch', event => {
   const { request } = event;
-  // API nicht cachen
-  if (request.url.includes('/api/')) {
+  const url = new URL(request.url);
+
+  // API-Calls: Network-only (keine Cache-Interferenz)
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
+
+  // Nur GET-Requests cachen
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Stale-While-Revalidate Strategie
   event.respondWith(
-    fetch(request).catch(() => caches.match(request))
+    caches.open(CACHE_NAME).then(cache =>
+      cache.match(request).then(cachedResponse => {
+        // Immer im Hintergrund aktualisieren
+        const fetchPromise = fetch(request)
+          .then(networkResponse => {
+            // Nur gültige Responses cachen (status 200, same-origin)
+            if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            // Network-Fehler: nichts tun, cached Response wird verwendet
+            return null;
+          });
+
+        // Sofort aus Cache antworten (falls vorhanden), sonst auf Network warten
+        return cachedResponse || fetchPromise;
+      })
+    )
   );
 });
 

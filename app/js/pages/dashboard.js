@@ -1,8 +1,28 @@
+/**
+ * Dashboard Page Module — Hauptübersicht des Benutzers
+ * 
+ * Zeigt Gamification-Statistiken für Kinder, Admin-Bereich für Eltern,
+ * und Erste-Schritte-Karte für neue Benutzer.
+ * 
+ * @module pages/dashboard
+ */
 (function (global) {
     const FokusLog = global.FokusLog || (global.FokusLog = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
 
+    /**
+     * Dashboard-Seiten-Controller
+     * @type {{init: function({user: Object, utils: Object}): Promise<void>}}
+     */
     pages.dashboard = {
+        /**
+         * Initialisiert die Dashboard-Seite.
+         * @async
+         * @param {Object} params - Parameter-Objekt
+         * @param {Object} params.user - Aktueller Benutzer
+         * @param {Object} params.utils - Utility-Funktionen
+         * @returns {Promise<void>}
+         */
         init: async ({ user, utils }) => {
             if (!user) return;
             if (user.role === 'child') {
@@ -16,6 +36,11 @@
         }
     };
 
+    /**
+     * Zeigt oder versteckt den Admin-Bereich je nach Benutzerrolle.
+     * @private
+     * @param {Object} user - Benutzerobjekt mit role-Property
+     */
     function toggleAdminSection(user) {
         const adminSection = document.getElementById('admin-section');
         if (!adminSection) return;
@@ -23,6 +48,11 @@
         adminSection.style.display = canManage ? '' : 'none';
     }
 
+    /**
+     * Zeigt Gamification-Statistiken (Punkte, Streak, Badges) für Kinder an.
+     * @private
+     * @param {Object} user - Benutzerobjekt mit points, streak_current, badges
+     */
     function displayGamificationStats(user) {
         let statsContainer = document.getElementById('gamification-stats');
         const welcomeMsg = document.getElementById('welcome');
@@ -140,7 +170,7 @@
                 hasEntries = Array.isArray(entryData.entries) && entryData.entries.length > 0;
             }
         } catch (error) {
-            console.error('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
+            (window.FokusLog?.utils?.error || (() => {}))('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
         }
 
         const showMedCta = !hasMedications;

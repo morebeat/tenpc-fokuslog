@@ -15,7 +15,7 @@
                 const data = await response.json();
                 renderBadgesPage(main, data);
             } catch (error) {
-                console.error(error);
+                utils.error('Fehler beim Laden der Badges:', error);
                 main.innerHTML = `<div class="error-message">Konnte Abzeichen nicht laden: ${error.message}</div>`;
             }
         }

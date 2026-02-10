@@ -1,5 +1,164 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('FokusLog Hilfe-System geladen.');
+    // Debug nur in Development (FOKUSLOG_DEBUG flag)
+    const log = (...args) => {
+        if (window.FOKUSLOG_DEBUG) console.log('[Help]', ...args);
+    };
+    log('FokusLog Hilfe-System geladen.');
+
+    // ─── Help Search ──────────────────────────────────────────────────────────────
+    const initSearch = () => {
+        const searchInput = document.getElementById('help-search');
+        const resultsContainer = document.getElementById('help-search-results');
+        if (!searchInput || !resultsContainer) return;
+
+        // Index aus allen Links auf der Seite erstellen
+        const searchIndex = [];
+        document.querySelectorAll('.tree-links a, .nav-list a, .help-grid a').forEach(link => {
+            const title = link.textContent.trim();
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+            // Kategorie aus übergeordnetem Element ermitteln
+            const categoryEl = link.closest('.tree-level, .grid-item, details');
+            let category = '';
+            if (categoryEl) {
+                const summaryEl = categoryEl.querySelector('summary, h3');
+                if (summaryEl) category = summaryEl.textContent.trim();
+            }
+
+            searchIndex.push({ title, href, category });
+        });
+
+        // Duplikate entfernen (nach href)
+        const uniqueIndex = [];
+        const seenHrefs = new Set();
+        searchIndex.forEach(item => {
+            if (!seenHrefs.has(item.href)) {
+                seenHrefs.add(item.href);
+                uniqueIndex.push(item);
+            }
+        });
+
+        log('Search Index erstellt:', uniqueIndex.length, 'Artikel');
+
+        // Suche durchführen
+        const search = (query) => {
+            if (!query || query.length < 2) return [];
+
+            const normalizedQuery = query.toLowerCase().trim();
+            const terms = normalizedQuery.split(/\s+/).filter(t => t.length >= 2);
+            if (terms.length === 0) return [];
+
+            return uniqueIndex
+                .map(item => {
+                    const titleLower = item.title.toLowerCase();
+                    const categoryLower = item.category.toLowerCase();
+                    let score = 0;
+
+                    terms.forEach(term => {
+                        // Exakter Match im Titel = höchste Gewichtung
+                        if (titleLower.includes(term)) score += 10;
+                        // Match am Wortanfang
+                        if (titleLower.startsWith(term) || titleLower.includes(' ' + term)) score += 5;
+                        // Match in Kategorie
+                        if (categoryLower.includes(term)) score += 3;
+                    });
+
+                    return { ...item, score };
+                })
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 10);
+        };
+
+        // Ergebnis-HTML erstellen
+        const highlightText = (text, terms) => {
+            let result = text;
+            terms.forEach(term => {
+                const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                result = result.replace(regex, '<mark>$1</mark>');
+            });
+            return result;
+        };
+
+        const renderResults = (results, query) => {
+            const terms = query.toLowerCase().split(/\s+/).filter(t => t.length >= 2);
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div class="help-search-no-results">Keine Ergebnisse gefunden</div>';
+                resultsContainer.classList.remove('hidden');
+                return;
+            }
+
+            resultsContainer.innerHTML = results.map(item => `
+                <a href="${item.href}" class="help-search-result" role="option">
+                    <div class="help-search-result-title">${highlightText(item.title, terms)}</div>
+                    ${item.category ? `<div class="help-search-result-category">${item.category}</div>` : ''}
+                </a>
+            `).join('');
+            resultsContainer.classList.remove('hidden');
+        };
+
+        const hideResults = () => {
+            resultsContainer.classList.add('hidden');
+        };
+
+        // Event Listeners
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const query = searchInput.value.trim();
+                if (query.length >= 2) {
+                    const results = search(query);
+                    renderResults(results, query);
+                } else {
+                    hideResults();
+                }
+            }, 150);
+        });
+
+        // Escape schließt Ergebnisse
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideResults();
+                searchInput.blur();
+            }
+            // Pfeil-Navigation
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const firstResult = resultsContainer.querySelector('.help-search-result');
+                if (firstResult) firstResult.focus();
+            }
+        });
+
+        // Klick außerhalb schließt Ergebnisse
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.help-search-container')) {
+                hideResults();
+            }
+        });
+
+        // Keyboard-Navigation in Ergebnissen
+        resultsContainer.addEventListener('keydown', (e) => {
+            const focused = document.activeElement;
+            if (!focused.classList.contains('help-search-result')) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const next = focused.nextElementSibling;
+                if (next) next.focus();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prev = focused.previousElementSibling;
+                if (prev) prev.focus();
+                else searchInput.focus();
+            } else if (e.key === 'Escape') {
+                hideResults();
+                searchInput.focus();
+            }
+        });
+    };
 
     const initModeToggle = () => {
         const modeToggle = document.querySelector('.mode-toggle');
@@ -132,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    initSearch();
     initModeToggle();
     initOverlay();
     initTreeControls();

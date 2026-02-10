@@ -64,7 +64,7 @@
                         applySettings(currentSettings);
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden der Einstellungen:', error);
+                    utils.error('Fehler beim Laden der Einstellungen:', error);
                     showMessage('Fehler beim Laden der Einstellungen', 'error');
                 }
             };
@@ -131,7 +131,7 @@
                         notificationStatus.innerHTML = '<p class="error">Status konnte nicht geladen werden.</p>';
                     }
                 } catch (error) {
-                    console.error('Fehler beim Laden des Status:', error);
+                    utils.error('Fehler beim Laden des Status:', error);
                     notificationStatus.innerHTML = '<p class="error">Status konnte nicht geladen werden.</p>';
                 }
             };
@@ -241,7 +241,7 @@
                         showMessage(error.error || 'Fehler beim Speichern', 'error');
                     }
                 } catch (error) {
-                    console.error('Fehler beim Speichern:', error);
+                    utils.error('Fehler beim Speichern:', error);
                     showMessage('Fehler beim Speichern der Einstellungen', 'error');
                 }
             };
@@ -264,7 +264,7 @@
                     const vapidPublicKey = await getVapidPublicKey();
                     
                     if (!vapidPublicKey) {
-                        console.warn('VAPID public key not available');
+                        utils.log('VAPID public key not available');
                         // Still save settings, push might work differently
                     }
 
@@ -287,7 +287,7 @@
                     pushSubscription = subscription;
                     showMessage('Push-Benachrichtigungen aktiviert!', 'success');
                 } catch (error) {
-                    console.error('Push subscription error:', error);
+                    utils.error('Push subscription error:', error);
                     pushEnabled.checked = false;
                     showMessage('Push-Benachrichtigungen konnten nicht aktiviert werden', 'error');
                 }
@@ -309,7 +309,7 @@
 
                     pushSubscription = null;
                 } catch (error) {
-                    console.error('Push unsubscription error:', error);
+                    utils.error('Push unsubscription error:', error);
                 }
             };
 
@@ -322,7 +322,7 @@
                     const data = await response.json();
                     return data.vapid_public_key || null;
                 } catch (error) {
-                    console.warn('Failed to fetch VAPID key:', error);
+                    utils.log('Failed to fetch VAPID key:', error);
                     return null;
                 }
             };
@@ -353,7 +353,7 @@
                         showMessage(error.error || 'Fehler beim Senden', 'error');
                     }
                 } catch (error) {
-                    console.error('Resend verification error:', error);
+                    utils.error('Resend verification error:', error);
                     showMessage('Fehler beim Senden der E-Mail', 'error');
                 }
             };

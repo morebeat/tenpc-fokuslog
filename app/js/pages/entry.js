@@ -1,8 +1,25 @@
+/**
+ * Entry Page Module — Tagebucheintrag erstellen und bearbeiten
+ * 
+ * Verwaltet das Eintragsformular mit Medikamenten-Auswahl, Tags,
+ * Skalen-Ratings (Fokus, Stimmung, etc.) und Auto-Load bei Datums-/Zeit-Änderung.
+ * 
+ * @module pages/entry
+ */
 (function (global) {
     const FokusLog = global.FokusLog || (global.FokusLog = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
 
+    /**
+     * Entry-Seiten-Controller
+     * @type {{init: function(): Promise<void>}}
+     */
     pages.entry = {
+        /**
+         * Initialisiert die Entry-Seite.
+         * @async
+         * @returns {Promise<void>}
+         */
         init: async () => {
             const ratingUtils = FokusLog.utils?.ratingHints;
             initRatingUi();
@@ -10,6 +27,10 @@
         }
     };
 
+    /**
+     * Initialisiert die Rating-UI (Skalen-Buttons) mit Hover/Click-Effekten.
+     * @private
+     */
     function initRatingUi() {
         const ratingGroups = document.querySelectorAll('.rating-group');
         ratingGroups.forEach(group => {
@@ -43,6 +64,13 @@
         });
     }
 
+    /**
+     * Initialisiert das Eintragsformular mit allen Event-Listenern.
+     * @async
+     * @private
+     * @param {Object} [ratingUtils] - Rating-Hints Utilities
+     * @returns {Promise<void>}
+     */
     async function initEntryForm(ratingUtils) {
         const dateInput = document.getElementById('date');
         const timeInput = document.getElementById('time');
@@ -130,7 +158,7 @@
                     });
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Medikamente', error);
+                utils.error('Fehler beim Laden der Medikamente', error);
             }
         };
 
@@ -167,7 +195,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Tags', error);
+                utils.error('Fehler beim Laden der Tags', error);
             }
         };
 
@@ -194,7 +222,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Standardwerte', error);
+                utils.error('Fehler beim Laden der Standardwerte', error);
             }
         };
 
@@ -289,7 +317,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Fehler beim Laden des Eintrags:', error);
+                utils.error('Fehler beim Laden des Eintrags:', error);
             }
         };
 

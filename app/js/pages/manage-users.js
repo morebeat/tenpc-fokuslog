@@ -95,7 +95,7 @@
                                 editModal.style.display = 'block';
                             }
                         } catch (error) {
-                            console.error(error);
+                            utils.error('Fehler beim Laden des Benutzers:', error);
                         }
                     }
                 });
