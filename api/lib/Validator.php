@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FokusLog;
 
+require_once __DIR__ . '/ValidationException.php';
+
 /**
  * Eingabe-Validierung für API-Requests.
  *
@@ -222,11 +224,4 @@ class Validator
     {
         return self::intOptional($data, $field, ['min' => 1, 'max' => 10]);
     }
-}
-
-/**
- * Wird von Validator geworfen bei ungültigen Eingaben.
- */
-class ValidationException extends \RuntimeException
-{
 }
