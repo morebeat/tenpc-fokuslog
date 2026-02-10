@@ -71,6 +71,7 @@ if (file_exists(__DIR__ . '/lib/logger.php')) {
 
 // Library-Klassen laden (nicht im Namespace)
 require_once __DIR__ . '/lib/EntryPayload.php';
+require_once __DIR__ . '/lib/ValidationException.php';
 require_once __DIR__ . '/RateLimiter.php';
 require_once __DIR__ . '/lib/SessionHandler.php';
 

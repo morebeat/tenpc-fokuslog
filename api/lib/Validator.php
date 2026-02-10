@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FokusLog;
 
-require_once __DIR__ . '/ValidationException.php';
-
 /**
  * Eingabe-Validierung für API-Requests.
  *
