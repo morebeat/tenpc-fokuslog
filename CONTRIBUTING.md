@@ -64,10 +64,62 @@ Wir nutzen den Standard-GitHub-Workflow. So reichst du deine Änderungen ein:
 ## Code-Richtlinien
 
 *   **Sprache**: Wir nutzen Deutsch für Dokumentation/Issues und Englisch für Code/Kommentare.
-*   **Stil**:
-    *   **PHP**: Orientierung an PSR-12.
-    *   **JS**: ES6+, Semikolons verwenden, klare Variablennamen.
 *   **Keine "Magie"**: Code sollte explizit und nachvollziehbar sein.
+
+### PHP
+
+*   **Standard**: PSR-12 (Einrückung: 4 Spaces, nicht Tabs)
+*   `declare(strict_types=1)` in jeder PHP-Datei am Anfang
+*   Namespace: `FokusLog\Controller\` für Controller, `FokusLog\` für Services/Utilities
+*   Alle Controller erben von `BaseController`
+*   Input-Validierung via `FokusLog\Validator` statt Ad-hoc-Checks
+*   DB-Queries: **immer** Prepared Statements mit PDO; kein direktes String-Bauen mit User-Input
+*   Fehlerbehandlung: `try-catch (Throwable $e)` + `app_log()` + `$this->respond(5xx)`
+*   Statische Analyse: `phpstan analyse api/ --level 5` muss ohne Fehler durchlaufen
+
+### JavaScript
+
+*   ES6+ (keine `var`, keine IE11-Kompatibilität nötig)
+*   Semikolons verwenden
+*   Async/Await statt Promise-Chains
+*   HTTP-Requests über `FokusLog.utils.apiCall()` — kein direktes `fetch()`
+*   Fehlermeldungen über `FokusLog.utils.toast()` — kein `alert()`
+*   Debug-Logging über `FokusLog.utils.log()` / `FokusLog.utils.error()` — kein `console.log/error` direkt
+*   Neue Strings → in `app/js/i18n/de.js` eintragen, dann via `FokusLog.utils.t('key')` verwenden
+*   Page-Module: Namespace `FokusLog.pages.<name>` + `init(context)` Methode exportieren
+
+### Naming Conventions
+
+| Was | Konvention | Beispiel |
+|-----|-----------|---------|
+| PHP-Klassen | PascalCase | `AuthController`, `EnvLoader` |
+| PHP-Methoden | camelCase | `requireAuth()`, `getJsonBody()` |
+| PHP-Konstanten | UPPER\_SNAKE | `MIN_PASSWORD_LENGTH` |
+| JS-Funktionen | camelCase | `loadPageModule()`, `apiCall()` |
+| JS-Klassen | PascalCase | `ApiError` |
+| CSS-Klassen | BEM / kebab-case | `.fl-toast`, `.fl-toast--error` |
+| Routen | kebab-case | `/notifications/vapid-key` |
+| DB-Spalten | snake\_case | `user_id`, `family_id` |
+
+## PR-Checkliste
+
+Bevor du einen Pull Request einreichst, prüfe folgendes:
+
+*   [ ] Code ist lesbar und folgt den Richtlinien oben
+*   [ ] Neue PHP-Inputs werden via `Validator` geprüft
+*   [ ] Keine `console.log` / `alert()` direkt — stattdessen `utils.log()` / `utils.toast()`
+*   [ ] PHP-Tests laufen: `php api/run_tests.php` ohne Fehler
+*   [ ] PHPStan: `phpstan analyse api/ --level 5` ohne neue Fehler
+*   [ ] Manuelle Browser-Prüfung durchgeführt (insbesondere Login, Eintrag anlegen)
+*   [ ] Neue UI-Strings in `app/js/i18n/de.js` eingetragen
+*   [ ] Zugehörige Dokumentation aktualisiert (CHANGELOG.md wenn nötig)
+*   [ ] Keine sensiblen Daten committed (Passwörter, Tokens, `.env`)
+
+## Werkzeuge
+
+*   **PHP-Tests**: `php api/run_tests.php` (Custom SimpleTestRunner in `api/SimpleTestRunner.php`)
+*   **Statische Analyse**: `phpstan analyse api/ --level 5`
+*   **Lokale Entwicklung**: Docker Compose (`docker-compose up`) oder PHP Built-in Server
 
 ## Lizenz
 

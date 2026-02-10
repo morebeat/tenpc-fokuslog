@@ -1565,3 +1565,145 @@ input:disabled + .toggle-slider {
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color, #e5e7eb);
 }
+
+/* ─── Dark Mode ──────────────────────────────────────────────────────────────
+ * Überschreibt CSS-Variablen und ausgewählte hardcodierte Farben.
+ * Systemeinstellung via prefers-color-scheme wird automatisch erkannt.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-color: #3b82f6;
+        --text-color:    #f3f4f6;
+        --bg-color:      #111827;
+        --card-bg:       #1f2937;
+        --border-color:  #374151;
+        --danger-color:  #f87171;
+    }
+
+    html, body {
+        background: linear-gradient(to bottom right, #060d1a, #0a1628);
+        color: #f3f4f6;
+    }
+
+    /* Cards & Formulare */
+    .card, .form-card, .info-card, .stat-card,
+    .dashboard-card, .entry-card, .badge-card,
+    .notification-card, .report-card {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        border-color: var(--border-color);
+    }
+
+    input, select, textarea {
+        background-color: #111827;
+        color: #f3f4f6;
+        border-color: var(--border-color);
+    }
+
+    input::placeholder, textarea::placeholder {
+        color: #6b7280;
+    }
+
+    /* Labels & Texts mit Hardcoded-Farben */
+    label, .label, .form-label {
+        color: var(--text-color);
+    }
+
+    .status-item .value {
+        color: #f3f4f6;
+    }
+
+    /* Inline Error-Banner (showPageError in app.js) */
+    [role="alert"] {
+        background: #422006;
+        border-color: #92400e;
+        color: #fcd34d;
+    }
+
+    /* Push-not-supported */
+    .push-not-supported {
+        background: #422006;
+        border-color: #92400e;
+        color: #fcd34d;
+    }
+
+    /* Nav-Buttons */
+    nav a.button {
+        background-color: #1f2937;
+        color: #f3f4f6;
+        border: 1px solid var(--border-color);
+    }
+}
+
+/* ─── Toast Notifications ────────────────────────────────────────────────────
+ * Angesteuert via FokusLog.utils.toast(message, type, duration)
+ * ──────────────────────────────────────────────────────────────────────────── */
+#fl-toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.fl-toast {
+    pointer-events: auto;
+    min-width: 240px;
+    max-width: 380px;
+    padding: 0.75rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    animation: fl-toast-in 0.25s ease forwards;
+}
+
+.fl-toast--hide {
+    animation: fl-toast-out 0.25s ease forwards;
+}
+
+.fl-toast--success {
+    background: #dcfce7;
+    color: #166534;
+    border-left: 4px solid #16a34a;
+}
+
+.fl-toast--error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid #dc2626;
+}
+
+.fl-toast--warning {
+    background: #fef9c3;
+    color: #854d0e;
+    border-left: 4px solid #ca8a04;
+}
+
+.fl-toast--info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
+}
+
+@keyframes fl-toast-in {
+    from { opacity: 0; transform: translateX(2rem); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fl-toast-out {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(2rem); }
+}
+
+@media (prefers-color-scheme: dark) {
+    .fl-toast--success { background: #14532d; color: #bbf7d0; }
+    .fl-toast--error   { background: #7f1d1d; color: #fecaca; }
+    .fl-toast--warning { background: #713f12; color: #fef08a; }
+    .fl-toast--info    { background: #1e3a5f; color: #bfdbfe; }
+}

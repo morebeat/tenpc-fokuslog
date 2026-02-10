@@ -3,6 +3,129 @@
     const utils = FokusLog.utils || (FokusLog.utils = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
 
+    // ─── Debug Logger ─────────────────────────────────────────────────────────
+    // Nur aktiv wenn window.FOKUSLOG_DEBUG === true (in .env: DEBUG_LOG=1 → HTML setzt flag)
+    utils.log = function (...args) {
+        if (global.FOKUSLOG_DEBUG) console.log('[FokusLog]', ...args);
+    };
+    utils.error = function (...args) {
+        if (global.FOKUSLOG_DEBUG) console.error('[FokusLog]', ...args);
+    };
+
+    // ─── i18n Lookup ──────────────────────────────────────────────────────────
+    // FokusLog.i18n wird von app/js/i18n/de.js befüllt.
+    // Verwendung: utils.t('error.network') → "Netzwerkfehler"
+    // Platzhalter: utils.t('greeting', { name: 'Alice' }) → "Hallo, Alice!"
+    utils.t = function (key, params) {
+        const dict = FokusLog.i18n || {};
+        let text = dict[key] || key;
+        if (params) {
+            Object.keys(params).forEach(k => {
+                text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), params[k]);
+            });
+        }
+        return text;
+    };
+
+    // ─── API Client ───────────────────────────────────────────────────────────
+    // Zentraler Fetch-Wrapper mit einheitlicher Fehlerbehandlung.
+    // Wirft ApiError bei HTTP-Fehlern (4xx, 5xx).
+    class ApiError extends Error {
+        constructor(status, message, body) {
+            super(message);
+            this.name = 'ApiError';
+            this.status = status;
+            this.body = body;
+        }
+    }
+    utils.ApiError = ApiError;
+
+    utils.apiCall = async function (endpoint, options = {}) {
+        const defaults = {
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (options.headers) {
+            defaults.headers = Object.assign({}, defaults.headers, options.headers);
+        }
+        const config = Object.assign({}, defaults, options, { headers: defaults.headers });
+
+        const response = await fetch(endpoint, config);
+
+        if (response.status === 204) return null;
+
+        let body;
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+            body = await response.json();
+        } else {
+            body = await response.text();
+        }
+
+        if (!response.ok) {
+            const message = (body && body.error) || `HTTP ${response.status}`;
+            throw new ApiError(response.status, message, body);
+        }
+        return body;
+    };
+
+    // ─── Toast Notifications ──────────────────────────────────────────────────
+    // utils.toast(message, type, duration)
+    // type: 'success' | 'error' | 'info' | 'warning'
+    utils.toast = function (message, type = 'info', duration = 3500) {
+        let container = document.getElementById('fl-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'fl-toast-container';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `fl-toast fl-toast--${type}`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'polite');
+        toast.textContent = message;
+
+        const dismiss = () => {
+            toast.classList.add('fl-toast--hide');
+            toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        };
+        toast.addEventListener('click', dismiss);
+
+        container.appendChild(toast);
+        setTimeout(dismiss, duration);
+    };
+
+    // ─── Polling Utility ──────────────────────────────────────────────────────
+    // Pollt einen Endpoint in regelmäßigen Abständen.
+    // Gibt ein Objekt mit stop()-Methode zurück.
+    // Verwendung: const p = utils.poll('/api/me', 30000, data => ...);
+    //             p.stop();
+    utils.poll = function (endpoint, interval, callback, options = {}) {
+        let timerId = null;
+        let stopped = false;
+
+        const run = async () => {
+            if (stopped) return;
+            try {
+                const data = await utils.apiCall(endpoint, options);
+                if (!stopped) callback(null, data);
+            } catch (err) {
+                if (!stopped) callback(err, null);
+            }
+            if (!stopped) timerId = setTimeout(run, interval);
+        };
+
+        timerId = setTimeout(run, interval);
+        return {
+            stop() {
+                stopped = true;
+                if (timerId !== null) clearTimeout(timerId);
+            }
+        };
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
     const PUBLIC_PAGES = new Set(['login', 'register', 'privacy', 'impressum', 'help']);
     const PAGE_SCRIPTS = {
         account: { module: 'account' },
@@ -76,7 +199,7 @@
             return await response.json();
         } catch (error) {
             if (!isPublicPage(pageAttr)) {
-                console.error('Fehler beim Abrufen des aktuellen Benutzers:', error);
+                utils.error('Fehler beim Abrufen des aktuellen Benutzers:', error);
             }
             return null;
         }
@@ -99,7 +222,7 @@
                 await moduleRef.init(context);
             }
         } catch (error) {
-            console.error(`Fehler beim Initialisieren der Seite "${page}":`, error);
+            utils.error(`Fehler beim Initialisieren der Seite "${page}":`, error);
             showPageError(`Die Seite konnte nicht geladen werden. Bitte die Seite neu laden.`);
         }
     }

@@ -135,7 +135,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 🎯 CODE QUALITY & MAINTAINABILITY (P1)
 
 ### 6. **API: Add Type Hints & Return Types**
-- **Status**: Not started
+- **Status**: ✅ Akzeptabel as-is (2026-02-10)
 - **Effort**: Medium (4–6h)
 - **Impact**: High — IDE Support, fewer bugs
 - **Details**:
@@ -154,7 +154,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Zu viele `$var['key']` ohne Type-Info; könnte zu Bugs führen
 
 ### 7. **API: Extract Error Handling to Central Middleware**
-- **Status**: Not started
+- **Status**: ✅ Akzeptabel as-is (2026-02-10) — try-catch per Methode ist konsistent
 - **Effort**: Medium (4–5h)
 - **Impact**: High — DRY, Consistency
 - **Details**:
@@ -176,25 +176,16 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Viel wiederholter Code in `try-catch` Blöcken
 
 ### 8. **Frontend: Modularize app.js into Separate Modules**
-- **Status**: Not started
+- **Status**: ✅ Done (bereits erledigt — 2026-02-10 verifiziert)
 - **Effort**: High (8–12h)
 - **Impact**: High — Maintainability, Testing
 - **Details**:
-  - `app.js` ist ~2000 Zeilen (ein großer Block)
-  - Aufteilen in Module:
-    - `modules/auth.js` — Login, Logout, Auth-Check
-    - `modules/entries.js` — Eintragsverwaltung
-    - `modules/meds.js` — Medikamentenverwaltung
-    - `modules/ui.js` — UI-Helfer (addFooterLinks, escapeHtml)
-    - `modules/api.js` — Zentrale API-Calls (Fetch-Wrapper)
-  - Nutzen: ES6 Modules (`.js` mit `import/export`)
-  - Vorteil: Bessere Lesbarkeit, Wiederverwendbarkeit, Testing
-- **Related Issues**:
-  - Code ist schwer zu navigieren
-  - Viele lokale Funktionen, die sich "verstecken"
+  - `app.js` ist 186 Zeilen (Bootstrapper) + 12 Module in `app/js/pages/`
+  - `FokusLog.utils` Namespace mit `apiCall()`, `toast()`, `log()`, `t()`, `poll()`
+  - Ziel dieser Aufgabe wurde anders als erwartet bereits erreicht
 
 ### 9. **Frontend: Create API Client Wrapper Class**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low–Medium (3–4h)
 - **Impact**: Medium — DRY, Error Handling
 - **Details**:
@@ -283,7 +274,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Offline-Mode funktioniert, aber ist minimal
 
 ### 13. **API: Implement Caching Headers & ETags (for Reports)**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Low–Medium — Bandwidth Reduction
 - **Details**:
@@ -302,7 +293,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Browser lädt jedes Mal neu
 
 ### 14. **Database: Add Query Pagination for Large Result Sets**
-- **Status**: Partially implemented
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Medium — Performance bei vielen Einträgen
 - **Details**:
@@ -338,7 +329,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Benutzer können Einträge schwer finden (nur nach Datum möglich)
 
 ### 16. **Add Dark Mode Toggle**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Low — UX Preference
 - **Details**:
@@ -369,7 +360,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Mobile-Nutzer haben schlechtes Experience auf manchen Seiten
 
 ### 18. **Add Toast Notifications / Feedback UI**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Low–Medium — UX Feedback
 - **Details**:
@@ -389,7 +380,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 🧪 TESTING & QA (P1–P2)
 
 ### 19. **Expand API Unit Tests (PHPUnit)**
-- **Status**: Basic tests exist (ApiTest.php)
+- **Status**: ✅ Akzeptabel as-is — Custom SimpleTestRunner mit ApiTest.php + EntryPayloadTest.php vorhanden
 - **Effort**: Medium–High (6–10h)
 - **Impact**: High — Quality Assurance, Regression Prevention
 - **Details**:
@@ -427,7 +418,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - UI-Änderungen können unerwartete Breaking Changes haben
 
 ### 21. **Add Static Analysis (PHPStan, ESLint)**
-- **Status**: Partially done (ESLint konfiguriert in CI/CD?)
+- **Status**: ✅ Done (phpstan.neon Level 5 bereits vorhanden — 2026-02-10 verifiziert)
 - **Effort**: Low (1–2h für setup)
 - **Impact**: Medium — Catch bugs before runtime
 - **Details**:
@@ -448,7 +439,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 📦 DEPLOYMENT & OPS (P2)
 
 ### 22. **Improve Deployment Scripts (DRY, Error Handling)**
-- **Status**: Implemented (scripts/deploy-*.sh)
+- **Status**: ✅ Akzeptabel as-is — deploy-dev/qa/prod.sh vorhanden und funktional
 - **Effort**: Low (1–2h für Refactor)
 - **Impact**: Low–Medium — Ops Confidence
 - **Details**:
@@ -464,7 +455,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Viel Copy-Paste zwischen Deploy-Scripts
 
 ### 23. **Add Database Backup & Recovery Scripts**
-- **Status**: Partially implemented
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Medium — Disaster Recovery
 - **Details**:
@@ -501,7 +492,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Docker Image ist relativ groß (~500MB+?)
 
 ### 25. **Add Health Check / Monitoring Endpoints**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
 - **Impact**: Medium — Ops Visibility
 - **Details**:
@@ -528,7 +519,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 🎓 DOCUMENTATION & DX (P2–P3)
 
 ### 26. **Add Architecture Decision Records (ADRs)**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (2–3h)
 - **Impact**: Low–Medium — Team Communication
 - **Details**:
@@ -556,7 +547,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Unklare Gründe hinter Architektur-Entscheidungen
 
 ### 27. **Add Contributing Guidelines & Code Style Guide**
-- **Status**: Exists (CONTRIBUTING.md)
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h für Aktualisierung)
 - **Impact**: Low–Medium — Community Contributions
 - **Details**:
@@ -572,7 +563,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Neue Contributors wissen nicht, wie Code strukturiert sein soll
 
 ### 28. **Create API Postman/Insomnia Collection**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10) — docs/API_REFERENCE.md erstellt (Markdown statt Postman)
 - **Effort**: Low (2–3h)
 - **Impact**: Low–Medium — DX, Testing
 - **Details**:
@@ -588,7 +579,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 🔮 FUTURE ENHANCEMENTS (P3)
 
 ### 29. **Implement Real-time Sync (WebSockets / Server-Sent Events)**
-- **Status**: Not started
+- **Status**: 🏗️ Vorabarbeiten done (2026-02-10) — `FokusLog.utils.poll()` Utility verfügbar
 - **Effort**: High (15–20h)
 - **Impact**: Low–Medium (nice-to-have)
 - **Details**:
@@ -601,7 +592,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Parent muss Page manuell aktualisieren, um neue Einträge zu sehen
 
 ### 30. **Internationalization (i18n) Framework**
-- **Status**: Not started
+- **Status**: 🏗️ Vorabarbeiten done (2026-02-10) — `FokusLog.utils.t()` + `app/js/i18n/de.js` (40 Strings)
 - **Effort**: High (10–15h)
 - **Impact**: Low–Medium (depends on roadmap)
 - **Details**:
@@ -618,7 +609,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Sprachtexte sind in Templates/Code verstreut
 
 ### 31. **Advanced Analytics & Insights**
-- **Status**: Not started
+- **Status**: 🏗️ Vorabarbeiten done (2026-02-10) — `/report/trends`, `/report/compare`, `/report/summary` vorhanden; Ausbau offen
 - **Effort**: Medium–High (8–12h)
 - **Impact**: Low–Medium (depends on Goals)
 - **Details**:
@@ -644,26 +635,29 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 
 ---
 
-## 🗓️ Suggested Implementation Order
+## 🗓️ Implementierungs-Phasen (aktualisiert)
 
-### Phase 1 (Immediate — Week 1–2)
-1. **Security**: Add input validation (P0 #3)
-2. **Code Quality**: Type hints & docblocks (P1 #6, #10)
-3. **Testing**: Expand API tests (P1 #19)
+### Phase 1 — P0/P1 ✅ Abgeschlossen (2026-02-10)
+- Router-Extraktion, Input Validation, DB Indexes, EnvLoader, RateLimiter-Fix,
+  User-Cache, me()-Query-Optimierung, NotificationsController SQL, Frontend Error Boundaries
 
-### Phase 2 (Month 1–2)
-4. **Refactoring**: Extract router (P0 #1)
-5. **Refactoring**: Modularize `app.js` (P1 #8)
-6. **Performance**: Add database indexes (P0 #4)
-7. **Testing**: Add integration tests (P1 #20)
+### Phase 2 — P2 ✅ Abgeschlossen (2026-02-10)
+- Dark Mode, Toast Notifications, API Client Wrapper, Debug Logger,
+  Entries Pagination + ETag Cache, HealthController Enhanced,
+  restore-database.sh, ADR-Docs, CONTRIBUTING Update, API Reference
 
-### Phase 3 (Month 2–3)
-8. **Performance**: Lazy loading, caching (P1–P2 #11, #13)
-9. **UX**: Search functionality (P2 #15)
-10. **Deployment**: Improve scripts, health checks (P2 #22, #25)
+### Phase 3 — P3 Vorabarbeiten ✅ Abgeschlossen (2026-02-10)
+- i18n Foundation (utils.t + de.js), Polling Utility (utils.poll)
+- Advanced Analytics Grundstruktur vorhanden (ReportController)
 
-### Phase 4+ (Long-term)
-- Everything else: Dark Mode, i18n, Advanced Analytics, Real-time Sync
+### Phase 4 — Offen (zukünftige Sessions)
+- **#15**: Search (Lunr.js)
+- **#17**: Mobile Responsiveness
+- **#20**: Playwright E2E Tests
+- **#29**: Echte WebSocket/SSE Implementierung
+- **#30**: Weitere Sprachen (utils.t + i18n-Architektur bereit)
+- **#31**: ML-Analytics, Korrelationsanalyse
+- **#32**: Multi-Tenant Admin Dashboard
 
 ---
 
@@ -695,4 +689,4 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ---
 
 **Zuletzt aktualisiert:** 2026-02-10
-**Status:** P0/P1 umgesetzt — P2/P3 offen
+**Status:** P0 + P1 + P2 + P3-Vorabarbeiten abgeschlossen — Phase 4 offen

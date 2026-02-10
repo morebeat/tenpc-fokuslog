@@ -49,35 +49,56 @@ class EntriesController extends BaseController
             $dateFrom = $params['date_from'] ?? null;
             $dateTo = $params['date_to'] ?? null;
             $timeSlot = $params['time'] ?? null;
-            $limit = isset($params['limit']) ? (int)$params['limit'] : null;
 
-            $sql = 'SELECT e.*, m.name AS medication_name, u.username, GROUP_CONCAT(t.name SEPARATOR ", ") as tags, GROUP_CONCAT(t.id) as tag_ids
+            // Pagination: page/per_page (neu) — abwärtskompatibles limit (alt) bleibt erhalten
+            $legacyLimit = isset($params['limit']) ? (int)$params['limit'] : null;
+            $perPage = isset($params['per_page']) ? max(1, min(200, (int)$params['per_page'])) : 50;
+            $page = isset($params['page']) ? max(1, (int)$params['page']) : 1;
+            $offset = ($page - 1) * $perPage;
+            $usePagination = !isset($params['limit']); // Legacy-Modus wenn 'limit' gesetzt
+
+            // WHERE-Bedingungen aufbauen
+            $where = 'WHERE e.user_id = ?';
+            $bindings = [$targetUserId];
+
+            if ($dateFrom && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
+                $where .= ' AND e.date >= ?';
+                $bindings[] = $dateFrom;
+            }
+            if ($dateTo && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
+                $where .= ' AND e.date <= ?';
+                $bindings[] = $dateTo;
+            }
+            if ($timeSlot && in_array($timeSlot, ['morning', 'noon', 'evening'], true)) {
+                $where .= ' AND e.time = ?';
+                $bindings[] = $timeSlot;
+            }
+
+            // Gesamtzahl für Pagination
+            $total = null;
+            if ($usePagination) {
+                $countSql = "SELECT COUNT(DISTINCT e.id) FROM entries e $where";
+                $countStmt = $this->pdo->prepare($countSql);
+                $countStmt->execute($bindings);
+                $total = (int)$countStmt->fetchColumn();
+            }
+
+            $sql = "SELECT e.*, m.name AS medication_name, u.username,
+                           GROUP_CONCAT(t.name SEPARATOR ', ') as tags,
+                           GROUP_CONCAT(t.id) as tag_ids
                     FROM entries e
                     LEFT JOIN medications m ON e.medication_id = m.id
                     LEFT JOIN users u ON e.user_id = u.id
                     LEFT JOIN entry_tags et ON e.id = et.entry_id
                     LEFT JOIN tags t ON et.tag_id = t.id
-                    WHERE e.user_id = ?';
-            $bindings = [$targetUserId];
+                    $where
+                    GROUP BY e.id
+                    ORDER BY e.date DESC, FIELD(e.time, 'morning','noon','evening')";
 
-            if ($dateFrom && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
-                $sql .= ' AND e.date >= ?';
-                $bindings[] = $dateFrom;
-            }
-            if ($dateTo && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
-                $sql .= ' AND e.date <= ?';
-                $bindings[] = $dateTo;
-            }
-            if ($timeSlot && in_array($timeSlot, ['morning', 'noon', 'evening'], true)) {
-                $sql .= ' AND e.time = ?';
-                $bindings[] = $timeSlot;
-            }
-
-            $sql .= ' GROUP BY e.id';
-            $sql .= ' ORDER BY e.date DESC, FIELD(e.time, "morning","noon","evening")';
-
-            if ($limit > 0) {
-                $sql .= ' LIMIT ' . $limit;
+            if ($usePagination) {
+                $sql .= ' LIMIT ' . $perPage . ' OFFSET ' . $offset;
+            } elseif ($legacyLimit !== null && $legacyLimit > 0) {
+                $sql .= ' LIMIT ' . $legacyLimit;
             }
 
             $stmt = $this->pdo->prepare($sql);
@@ -87,11 +108,35 @@ class EntriesController extends BaseController
                 'user_id' => $user['id'],
                 'target_user_id' => $targetUserId,
                 'date_from' => $dateFrom,
-                'date_to' => $dateTo
+                'date_to' => $dateTo,
+                'page' => $usePagination ? $page : null,
+                'per_page' => $usePagination ? $perPage : null,
             ]);
 
             $entries = $stmt->fetchAll();
-            $this->respond(200, ['entries' => $entries]);
+
+            // ETag + Cache-Control für GET (verhindert redundante Übertragungen)
+            $etag = '"' . md5(serialize($entries)) . '"';
+            header('Cache-Control: private, max-age=60, must-revalidate');
+            header('ETag: ' . $etag);
+
+            $clientEtag = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+            if ($clientEtag === $etag) {
+                http_response_code(304);
+                exit;
+            }
+
+            $responseData = ['entries' => $entries];
+            if ($usePagination && $total !== null) {
+                $responseData['pagination'] = [
+                    'total'    => $total,
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'pages'    => (int)ceil($total / $perPage),
+                ];
+            }
+
+            $this->respond(200, $responseData);
         } catch (Throwable $e) {
             app_log('ERROR', 'entries_get_failed', ['error' => $e->getMessage()]);
             $this->respond(500, ['error' => 'Fehler beim Laden der Einträge: ' . $e->getMessage()]);
