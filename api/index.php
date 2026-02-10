@@ -102,20 +102,17 @@ app_log('INFO', 'request', [
     'user' => $_SESSION['user_id'] ?? null
 ]);
 
-// Lade Umgebungsvariablen aus der Root-.env
+// Lade Umgebungsvariablen aus der Root-.env (eigener Parser statt parse_ini_file,
+// da dieser bei Sonderzeichen wie '!' ohne Quotes mit PHP-Warning fehlschlägt)
+require_once __DIR__ . '/lib/EnvLoader.php';
+
 $envFile = __DIR__ . '/../.env';
-if (!is_file($envFile)) {
-    app_log('CRITICAL', 'env_file_not_found', ['path' => $envFile]);
+try {
+    $env = \FokusLog\EnvLoader::load($envFile);
+} catch (\RuntimeException $e) {
+    app_log('CRITICAL', 'env_file_not_found', ['path' => $envFile, 'error' => $e->getMessage()]);
     http_response_code(500);
     echo json_encode(['error' => 'Keine .env-Datei gefunden. Erwarteter Pfad: ' . $envFile]);
-    exit;
-}
-
-$env = parse_ini_file($envFile);
-if ($env === false) {
-    app_log('CRITICAL', 'env_file_parse_failed', ['path' => $envFile]);
-    http_response_code(500);
-    echo json_encode(['error' => 'Konnte .env nicht lesen. Bitte Encoding/Format pruefen. Pfad: ' . $envFile]);
     exit;
 }
 app_log('INFO', 'env_file_loaded', ['path' => $envFile]);

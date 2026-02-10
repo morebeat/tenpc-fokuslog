@@ -32,7 +32,7 @@
 
 ### Database
 - **System**: MySQL / MariaDB.
-- **Schema**: Relational model defined in `db/schema.sql`.
+- **Schema**: Relational model defined in `db/schema_v3.sql`.
 
 ---
 
@@ -42,12 +42,14 @@
 fokuslog-app/
 ├── api/
 │   ├── index.php           # API entry point & router config
-│   ├── RateLimiter.php     # Rate limiting
+│   ├── RateLimiter.php     # Rate limiting (atomic file locking)
 │   └── lib/
 │       ├── Router.php      # URL routing with parameter extraction
+│       ├── EnvLoader.php   # .env parser (replaces parse_ini_file)
+│       ├── Validator.php   # Centralized input validation + ValidationException
 │       ├── EntryPayload.php
 │       └── Controller/     # MVC Controllers
-│           ├── BaseController.php
+│           ├── BaseController.php        # Auth, caching, audit log helpers
 │           ├── AuthController.php
 │           ├── UsersController.php
 │           ├── MedicationsController.php
@@ -56,15 +58,16 @@ fokuslog-app/
 │           ├── BadgesController.php
 │           ├── WeightController.php
 │           ├── GlossaryController.php
-│           ├── ReportController.php   # Analytics & Exports
+│           ├── NotificationsController.php  # Push & E-Mail settings
+│           ├── ReportController.php         # Analytics & Exports
 │           └── AdminController.php
 ├── app/
 │   └── js/
-│       ├── app.js          # Main frontend logic
+│       ├── app.js          # Main frontend logic (error boundaries, module timeout)
 │       └── pages/
 │           └── report.js   # Report page with trends & comparisons
 ├── db/
-│   └── schema.sql          # Database definition
+│   └── schema_v3.sql       # Database definition (incl. notification_settings)
 ├── docs/
 │   └── dsgvo.md            # Privacy documentation
 └── scripts/
@@ -90,6 +93,11 @@ fokuslog-app/
 - **`tags`**: Custom tracking tags per family.
 - **`entry_tags`**: Tags attached to specific entries.
 - **`audit_log`**: Security log for critical actions (login, delete, etc.).
+
+### Notifications
+- **`notification_settings`**: Per-user push and e-mail notification preferences.
+  - Push: `push_enabled`, `push_subscription` (VAPID JSON blob), time-slot toggles and times (`push_morning_time`, `push_noon_time`, `push_evening_time`).
+  - E-Mail: `email`, `email_verified`, `email_verification_token`, `email_weekly_digest`, `email_missing_alert`, `email_missing_days`.
 
 ---
 
@@ -138,6 +146,18 @@ All requests should be sent to `/api` (rewritten to `api/index.php`).
 | `GET` | `/badges` | List badges and progress. |
 | `GET` | `/weight` | Get weight history. |
 | `GET` | `/me/latest-weight` | Get most recent weight entry. |
+
+### Notifications
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/notifications/settings` | Get push & e-mail notification settings. |
+| `PUT` | `/notifications/settings` | Update notification settings. |
+| `POST` | `/notifications/push/subscribe` | Save VAPID push subscription. |
+| `POST` | `/notifications/push/unsubscribe` | Disable push notifications. |
+| `POST` | `/notifications/email/verify` | Verify e-mail address with token. |
+| `POST` | `/notifications/email/resend-verification` | Re-send verification e-mail. |
+| `GET` | `/notifications/status` | Dashboard status (missing slots, push/email enabled). |
+| `GET` | `/notifications/vapid-key` | Get VAPID public key for push subscription setup. |
 
 ### Reports & Analytics (NEW)
 | Method | Endpoint | Description |
@@ -191,6 +211,8 @@ The script detects the current page via `document.body.dataset.page`.
 
 ### Environment Variables
 The application looks for a `.env` file in the parent directory of `api/`.
+Parsed by `api/lib/EnvLoader.php` — supports special characters (`!`, `@`, …),
+single/double quotes, and inline `#` comments.
 
 ```ini
 DB_HOST=localhost
@@ -199,6 +221,10 @@ DB_USER=root
 DB_PASS=secret
 DEBUG_LOG=1
 LOG_FILE=/path/to/app.log
+VAPID_PUBLIC_KEY=<base64url VAPID public key>   # Required for Web Push
+MIGRATION_TOKEN=<secret>                        # Protects /api/migrate endpoint
+BACKUP_TOKEN=<secret>                           # Protects /api/backup endpoint
+DEPLOY_TOKEN="<token with special chars>"       # Must be quoted if it contains !
 ```
 
 ### Installation
@@ -222,6 +248,14 @@ LOG_FILE=/path/to/app.log
     -   Users/Medications cannot be deleted if they have associated entries (Referential Integrity & Business Logic).
 4.  **Future Entries**: Entries cannot be created for future dates.
 5.  **Self-Modification**: Parents cannot change their own role or delete themselves via the User Management API (must use Account settings).
+6.  **Input Validation**: `api/lib/Validator.php` provides centralized, typed validation with `ValidationException`. Endpoints call `Validator::string()`, `Validator::int()`, `Validator::enum()`, etc. before processing input.
+7.  **Rate Limiting** (`api/RateLimiter.php`):
+    -   Login: 5 attempts / 60 s per IP.
+    -   Register: 10 attempts / 60 s per IP.
+    -   Change Password: 5 attempts / 60 s per IP.
+    -   Counter is reset after a successful login (`reset()`).
+    -   Implemented with atomic file locking (`flock`) to avoid race conditions.
+8.  **Password Policy**: Minimum 8 characters enforced uniformly via `BaseController::MIN_PASSWORD_LENGTH`.
 
 ---
 

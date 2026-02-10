@@ -100,6 +100,7 @@
             }
         } catch (error) {
             console.error(`Fehler beim Initialisieren der Seite "${page}":`, error);
+            showPageError(`Die Seite konnte nicht geladen werden. Bitte die Seite neu laden.`);
         }
     }
 
@@ -114,15 +115,53 @@
         return pages[namespace] || null;
     }
 
-    function injectScript(moduleKey) {
+    /**
+     * Lädt ein Seiten-Skript mit Timeout.
+     * Verhindert, dass ein hängendes Script die Seite für immer blockiert.
+     */
+    function injectScript(moduleKey, timeoutMs = 10000) {
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = new URL(`${moduleKey}.js`, pagesBaseUrl).toString();
             script.async = false;
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error(`Seitenmodul "${moduleKey}" konnte nicht geladen werden.`));
+
+            const timer = setTimeout(() => {
+                script.onload = null;
+                script.onerror = null;
+                reject(new Error(`Timeout: Seitenmodul "${moduleKey}" konnte nicht rechtzeitig geladen werden.`));
+            }, timeoutMs);
+
+            script.onload = () => {
+                clearTimeout(timer);
+                resolve();
+            };
+            script.onerror = () => {
+                clearTimeout(timer);
+                reject(new Error(`Seitenmodul "${moduleKey}" konnte nicht geladen werden.`));
+            };
+
             document.head.appendChild(script);
         });
+    }
+
+    /**
+     * Zeigt eine nutzbare Fehlermeldung im DOM an, wenn ein Seitenmodul nicht lädt.
+     * Sucht nach einem <main>-Element, dann nach einem .container, sonst body.
+     */
+    function showPageError(message) {
+        const target = document.querySelector('main') ||
+                       document.querySelector('.container') ||
+                       document.body;
+        if (!target) return;
+        const banner = document.createElement('div');
+        banner.setAttribute('role', 'alert');
+        banner.style.cssText = [
+            'background:#fff3cd', 'border:1px solid #ffc107',
+            'border-radius:6px', 'padding:1rem 1.25rem',
+            'margin:1rem 0', 'color:#664d03', 'font-size:1rem'
+        ].join(';');
+        banner.textContent = message;
+        target.prepend(banner);
     }
 
     function setupLogout(button) {
@@ -130,8 +169,8 @@
         button.addEventListener('click', async () => {
             try {
                 await fetch('/api/logout', { method: 'POST' });
-            } catch (error) {
-                console.error('Logout fehlgeschlagen:', error);
+            } catch {
+                // Logout-Fehler still ignorieren — Weiterleitung erfolgt sowieso
             } finally {
                 global.location.href = 'login.html';
             }

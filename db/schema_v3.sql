@@ -211,7 +211,43 @@ CREATE TABLE IF NOT EXISTS user_badges (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User Badges: Erworbene Achievements';
 
 -- ============================================================================
--- 4. DATENSCHUTZ & COMPLIANCE
+-- 4. BENACHRICHTIGUNGEN
+-- ============================================================================
+
+-- Notification Settings (Push & E-Mail-Einstellungen pro Benutzer)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS notification_settings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL UNIQUE,
+
+    -- Push-Benachrichtigungen
+    push_enabled BOOLEAN DEFAULT FALSE,
+    push_subscription TEXT DEFAULT NULL COMMENT 'WebPush-Subscription-JSON (VAPID)',
+    push_morning BOOLEAN DEFAULT TRUE,
+    push_noon BOOLEAN DEFAULT TRUE,
+    push_evening BOOLEAN DEFAULT TRUE,
+    push_morning_time TIME DEFAULT '08:00:00',
+    push_noon_time TIME DEFAULT '12:00:00',
+    push_evening_time TIME DEFAULT '18:00:00',
+
+    -- E-Mail-Benachrichtigungen
+    email VARCHAR(100) DEFAULT NULL,
+    email_verified BOOLEAN DEFAULT FALSE,
+    email_verification_token VARCHAR(64) DEFAULT NULL,
+    email_weekly_digest BOOLEAN DEFAULT FALSE,
+    email_digest_day TINYINT UNSIGNED DEFAULT 0 COMMENT '0=Sonntag ... 6=Samstag',
+    email_missing_alert BOOLEAN DEFAULT FALSE,
+    email_missing_days TINYINT UNSIGNED DEFAULT 3 COMMENT 'Alert nach N Tagen ohne Eintrag',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Notification Settings: Push- und E-Mail-Einstellungen pro Benutzer';
+
+-- ============================================================================
+-- 6. DATENSCHUTZ & COMPLIANCE
 -- ============================================================================
 
 -- Consents (Datenschutzeinwilligungen)
@@ -251,7 +287,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Audit Log: Sicherheits- und Compliance-Trail';
 
 -- ============================================================================
--- 5. PERFORMANCE INDEXES
+-- 7. PERFORMANCE INDEXES
 -- ============================================================================
 -- Häufig abgefragte Spalten und Kombinationen für optimale Query-Performance
 
@@ -294,7 +330,7 @@ CREATE INDEX idx_audit_log_action ON audit_log(action);
 CREATE INDEX idx_audit_log_resource ON audit_log(resource_type, resource_id);
 
 -- ============================================================================
--- 6. STANDARD-DATEN (SEEDS)
+-- 8. STANDARD-DATEN (SEEDS)
 -- ============================================================================
 
 -- Standard-Badges einfügen

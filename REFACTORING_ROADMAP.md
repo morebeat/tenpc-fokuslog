@@ -1,7 +1,7 @@
 # FokusLog — Refactoring & Optimization Roadmap
 
-**Datum:** Februar 2026  
-**Status:** Work in Progress  
+**Datum:** Februar 2026
+**Status:** P0/P1 abgeschlossen — Work in Progress (P2/P3 offen)
 Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Priorität.
 
 ---
@@ -18,15 +18,14 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ## 🔒 SECURITY & STABILITY (P0)
 
 ### 1. **Backend: Extract Router to Separate File/Class**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Medium (4–6h)
 - **Impact**: High — easier testing, less giant file
 - **Details**:
-  - `api/index.php` ist ~1400 Zeilen (schwer zu lesen, zu debuggen)
-  - Aufteilen in: `api/Router.php`, `api/Handlers/` (Endpoints), `api/Middleware/`
-  - Bsp.: `handleRegister()` → `Handlers/Auth.php`, `handleEntriesGet()` → `Handlers/Entries.php`
-  - Vorteil: Unit-Tests, bessere Error Handling, klare Struktur
-- **Related Issues**: 
+  - `api/index.php` aufgeteilt: `api/lib/Router.php` + `api/lib/Controller/` (Domain-Controller)
+  - `BaseController` mit `requireAuth()`, `requireRole()`, `respond()`, `logAction()`, `getJsonBody()`
+  - Separate Controller: `AuthController`, `EntriesController`, `MedicationsController`, `NotificationsController`, …
+- **Related Issues**:
   - Große File ist schwer zu warten
   - Repetitives `requireAuth()` / `requireRole()` in jedem Handler
 
@@ -43,34 +42,81 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
   - Sensible Daten könnten geloggt werden
 
 ### 3. **API: Centralized Input Validation & Sanitization**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Medium–High (6–8h)
 - **Impact**: High — Security, Consistency
 - **Details**:
-  - Derzeit: Ad-hoc Validierung in jedem Handler (`trim()`, `empty()` checks)
-  - Besser: Validator-Klasse oder Middleware-Pipeline
-  - Bsp.: `Validator::string('name', ['min' => 3, 'max' => 100])`
-  - Vorteil: Wiederverwendbar, konsistent, leichter zu testen
+  - `api/lib/Validator.php` neu erstellt mit `ValidationException`
+  - Methoden: `string`, `stringOptional`, `int`, `intOptional`, `enum`, `enumOptional`, `date`, `dateOptional`, `emailOptional`, `ratingOptional`
+  - Eingesetzt in `AuthController` (Register, changePassword)
+  - Weitere Controller (EntriesController, etc.) können sukzessive umgestellt werden
 - **Related Issues**:
   - SQL-Injection wird durch PDO::PREPARE mitigiert, aber noch Input-Validation fehlt
   - Fehlende Fehlerbehandlung bei ungültigen Eingaben
 
 ### 4. **Database: Add Indexes & Query Optimization**
-- **Status**: Not started
+- **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (2–3h)
 - **Impact**: Medium–High — Performance bei wachsenden Datamengen
 - **Details**:
-  - Fehlende Indexes auf häufig abgefragten Spalten: `entries.user_id`, `entries.date`, `users.family_id`
-  - Typ-Mismatch: `TINYINT` für Ratings (1–5) ist OK, aber `ENUM` für time-slot auch OK
-  - Query: `SELECT * FROM entries WHERE user_id = ? AND date BETWEEN ? AND ?` sollte auf `(user_id, date)` oder `(user_id, date DESC)` Index haben
-  - Bsp. Indexes zu ergänzen:
-    ```sql
-    ALTER TABLE entries ADD INDEX idx_user_date (user_id, date);
-    ALTER TABLE users ADD INDEX idx_family (family_id);
-    ALTER TABLE user_badges ADD INDEX idx_user (user_id);
-    ```
+  - Composite Indexes in `db/schema_v3.sql` ergänzt:
+    - `idx_entries_user_date (user_id, date DESC)` — Report-Queries
+    - `idx_users_family (family_id)` — Family-scoped Queries
+    - `idx_user_badges_user (user_id)` — Badge-Lookup
+  - `me()` in AuthController von 5 auf 2 DB-Queries reduziert (korrelierte Subqueries)
 - **Related Issues**:
   - Bei >10k entries können Reports langsam werden
+
+### 4a. **Backend: Fix .env Parsing (EnvLoader)**
+- **Status**: ✅ Done (2026-02-10)
+- **Effort**: Low (1–2h)
+- **Impact**: Critical — verhinderte Log-Flooding & fehlende DB-Verbindung
+- **Details**:
+  - `parse_ini_file()` warf PHP-Warning für `!` in unquotierten Werten
+  - Endlosschleife in `php_error.log` durch Fallback auf `.env-dev` ohne `DB_HOST`
+  - Ersetzt durch `api/lib/EnvLoader.php` — unterstützt Sonderzeichen, Quotes, `export`-Syntax
+- **Related Issues**:
+  - Massiver `php_error.log`-Flood (tausende Zeilen per Request)
+
+### 4b. **Backend: RateLimiter Race Condition Fix**
+- **Status**: ✅ Done (2026-02-10)
+- **Effort**: Low (1h)
+- **Impact**: High — verhindert inkorrekte Zähler unter Last
+- **Details**:
+  - `file_put_contents()` ohne Lock ersetzt durch atomares `fopen/flock(LOCK_EX)/rewind/ftruncate/fwrite`
+  - Neues `reset(string $ip)` — Zähler nach erfolgreichem Login löschen
+  - Rate Limiting auf `/register` (10/min) und `/changePassword` (5/min) ausgeweitet
+- **Related Issues**:
+  - Race Conditions bei parallelen Login-Requests möglich
+
+### 4c. **Backend: NotificationsController — Explizite SQL-Queries**
+- **Status**: ✅ Done (2026-02-10)
+- **Effort**: Low (1h)
+- **Impact**: Medium — Architektur-Sicherheit, Wartbarkeit
+- **Details**:
+  - Dynamische Feldnamen-Interpolation durch explizite COALESCE-basierte UPDATE-Query ersetzt
+  - INSERT mit vollständiger, fixer Spaltenliste
+  - `NULL`-Parameter überschreiben keine bestehenden DB-Werte mehr
+- **Related Issues**:
+  - Dynamische Felder waren durch Whitelist abgesichert, aber fragil
+
+### 4d. **Backend: User-Cache in BaseController**
+- **Status**: ✅ Done (2026-02-10)
+- **Effort**: Low (0.5h)
+- **Impact**: Medium — reduziert redundante DB-Queries pro Request
+- **Details**:
+  - `$cachedUser`-Property + überarbeitetes `currentUser()` mit Request-Scope-Cache
+  - `clearUserCache()` für Invalidierung nach Profilupdate
+  - Explizite Spaltenliste statt `SELECT *`; `is_active = 1`-Filter
+
+### 4e. **Frontend: Error Boundaries & Modul-Timeout (app.js)**
+- **Status**: ✅ Done (2026-02-10)
+- **Effort**: Low (1h)
+- **Impact**: Medium — sichtbare Fehlermeldung statt stille Fehler
+- **Details**:
+  - `injectScript()` bricht nach 10 s ab (war: kein Timeout)
+  - `showPageError()` zeigt DOM-Banner mit `role="alert"` bei Ladefehlern
+  - Logout-Redirect passiert jetzt immer (Fehler nicht mehr unbeabsichtigt aufgefangen)
 
 ### 5. **Sessions: Implement Secure Session Storage (Optional Upgrade)**
 - **Status**: Not started
@@ -648,5 +694,5 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 
 ---
 
-**Zuletzt aktualisiert:** 2026-02-03  
-**Status:** Entwurf — Feedback willkommen!
+**Zuletzt aktualisiert:** 2026-02-10
+**Status:** P0/P1 umgesetzt — P2/P3 offen

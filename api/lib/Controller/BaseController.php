@@ -11,7 +11,13 @@ use PDO;
  */
 abstract class BaseController
 {
+    /** Minimale Passwortlänge — einheitlich für Register und Passwortänderung */
+    public const MIN_PASSWORD_LENGTH = 8;
+
     protected PDO $pdo;
+
+    /** Request-scoped User-Cache: verhindert mehrfache DB-Queries pro Request */
+    private ?array $cachedUser = null;
 
     public function __construct(PDO $pdo)
     {
@@ -43,15 +49,35 @@ abstract class BaseController
 
     /**
      * Holt aktuellen Benutzer aus Session.
+     * Ergebnis wird für den Request gecacht — kein doppelter DB-Query.
      */
     protected function currentUser(): ?array
     {
+        if ($this->cachedUser !== null) {
+            return $this->cachedUser;
+        }
+
         if (empty($_SESSION['user_id'])) {
             return null;
         }
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id = ?');
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id, family_id, username, password_hash, role, points,
+                    streak_current, streak_longest, last_entry_date, is_active
+             FROM users WHERE id = ? AND is_active = 1'
+        );
         $stmt->execute([$_SESSION['user_id']]);
-        return $stmt->fetch() ?: null;
+        $user = $stmt->fetch() ?: null;
+        $this->cachedUser = $user;
+        return $user;
+    }
+
+    /**
+     * Cache invalidieren (nach Update des eigenen Users notwendig).
+     */
+    protected function clearUserCache(): void
+    {
+        $this->cachedUser = null;
     }
 
     /**
