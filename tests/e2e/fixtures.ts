@@ -1,6 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 /**
  * FokusLog E2E Test Fixtures
@@ -137,5 +138,6 @@ export function getTodayDate(): string {
  * Helper: Generate unique username for tests.
  */
 export function uniqueUsername(prefix = 'test'): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const randomSuffix = crypto.randomBytes(4).toString('hex').slice(0, 5);
+  return `${prefix}_${Date.now()}_${randomSuffix}`;
 }
