@@ -1,15 +1,32 @@
+/**
+ * Entry Page Module — Tagebucheintrag erstellen und bearbeiten
+ * 
+ * Verwaltet das Eintragsformular mit Medikamenten-Auswahl, Tags,
+ * Skalen-Ratings (Fokus, Stimmung, etc.) und Auto-Load bei Datums-/Zeit-Änderung.
+ * 
+ * @module pages/entry
+ */
 (function (global) {
     const FokusLog = global.FokusLog || (global.FokusLog = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
+    const components = FokusLog.components || (FokusLog.components = {});
 
+    /**
+     * Entry-Seiten-Controller
+     * @type {{init: function(): Promise<void>}}
+     */
     pages.entry = {
-        init: async () => {
-            const ratingUtils = FokusLog.utils?.ratingHints;
+        init: async ({ utils }) => {
+            const ratingUtils = utils?.ratingHints;
             initRatingUi();
-            await initEntryForm(ratingUtils);
+            await initEntryForm(utils, ratingUtils);
         }
     };
 
+    /**
+     * Initialisiert die Rating-UI (Skalen-Buttons) mit Hover/Click-Effekten.
+     * @private
+     */
     function initRatingUi() {
         const ratingGroups = document.querySelectorAll('.rating-group');
         ratingGroups.forEach(group => {
@@ -43,8 +60,59 @@
         });
     }
 
-    async function initEntryForm(ratingUtils) {
+    /**
+     * Initialisiert das Eintragsformular mit allen Event-Listenern.
+     * @async
+     * @private
+     * @param {Object} [ratingUtils] - Rating-Hints Utilities
+     * @returns {Promise<void>}
+     */
+    async function initEntryForm(utils, ratingUtils) {
         const dateInput = document.getElementById('date');
+
+        // "Heute"-Button dynamisch hinzufügen
+        if (dateInput) {
+            const todayBtn = document.createElement('button');
+            todayBtn.type = 'button';
+            todayBtn.textContent = 'Heute';
+            todayBtn.className = 'button button-secondary';
+            todayBtn.style.marginLeft = '10px';
+            todayBtn.style.padding = '0.3rem 0.8rem';
+            todayBtn.style.fontSize = '0.85rem';
+            
+            todayBtn.addEventListener('click', () => {
+                const now = new Date();
+                // Lokales Datum im Format YYYY-MM-DD erzwingen
+                const localDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                dateInput.value = localDate;
+                dateInput.dispatchEvent(new Event('change'));
+            });
+            dateInput.parentNode.insertBefore(todayBtn, dateInput.nextSibling);
+
+            // "Gestern"-Button hinzufügen
+            const yesterdayBtn = document.createElement('button');
+            yesterdayBtn.type = 'button';
+            yesterdayBtn.textContent = 'Gestern';
+            yesterdayBtn.className = 'button button-secondary';
+            yesterdayBtn.style.marginLeft = '5px';
+            yesterdayBtn.style.padding = '0.3rem 0.8rem';
+            yesterdayBtn.style.fontSize = '0.85rem';
+            
+            yesterdayBtn.addEventListener('click', () => {
+                const date = new Date();
+                date.setDate(date.getDate() - 1);
+                const localDate = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                dateInput.value = localDate;
+                dateInput.dispatchEvent(new Event('change'));
+            });
+            dateInput.parentNode.insertBefore(yesterdayBtn, todayBtn.nextSibling);
+
+            // Max-Datum auf Heute setzen (keine Zukunftseinträge)
+            const now = new Date();
+            const maxDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            dateInput.max = maxDate;
+        }
+
         const timeInput = document.getElementById('time');
         const medSelect = document.getElementById('medication_id');
         const form = document.getElementById('entry-form');
@@ -53,6 +121,15 @@
         const ratingHintSections = document.querySelectorAll('.rating-section[data-scale]');
         let entryExists = false;
         let currentEntryId = null;
+        let hasUnsavedChanges = false;
+        const DRAFT_KEY = 'fokuslog_entry_draft';
+
+        window.addEventListener('beforeunload', (e) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
 
         const urlParams = new URLSearchParams(window.location.search);
         const paramDate = urlParams.get('date');
@@ -66,7 +143,12 @@
         }
 
         if (paramTime) {
-            timeInput.value = paramTime;
+            if (timeInput) timeInput.value = paramTime;
+        } else if (timeInput) {
+            const h = new Date().getHours();
+            if (h >= 4 && h < 11) timeInput.value = 'morning';
+            else if (h >= 11 && h < 15) timeInput.value = 'noon';
+            else timeInput.value = 'evening';
         }
 
         let medicationMap = {};
@@ -114,9 +196,8 @@
 
         const loadMedications = async () => {
             try {
-                const response = await fetch('/api/medications');
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await utils.apiCall('/api/medications');
+                if (data.medications) {
                     medicationMap = {};
                     while (medSelect.options.length > 2) {
                         medSelect.remove(2);
@@ -130,16 +211,15 @@
                     });
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Medikamente', error);
+                utils.error('Fehler beim Laden der Medikamente', error);
             }
         };
 
         const loadTagsForEntry = async () => {
             if (!tagsContainer) return;
             try {
-                const response = await fetch('/api/tags');
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await utils.apiCall('/api/tags');
+                if (data) {
                     if (data.tags && data.tags.length > 0) {
                         tagsContainer.innerHTML = '';
                         data.tags.forEach(tag => {
@@ -167,7 +247,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Tags', error);
+                utils.error('Fehler beim Laden der Tags', error);
             }
         };
 
@@ -177,9 +257,8 @@
                 if (paramUserId) {
                     url += `&user_id=${paramUserId}`;
                 }
-                const response = await fetch(url);
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await utils.apiCall(url);
+                if (data) {
                     if (data.entries && data.entries.length > 0) {
                         const lastEntry = data.entries[0];
                         if (lastEntry.medication_id) {
@@ -194,8 +273,29 @@
                     }
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Standardwerte', error);
+                utils.error('Fehler beim Laden der Standardwerte', error);
             }
+        };
+
+        const restoreDraft = () => {
+            if (entryExists) return; // Keine Entwürfe laden, wenn Eintrag existiert
+            try {
+                const raw = localStorage.getItem(DRAFT_KEY);
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                
+                // Nur wiederherstellen, wenn der Entwurf zum aktuellen Datum passt (optional)
+                if (draft.date && draft.date !== dateInput.value) return;
+
+                Object.keys(draft).forEach(key => {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input && input.type !== 'file' && input.type !== 'submit') {
+                        input.value = draft[key];
+                        input.dispatchEvent(new Event('change')); // Trigger für UI-Updates (z.B. Slider/Radios)
+                    }
+                });
+                utils.toast('Entwurf wiederhergestellt', 'info');
+            } catch (e) { console.error('Draft restore failed', e); }
         };
 
         const loadEntryIfExists = async () => {
@@ -207,9 +307,8 @@
                 if (paramUserId) {
                     url += `&user_id=${paramUserId}`;
                 }
-                const res = await fetch(url);
-                if (res.ok) {
-                    const data = await res.json();
+                const data = await utils.apiCall(url);
+                if (data) {
                     if (data.entries && data.entries.length > 0) {
                         const entry = data.entries[0];
                         entryExists = true;
@@ -286,10 +385,12 @@
                         const checkboxes = form.querySelectorAll('input[type="checkbox"]');
                         checkboxes.forEach(cb => cb.checked = false);
                         await loadLastEntryDefaults();
+                        restoreDraft(); // Versuchen, Entwurf zu laden, wenn kein Server-Eintrag da ist
                     }
                 }
+                hasUnsavedChanges = false;
             } catch (error) {
-                console.error('Fehler beim Laden des Eintrags:', error);
+                utils.error('Fehler beim Laden des Eintrags:', error);
             }
         };
 
@@ -307,15 +408,12 @@
                     deleteBtn.addEventListener('click', async () => {
                         if (confirm('Möchten Sie diesen Eintrag wirklich löschen?')) {
                             try {
-                                const res = await fetch(`/api/entries/${currentEntryId}`, { method: 'DELETE' });
-                                if (res.ok) {
-                                    alert('Eintrag gelöscht.');
-                                    window.location.reload();
-                                } else {
-                                    alert('Fehler beim Löschen.');
-                                }
+                                await utils.apiCall(`/api/entries/${currentEntryId}`, { method: 'DELETE' });
+                                utils.toast('Eintrag gelöscht.', 'success');
+                                hasUnsavedChanges = false;
+                                setTimeout(() => window.location.reload(), 1000);
                             } catch (error) {
-                                alert('Verbindung fehlgeschlagen.');
+                                utils.toast('Fehler beim Löschen.', 'error');
                             }
                         }
                     });
@@ -334,15 +432,47 @@
         }
 
         if (form) {
+            form.addEventListener('input', () => { 
+                hasUnsavedChanges = true;
+                // Auto-Save Draft
+                const formData = new FormData(form);
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(Object.fromEntries(formData.entries())));
+            });
+            form.addEventListener('change', () => { hasUnsavedChanges = true; });
+
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (entryExists && !confirm('Für diesen Zeitraum existiert bereits ein Eintrag. Möchten Sie ihn überschreiben?')) {
                     return;
                 }
-                msgContainer.textContent = 'Speichere...';
-                msgContainer.style.color = 'inherit';
+                if (msgContainer) {
+                    msgContainer.textContent = 'Speichere...';
+                    msgContainer.style.color = 'inherit';
+                }
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
+
+                // Validierung: Keine Zukunft
+                const now = new Date();
+                const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                if (data.date && data.date > todayStr) {
+                    utils.toast('Einträge für die Zukunft sind nicht möglich.', 'warning');
+                    if (msgContainer) msgContainer.textContent = '';
+                    return;
+                }
+
+                // Validierung des Gewichts (falls angegeben)
+                if (data.weight) {
+                    const w = parseFloat(data.weight);
+                    if (isNaN(w) || w < 10 || w > 150) {
+                        utils.toast('Bitte ein Gewicht zwischen 10 und 150 kg eingeben.', 'warning');
+                        if (msgContainer) msgContainer.textContent = '';
+                        return;
+                    }
+                    // Auf 1 Nachkommastelle runden (z.B. 35.5)
+                    data.weight = w.toFixed(1);
+                }
+
                 const selectedTags = [];
                 form.querySelectorAll('input[name="tags[]"]:checked').forEach(cb => {
                     selectedTags.push(cb.value);
@@ -355,35 +485,33 @@
                     data.dose = medicationMap[data.medication_id];
                 }
                 try {
-                    const response = await fetch('/api/entries', {
+                    const resData = await utils.apiCall('/api/entries', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
-                    if (response.ok) {
-                        const resData = await response.json();
+                    
+                    if (msgContainer) {
                         msgContainer.textContent = 'Eintrag erfolgreich gespeichert!';
-                        if (resData.gamification && resData.gamification.points_earned > 0) {
-                            msgContainer.textContent += ` (+${resData.gamification.points_earned} Punkte!)`;
-                            let alertMsg = `Super! Du hast ${resData.gamification.points_earned} Punkte erhalten.\nAktueller Streak: ${resData.gamification.streak} Tage.`;
-                            if (resData.gamification.new_badges && resData.gamification.new_badges.length > 0) {
-                                alertMsg += `\n\n🎉 NEUES ABZEICHEN! 🎉\n`;
-                                resData.gamification.new_badges.forEach(badge => {
-                                    alertMsg += `\n- ${badge.name}: ${badge.description}`;
-                                });
-                            }
-                            alert(alertMsg);
-                        }
                         msgContainer.style.color = 'green';
-                        window.location.href = 'dashboard.html';
-                    } else {
-                        const err = await response.json();
-                        msgContainer.textContent = 'Fehler: ' + (err.error || 'Etwas ist schiefgelaufen. Bitte versuche es erneut.');
+                    }
+
+                    hasUnsavedChanges = false;
+                    localStorage.removeItem(DRAFT_KEY); // Entwurf löschen
+
+                    utils.toast('Eintrag gespeichert!', 'success');
+
+                    if (resData.gamification && components.gamification) {
+                        components.gamification.notifyAchievements(resData.gamification, utils);
+                    }
+                    
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                } catch (error) {
+                    const msg = (error.body && error.body.error) || error.message || 'Verbindung nicht möglich.';
+                    if (msgContainer) {
+                        msgContainer.textContent = 'Fehler: ' + msg;
                         msgContainer.style.color = 'red';
                     }
-                } catch (error) {
-                    msgContainer.textContent = 'Verbindung nicht möglich.';
-                    msgContainer.style.color = 'red';
+                    utils.toast(msg, 'error');
                 }
             });
         }

@@ -676,6 +676,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 - ✅ **#20**: Playwright E2E Tests (auth.spec.ts, entry.spec.ts, report.spec.ts)
 - ✅ **#29**: SSE Realtime (EventsController + utils.subscribe implementiert)
 - **#15**: Search (Lunr.js)
+- ✅ **Gamification**: Module extracted, Rank API added, UI components implemented
 - **#17**: Mobile Responsiveness
 - **#30**: Weitere Sprachen (utils.t + i18n-Architektur bereit)
 - **#31**: ML-Analytics, Korrelationsanalyse
