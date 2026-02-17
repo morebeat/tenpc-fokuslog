@@ -58,6 +58,8 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Cache Trivy database
         uses: actions/cache@v4
@@ -83,8 +85,8 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: ${{ github.event_name == 'push' && github.event.before || '' }}
+          head: ${{ github.event_name == 'push' && github.sha || '' }}
 
   sbom:
     name: Software Bill of Materials
