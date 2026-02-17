@@ -1,28 +1,8 @@
-/**
- * Dashboard Page Module — Hauptübersicht des Benutzers
- * 
- * Zeigt Gamification-Statistiken für Kinder, Admin-Bereich für Eltern,
- * und Erste-Schritte-Karte für neue Benutzer.
- * 
- * @module pages/dashboard
- */
 (function (global) {
     const FokusLog = global.FokusLog || (global.FokusLog = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
 
-    /**
-     * Dashboard-Seiten-Controller
-     * @type {{init: function({user: Object, utils: Object}): Promise<void>}}
-     */
     pages.dashboard = {
-        /**
-         * Initialisiert die Dashboard-Seite.
-         * @async
-         * @param {Object} params - Parameter-Objekt
-         * @param {Object} params.user - Aktueller Benutzer
-         * @param {Object} params.utils - Utility-Funktionen
-         * @returns {Promise<void>}
-         */
         init: async ({ user, utils }) => {
             if (!user) return;
             if (user.role === 'child') {
@@ -36,29 +16,13 @@
         }
     };
 
-    /**
-     * Zeigt oder versteckt den Admin-Bereich je nach Benutzerrolle.
-     * @private
-     * @param {Object} user - Benutzerobjekt mit role-Property
-     */
     function toggleAdminSection(user) {
         const adminSection = document.getElementById('admin-section');
         if (!adminSection) return;
-        const role = (user.role || '').toLowerCase().trim();
-        const canManage = role === 'parent' || role === 'adult';
-        if (canManage) {
-            adminSection.style.display = 'block';
-            adminSection.classList.remove('hidden');
-        } else {
-            adminSection.style.display = 'none';
-        }
+        const canManage = user.role === 'parent' || user.role === 'adult';
+        adminSection.style.display = canManage ? '' : 'none';
     }
 
-    /**
-     * Zeigt Gamification-Statistiken (Punkte, Streak, Badges) für Kinder an.
-     * @private
-     * @param {Object} user - Benutzerobjekt mit points, streak_current, badges
-     */
     function displayGamificationStats(user) {
         let statsContainer = document.getElementById('gamification-stats');
         const welcomeMsg = document.getElementById('welcome');
@@ -163,14 +127,20 @@
         let hasMedications = false;
         let hasEntries = false;
         try {
-            const [medData, entryData] = await Promise.all([
-                utils.apiCall('/api/medications').catch(() => ({ medications: [] })),
-                utils.apiCall('/api/entries?limit=1').catch(() => ({ entries: [] }))
+            const [medRes, entryRes] = await Promise.all([
+                fetch('/api/medications'),
+                fetch('/api/entries?limit=1')
             ]);
-            hasMedications = Array.isArray(medData.medications) && medData.medications.length > 0;
-            hasEntries = Array.isArray(entryData.entries) && entryData.entries.length > 0;
+            if (medRes.ok) {
+                const medData = await medRes.json();
+                hasMedications = Array.isArray(medData.medications) && medData.medications.length > 0;
+            }
+            if (entryRes.ok) {
+                const entryData = await entryRes.json();
+                hasEntries = Array.isArray(entryData.entries) && entryData.entries.length > 0;
+            }
         } catch (error) {
-            (window.FokusLog?.utils?.error || (() => {}))('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
+            console.error('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
         }
 
         const showMedCta = !hasMedications;

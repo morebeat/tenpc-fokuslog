@@ -71,16 +71,12 @@ if (file_exists(__DIR__ . '/lib/logger.php')) {
 
 // Library-Klassen laden (nicht im Namespace)
 require_once __DIR__ . '/lib/EntryPayload.php';
-require_once __DIR__ . '/lib/ValidationException.php';
 require_once __DIR__ . '/RateLimiter.php';
-require_once __DIR__ . '/lib/SessionHandler.php';
 
 // Router laden
 use FokusLog\Router;
-use FokusLog\SessionHandler;
 
-// Session-Konfiguration aus Umgebungsvariablen
-// (wird später überschrieben, wenn .env geladen wurde - hier Default)
+// Session-Sicherheit erhöhen
 $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 session_set_cookie_params([
     'lifetime' => 0,
@@ -106,17 +102,20 @@ app_log('INFO', 'request', [
     'user' => $_SESSION['user_id'] ?? null
 ]);
 
-// Lade Umgebungsvariablen aus der Root-.env (eigener Parser statt parse_ini_file,
-// da dieser bei Sonderzeichen wie '!' ohne Quotes mit PHP-Warning fehlschlägt)
-require_once __DIR__ . '/lib/EnvLoader.php';
-
+// Lade Umgebungsvariablen aus der Root-.env
 $envFile = __DIR__ . '/../.env';
-try {
-    $env = \FokusLog\EnvLoader::load($envFile);
-} catch (\RuntimeException $e) {
-    app_log('CRITICAL', 'env_file_not_found', ['path' => $envFile, 'error' => $e->getMessage()]);
+if (!is_file($envFile)) {
+    app_log('CRITICAL', 'env_file_not_found', ['path' => $envFile]);
     http_response_code(500);
     echo json_encode(['error' => 'Keine .env-Datei gefunden. Erwarteter Pfad: ' . $envFile]);
+    exit;
+}
+
+$env = parse_ini_file($envFile);
+if ($env === false) {
+    app_log('CRITICAL', 'env_file_parse_failed', ['path' => $envFile]);
+    http_response_code(500);
+    echo json_encode(['error' => 'Konnte .env nicht lesen. Bitte Encoding/Format pruefen. Pfad: ' . $envFile]);
     exit;
 }
 app_log('INFO', 'env_file_loaded', ['path' => $envFile]);
@@ -225,16 +224,11 @@ $router->get('/report/export/excel', 'ReportController', 'exportExcel');
 // Notifications-Routen (Benachrichtigungen)
 $router->get('/notifications/settings', 'NotificationsController', 'getSettings');
 $router->put('/notifications/settings', 'NotificationsController', 'updateSettings');
-$router->get('/notifications/vapid-key', 'NotificationsController', 'getVapidKey');
 $router->post('/notifications/push/subscribe', 'NotificationsController', 'subscribePush');
 $router->post('/notifications/push/unsubscribe', 'NotificationsController', 'unsubscribePush');
 $router->post('/notifications/email/verify', 'NotificationsController', 'verifyEmail');
 $router->post('/notifications/email/resend-verification', 'NotificationsController', 'resendVerification');
 $router->get('/notifications/status', 'NotificationsController', 'getStatus');
-
-// Server-Sent Events (Echtzeit-Updates)
-$router->get('/events', 'EventsController', 'stream');
-$router->post('/events/cleanup', 'EventsController', 'cleanup');
 
 // Admin-Routen
 $router->post('/admin/migrate', 'AdminController', 'migrate');

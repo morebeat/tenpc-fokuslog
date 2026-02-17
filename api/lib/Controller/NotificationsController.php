@@ -113,61 +113,29 @@ class NotificationsController extends BaseController
                 $updateData['email_verification_token'] = bin2hex(random_bytes(32));
             }
 
-            // Explizite Queries ohne dynamisch eingesetzte Feldnamen (kein SQL-Injection-Risiko)
-            $params = [
-                ':user_id'                  => $user['id'],
-                ':push_morning'             => $updateData['push_morning'] ?? null,
-                ':push_noon'                => $updateData['push_noon'] ?? null,
-                ':push_evening'             => $updateData['push_evening'] ?? null,
-                ':push_morning_time'        => $updateData['push_morning_time'] ?? null,
-                ':push_noon_time'           => $updateData['push_noon_time'] ?? null,
-                ':push_evening_time'        => $updateData['push_evening_time'] ?? null,
-                ':email'                    => $updateData['email'] ?? null,
-                ':email_verified'           => $updateData['email_verified'] ?? null,
-                ':email_verification_token' => $updateData['email_verification_token'] ?? null,
-                ':email_weekly_digest'      => $updateData['email_weekly_digest'] ?? null,
-                ':email_digest_day'         => $updateData['email_digest_day'] ?? null,
-                ':email_missing_alert'      => $updateData['email_missing_alert'] ?? null,
-                ':email_missing_days'       => $updateData['email_missing_days'] ?? null,
-            ];
-
             if ($exists) {
-                $stmt = $this->pdo->prepare('
-                    UPDATE notification_settings SET
-                        push_morning              = COALESCE(:push_morning,              push_morning),
-                        push_noon                 = COALESCE(:push_noon,                 push_noon),
-                        push_evening              = COALESCE(:push_evening,              push_evening),
-                        push_morning_time         = COALESCE(:push_morning_time,         push_morning_time),
-                        push_noon_time            = COALESCE(:push_noon_time,            push_noon_time),
-                        push_evening_time         = COALESCE(:push_evening_time,         push_evening_time),
-                        email                     = COALESCE(:email,                     email),
-                        email_verified            = COALESCE(:email_verified,            email_verified),
-                        email_verification_token  = COALESCE(:email_verification_token,  email_verification_token),
-                        email_weekly_digest       = COALESCE(:email_weekly_digest,       email_weekly_digest),
-                        email_digest_day          = COALESCE(:email_digest_day,          email_digest_day),
-                        email_missing_alert       = COALESCE(:email_missing_alert,       email_missing_alert),
-                        email_missing_days        = COALESCE(:email_missing_days,        email_missing_days)
-                    WHERE user_id = :user_id
-                ');
-            } else {
-                $stmt = $this->pdo->prepare('
-                    INSERT INTO notification_settings
-                        (user_id, push_morning, push_noon, push_evening,
-                         push_morning_time, push_noon_time, push_evening_time,
-                         email, email_verified, email_verification_token,
-                         email_weekly_digest, email_digest_day,
-                         email_missing_alert, email_missing_days)
-                    VALUES
-                        (:user_id,
-                         :push_morning, :push_noon, :push_evening,
-                         :push_morning_time, :push_noon_time, :push_evening_time,
-                         :email, :email_verified, :email_verification_token,
-                         :email_weekly_digest, :email_digest_day,
-                         :email_missing_alert, :email_missing_days)
-                ');
-            }
+                // Update
+                $setParts = [];
+                $values = [];
+                foreach ($updateData as $field => $value) {
+                    $setParts[] = "`$field` = ?";
+                    $values[] = $value;
+                }
+                $values[] = $user['id'];
 
-            $stmt->execute($params);
+                $sql = 'UPDATE notification_settings SET ' . implode(', ', $setParts) . ' WHERE user_id = ?';
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($values);
+            } else {
+                // Insert
+                $updateData['user_id'] = $user['id'];
+                $fields = array_keys($updateData);
+                $placeholders = array_fill(0, count($fields), '?');
+
+                $sql = 'INSERT INTO notification_settings (`' . implode('`, `', $fields) . '`) VALUES (' . implode(', ', $placeholders) . ')';
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute(array_values($updateData));
+            }
 
             $this->logAction($user['id'], 'notification_settings_updated', array_keys($updateData));
 
@@ -390,20 +358,5 @@ class NotificationsController extends BaseController
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         return "$protocol://$host";
-    }
-
-    /**
-     * GET /notifications/vapid-key
-     * Gibt den VAPID Public Key für Push-Subscriptions zurück.
-     */
-    public function getVapidKey(): void
-    {
-        $vapidPublicKey = $_ENV['VAPID_PUBLIC_KEY'] ?? getenv('VAPID_PUBLIC_KEY') ?: null;
-
-        if ($vapidPublicKey) {
-            $this->respond(200, ['vapid_public_key' => $vapidPublicKey]);
-        } else {
-            $this->respond(404, ['error' => 'VAPID public key not configured']);
-        }
     }
 }
