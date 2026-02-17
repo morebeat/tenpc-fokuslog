@@ -462,7 +462,7 @@ Dokumentation von Optimierungsmöglichkeiten, gruppiert nach Kategorien und Prio
 ### 23. **Add Database Backup & Recovery Scripts**
 - **Status**: ✅ Done (2026-02-10)
 - **Effort**: Low (1–2h)
-- **Impact**: Medium — Disaster Recovery
+- **Impa    ct**: Medium — Disaster Recovery
 - **Details**:
   - Derzeit: Deploy-Scripts haben Backup, aber keine Restore
   - Besser: Separate `scripts/backup-db.sh` und `scripts/restore-db.sh`
