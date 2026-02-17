@@ -121,6 +121,7 @@
         let entryExists = false;
         let currentEntryId = null;
         let hasUnsavedChanges = false;
+        const DRAFT_KEY = 'fokuslog_entry_draft';
 
         window.addEventListener('beforeunload', (e) => {
             if (hasUnsavedChanges) {
@@ -275,6 +276,27 @@
             }
         };
 
+        const restoreDraft = () => {
+            if (entryExists) return; // Keine Entwürfe laden, wenn Eintrag existiert
+            try {
+                const raw = localStorage.getItem(DRAFT_KEY);
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                
+                // Nur wiederherstellen, wenn der Entwurf zum aktuellen Datum passt (optional)
+                if (draft.date && draft.date !== dateInput.value) return;
+
+                Object.keys(draft).forEach(key => {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input && input.type !== 'file' && input.type !== 'submit') {
+                        input.value = draft[key];
+                        input.dispatchEvent(new Event('change')); // Trigger für UI-Updates (z.B. Slider/Radios)
+                    }
+                });
+                utils.toast('Entwurf wiederhergestellt', 'info');
+            } catch (e) { console.error('Draft restore failed', e); }
+        };
+
         const loadEntryIfExists = async () => {
             const dateVal = dateInput.value;
             const timeVal = timeInput.value;
@@ -362,6 +384,7 @@
                         const checkboxes = form.querySelectorAll('input[type="checkbox"]');
                         checkboxes.forEach(cb => cb.checked = false);
                         await loadLastEntryDefaults();
+                        restoreDraft(); // Versuchen, Entwurf zu laden, wenn kein Server-Eintrag da ist
                     }
                 }
                 hasUnsavedChanges = false;
@@ -408,7 +431,12 @@
         }
 
         if (form) {
-            form.addEventListener('input', () => { hasUnsavedChanges = true; });
+            form.addEventListener('input', () => { 
+                hasUnsavedChanges = true;
+                // Auto-Save Draft
+                const formData = new FormData(form);
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(Object.fromEntries(formData.entries())));
+            });
             form.addEventListener('change', () => { hasUnsavedChanges = true; });
 
             form.addEventListener('submit', async (e) => {
@@ -467,6 +495,7 @@
                     }
 
                     hasUnsavedChanges = false;
+                    localStorage.removeItem(DRAFT_KEY); // Entwurf löschen
 
                     utils.toast('Eintrag gespeichert!', 'success');
 
@@ -477,6 +506,10 @@
                             g.new_badges.forEach((badge, idx) => {
                                 setTimeout(() => utils.toast(`🏆 Neues Abzeichen: ${badge.name}`, 'badge', 6000), 1000 + (idx * 500));
                             });
+                        }
+                        // Konfetti-Effekt falls Bibliothek geladen
+                        if (global.confetti) {
+                            global.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                         }
                     }
                     

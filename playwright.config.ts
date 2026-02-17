@@ -39,7 +39,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     
     /* Screenshot on failure */
-    screenshot: 'only-on-failure',
+    screenshot: { mode: 'only-on-failure', fullPage: true },
     
     /* Video on failure */
     video: 'on-first-retry',

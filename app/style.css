@@ -149,6 +149,14 @@ input[type="submit"]:disabled {
     transform: scale(1.2);
 }
 
+/* Barrierefreiheit: Fokus-Status für Tastaturnavigation sichtbar machen */
+.rating-group:focus-within label.active,
+.rating-group input:focus + label {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 4px;
+    border-radius: 50%;
+}
+
 .help-hint {
     margin-top: 0.5rem;
     font-size: 0.9rem;
