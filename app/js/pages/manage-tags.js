@@ -8,19 +8,20 @@
             const addTagForm = document.getElementById('add-tag-form');
             const errorDiv = document.getElementById('tags-error');
             const escapeHtml = utils?.escapeHtml || ((value) => value);
+            let currentTags = [];
+
             if (!tagsList || !addTagForm) return;
 
             const loadTags = async () => {
                 try {
-                    const response = await fetch('/api/tags');
-                    if (response.ok) {
-                        const data = await response.json();
-                        renderTags(data.tags);
-                    } else {
-                        tagsList.innerHTML = '<p>Fehler beim Laden.</p>';
-                    }
+                    const data = await utils.apiCall('/api/tags');
+                    const tags = data.tags || [];
+                    tags.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+                    currentTags = tags;
+                    renderTags(tags);
                 } catch (error) {
-                    tagsList.innerHTML = '<p>Verbindung nicht möglich.</p>';
+                    tagsList.innerHTML = '<p>Fehler beim Laden der Tags.</p>';
+                    utils.error('Fehler beim Laden:', error);
                 }
             };
 
@@ -44,30 +45,40 @@
 
             addTagForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                if (errorDiv) errorDiv.textContent = '';
                 const data = Object.fromEntries(new FormData(addTagForm).entries());
+
+                const newName = (data.name || '').trim();
+                if (currentTags.some(t => t.name.toLowerCase() === newName.toLowerCase())) {
+                    if (errorDiv) errorDiv.textContent = 'Dieser Tag existiert bereits.';
+                    return;
+                }
+
                 try {
-                    const response = await fetch('/api/tags', {
+                    await utils.apiCall('/api/tags', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
-                    if (response.ok) {
-                        addTagForm.reset();
-                        loadTags();
-                    } else {
-                        errorDiv.textContent = 'Fehler beim Erstellen.';
-                    }
+                    addTagForm.reset();
+                    utils.toast('Tag erfolgreich erstellt.', 'success');
+                    loadTags();
                 } catch (error) {
-                    errorDiv.textContent = 'Fehler beim Erstellen.';
+                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim Erstellen.';
+                    if (errorDiv) errorDiv.textContent = msg;
                 }
             });
 
             tagsList.addEventListener('click', async (e) => {
                 if (e.target.classList.contains('btn-delete')) {
-                    if (!confirm('Tag löschen?')) return;
+                    if (!confirm('Tag wirklich löschen?')) return;
                     const id = e.target.dataset.id;
-                    await fetch(`/api/tags/${id}`, { method: 'DELETE' });
-                    loadTags();
+                    try {
+                        await utils.apiCall(`/api/tags/${id}`, { method: 'DELETE' });
+                        utils.toast('Tag gelöscht.', 'success');
+                        loadTags();
+                    } catch (error) {
+                        utils.toast('Fehler beim Löschen.', 'error');
+                    }
                 }
             });
 

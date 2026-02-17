@@ -315,6 +315,17 @@
             }
         };
     };
+
+    // ─── Service Worker Registration ──────────────────────────────────────────
+    utils.initServiceWorker = function () {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    utils.log('Service Worker registriert:', reg.scope);
+                })
+                .catch(err => utils.error('Service Worker Fehler:', err));
+        }
+    };
     // ─────────────────────────────────────────────────────────────────────────
 
     const PUBLIC_PAGES = new Set(['login', 'register', 'privacy', 'impressum', 'help']);

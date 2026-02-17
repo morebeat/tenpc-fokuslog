@@ -47,16 +47,10 @@
 
             const loadUsersForFilter = async () => {
                 try {
-                    const meResponse = await fetch('/api/me');
-                    if (!meResponse.ok) {
-                        if (userFilterContainer) userFilterContainer.style.display = 'none';
-                        return;
-                    }
-                    const me = await meResponse.json();
+                    const me = await utils.apiCall('/api/me');
                     if (me.role === 'parent' && userFilterContainer) {
-                        const usersResponse = await fetch('/api/users');
-                        if (usersResponse.ok) {
-                            const data = await usersResponse.json();
+                        try {
+                            const data = await utils.apiCall('/api/users');
                             if (data.users && userFilter) {
                                 userFilter.innerHTML = '';
                                 let selfOption = document.createElement('option');
@@ -73,6 +67,8 @@
                                 });
                                 userFilterContainer.style.display = 'block';
                             }
+                        } catch (err) {
+                            // Silent fail for users list
                         }
                     } else if (userFilterContainer) {
                         userFilterContainer.style.display = 'none';
@@ -105,18 +101,13 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.entries && data.entries.length > 0) {
-                            displayEntries(data.entries);
-                            updateChart(data.entries);
-                        } else {
-                            entriesTable.innerHTML = '<p>Keine Einträge im ausgewählten Zeitraum gefunden.</p>';
-                            updateChart([]);
-                        }
+                    const data = await utils.apiCall(url);
+                    if (data.entries && data.entries.length > 0) {
+                        displayEntries(data.entries);
+                        updateChart(data.entries);
                     } else {
-                        entriesTable.innerHTML = '<p>Fehler beim Laden der Einträge.</p>';
+                        entriesTable.innerHTML = '<p>Keine Einträge im ausgewählten Zeitraum gefunden.</p>';
+                        updateChart([]);
                     }
                 } catch (error) {
                     utils.error('Fehler beim Laden der Einträge:', error);
@@ -287,7 +278,7 @@
                 const dateTo = dateToInput?.value;
                 const userId = userFilter ? userFilter.value : null;
                 if (!dateFrom || !dateTo) {
-                    alert('Bitte wählen Sie einen Datumsbereich aus.');
+                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
                     return;
                 }
                 try {
@@ -295,10 +286,8 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.entries && data.entries.length > 0) {
+                    const data = await utils.apiCall(url);
+                    if (data.entries && data.entries.length > 0) {
                             let csv = 'Benutzername,Datum,Zeit,Medikament,Dosis,Stimmung,Fokus,Schlaf,Hyperaktivität,Reizbarkeit,Appetit,Notizen\n';
                             data.entries.forEach(entry => {
                                 const timeLabel = labelForTimeSlot(entry.time);
@@ -333,21 +322,18 @@
                             link.click();
                             document.body.removeChild(link);
                         } else {
-                            alert('Keine Einträge zum Exportieren gefunden.');
+                            utils.toast('Keine Einträge zum Exportieren gefunden.', 'info');
                         }
-                    } else {
-                        alert('Fehler beim Laden der Einträge.');
-                    }
                 } catch (error) {
                     utils.error('Fehler beim Export:', error);
-                    alert('Fehler beim Exportieren der Daten.');
+                    utils.toast('Fehler beim Exportieren der Daten.', 'error');
                 }
             };
 
             const exportToPDF = async () => {
                 const { jsPDF } = global.jspdf || {};
                 if (!jsPDF) {
-                    alert('PDF-Export nicht verfügbar.');
+                    utils.toast('PDF-Export nicht verfügbar.', 'error');
                     return;
                 }
                 const dateFrom = dateFromInput?.value;
@@ -355,7 +341,7 @@
                 const userId = userFilter ? userFilter.value : null;
                 const username = userFilter && userFilter.selectedIndex !== -1 ? userFilter.options[userFilter.selectedIndex].text : 'Aktueller Benutzer';
                 if (!dateFrom || !dateTo) {
-                    alert('Bitte wählen Sie einen Datumsbereich aus.');
+                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
                     return;
                 }
                 let entries = [];
@@ -364,18 +350,14 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.entries && data.entries.length > 0) {
-                            entries = data.entries;
-                        }
-                    } else {
-                        throw new Error('Fehler beim Laden der Einträge für PDF-Export.');
+                    const data = await utils.apiCall(url);
+                    if (data.entries && data.entries.length > 0) {
+                        entries = data.entries;
                     }
                 } catch (error) {
                     utils.error('PDF Export Fehler:', error);
-                    alert(error.message);
+                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim PDF-Export.';
+                    utils.toast(msg, 'error');
                     return;
                 }
                 const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
@@ -447,14 +429,9 @@
                     let url = `/api/report/trends?date_from=${dateFrom}&date_to=${dateTo}`;
                     if (userId) url += `&user_id=${userId}`;
                     
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        displayTrends(data);
-                        trendsSection.style.display = 'block';
-                    } else {
-                        trendsSection.style.display = 'none';
-                    }
+                    const data = await utils.apiCall(url);
+                    displayTrends(data);
+                    trendsSection.style.display = 'block';
                 } catch (error) {
                     utils.error('Fehler beim Laden der Trends:', error);
                     trendsSection.style.display = 'none';
@@ -536,14 +513,9 @@
                     let url = '/api/report/compare?type=week';
                     if (userId) url += `&user_id=${userId}`;
                     
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        displayComparison(data);
-                        compareSection.style.display = 'block';
-                    } else {
-                        compareSection.style.display = 'none';
-                    }
+                    const data = await utils.apiCall(url);
+                    displayComparison(data);
+                    compareSection.style.display = 'block';
                 } catch (error) {
                     utils.error('Fehler beim Laden des Vergleichs:', error);
                     compareSection.style.display = 'none';
@@ -622,7 +594,7 @@
             // Hilfsfunktion: Server-Export auslösen
             const triggerServerExport = async (url, defaultFilename) => {
                 try {
-                    const response = await fetch(url);
+                    const response = await fetch(url, { credentials: 'same-origin' });
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
                         throw new Error(errorData.error || `Server-Fehler: ${response.status}`);
@@ -639,7 +611,7 @@
                     window.URL.revokeObjectURL(downloadUrl);
                 } catch (error) {
                     utils.error('Export fehlgeschlagen:', error);
-                    alert('Der Export konnte nicht erstellt werden:\n' + error.message);
+                    utils.toast('Export fehlgeschlagen: ' + error.message, 'error');
                 }
             };
 
@@ -650,7 +622,7 @@
                 const userId = userFilter?.value;
                 
                 if (!dateFrom || !dateTo) {
-                    alert('Bitte wählen Sie einen Datumsbereich aus.');
+                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
                     return;
                 }
                 
@@ -667,7 +639,7 @@
                 const userId = userFilter?.value;
                 
                 if (!dateFrom || !dateTo) {
-                    alert('Bitte wählen Sie einen Datumsbereich aus.');
+                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
                     return;
                 }
                 
@@ -691,24 +663,18 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.weights && data.weights.length > 0) {
-                            weightContainer.style.display = 'block';
-                            updateWeightChart(data.weights);
-                        } else {
-                            weightContainer.style.display = 'none';
-                            if (weightChart) {
-                                weightChart.destroy();
-                                weightChart = null;
-                            }
-                        }
+                    const data = await utils.apiCall(url);
+                    if (data.weights && data.weights.length > 0) {
+                        weightContainer.style.display = 'block';
+                        updateWeightChart(data.weights);
                     } else {
                         weightContainer.style.display = 'none';
+                        if (weightChart) {
+                            weightChart.destroy();
+                            weightChart = null;
+                        }
                     }
                 } catch (error) {
-                    utils.error('Fehler beim Laden der Gewichtsdaten:', error);
                     weightContainer.style.display = 'none';
                 }
             };

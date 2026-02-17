@@ -12,17 +12,11 @@
 
             const loadMeds = async () => {
                 try {
-                    const response = await fetch('/api/medications');
-                    if (response.ok) {
-                        const data = await response.json();
-                        renderMeds(data.medications);
-                    } else {
-                        medsList.innerHTML = '<p>Fehler beim Laden.</p>';
-                        utils.error('API Fehler beim Laden der Medikamente:', response.status);
-                    }
+                    const data = await utils.apiCall('/api/medications');
+                    renderMeds(data.medications);
                 } catch (error) {
-                    medsList.innerHTML = '<p>Verbindung nicht möglich.</p>';
-                    utils.error('Netzwerkfehler beim Laden der Medikamente:', error);
+                    medsList.innerHTML = '<p>Fehler beim Laden der Medikamente.</p>';
+                    utils.error('Fehler beim Laden:', error);
                 }
             };
 
@@ -55,24 +49,17 @@
                 }
                 const data = Object.fromEntries(new FormData(addMedForm).entries());
                 try {
-                    const response = await fetch('/api/medications', {
+                    await utils.apiCall('/api/medications', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
-                    if (response.ok) {
-                        addMedForm.reset();
-                        loadMeds();
-                    } else {
-                        const res = await response.json();
-                        if (errorDiv) {
-                            errorDiv.textContent = res.error || 'Fehler beim Erstellen.';
-                            errorDiv.classList.remove('hidden');
-                        }
-                    }
+                    addMedForm.reset();
+                    utils.toast('Medikament hinzugefügt.', 'success');
+                    loadMeds();
                 } catch (error) {
+                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim Erstellen.';
                     if (errorDiv) {
-                        errorDiv.textContent = 'Verbindung nicht möglich.';
+                        errorDiv.textContent = msg;
                         errorDiv.classList.remove('hidden');
                     }
                 }
@@ -83,14 +70,11 @@
                     if (!confirm('Medikament wirklich löschen?')) return;
                     const id = e.target.dataset.id;
                     try {
-                        const response = await fetch(`/api/medications/${id}`, { method: 'DELETE' });
-                        if (response.ok) {
-                            loadMeds();
-                        } else {
-                            alert('Fehler beim Löschen.');
-                        }
+                        await utils.apiCall(`/api/medications/${id}`, { method: 'DELETE' });
+                        utils.toast('Medikament gelöscht.', 'success');
+                        loadMeds();
                     } catch (error) {
-                        alert('Verbindung fehlgeschlagen.');
+                        utils.toast('Fehler beim Löschen.', 'error');
                     }
                 }
             });

@@ -32,21 +32,18 @@
                 if (resetPasswordBtn) resetPasswordBtn.style.display = 'inline-block';
                 if (userIdInput) userIdInput.value = userId;
                 try {
-                    const response = await fetch(`/api/users/${userId}`);
-                    if (!response.ok) {
-                        if (response.status === 404) {
-                            throw new Error('Benutzer nicht gefunden oder Zugriff verweigert.');
-                        }
-                        throw new Error('Etwas ist schiefgelaufen. Bitte versuche es erneut.');
-                    }
-                    const data = await response.json();
+                    const data = await FokusLog.utils.apiCall(`/api/users/${userId}`);
                     const user = data.user;
                     document.getElementById('username').value = user.username;
                     document.getElementById('role').value = user.role;
                     document.getElementById('gender').value = user.gender || '';
                 } catch (error) {
-                    msgContainer.textContent = error.message;
-                    msgContainer.style.color = 'red';
+                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim Laden.';
+                    if (msgContainer) {
+                        msgContainer.textContent = msg;
+                        msgContainer.style.color = 'red';
+                        msgContainer.style.display = 'block';
+                    }
                     form.style.display = 'none';
                 }
             };
@@ -69,8 +66,12 @@
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                msgContainer.textContent = 'Speichere...';
-                msgContainer.style.color = 'inherit';
+                if (msgContainer) {
+                    msgContainer.textContent = 'Speichere...';
+                    msgContainer.style.color = 'inherit';
+                    msgContainer.style.display = 'block';
+                }
+
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
                 if (data.password === '') {
@@ -79,22 +80,21 @@
                 const url = isEditMode ? `/api/users/${userId}` : '/api/users';
                 const method = isEditMode ? 'PUT' : 'POST';
                 try {
-                    const response = await fetch(url, {
+                    await FokusLog.utils.apiCall(url, {
                         method,
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
-                    const resData = await response.json();
-                    if (response.ok) {
-                        alert('Benutzer erfolgreich gespeichert!');
-                        window.location.href = 'manage_users.html';
-                    } else {
-                        msgContainer.textContent = 'Fehler: ' + (resData.error || 'Unbekannt');
-                        msgContainer.style.color = 'red';
-                    }
+                    
+                    FokusLog.utils.toast('Benutzer erfolgreich gespeichert!', 'success');
+                    setTimeout(() => window.location.href = 'manage_users.html', 1000);
                 } catch (error) {
-                    msgContainer.textContent = 'Verbindung nicht möglich.';
-                    msgContainer.style.color = 'red';
+                    const msg = (error.body && error.body.error) || error.message || 'Verbindung nicht möglich.';
+                    FokusLog.utils.toast('Fehler: ' + msg, 'error');
+                    if (msgContainer) {
+                        msgContainer.textContent = 'Fehler: ' + msg;
+                        msgContainer.style.color = 'red';
+                        msgContainer.style.display = 'block';
+                    }
                 }
             });
 
@@ -104,16 +104,12 @@
                         return;
                     }
                     try {
-                        const response = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
-                        if (response.ok) {
-                            alert('Benutzer erfolgreich gelöscht.');
-                            window.location.href = 'manage_users.html';
-                        } else {
-                            const resData = await response.json();
-                            alert('Fehler beim Löschen: ' + (resData.error || 'Unbekannt'));
-                        }
+                        await FokusLog.utils.apiCall(`/api/users/${userId}`, { method: 'DELETE' });
+                        FokusLog.utils.toast('Benutzer erfolgreich gelöscht.', 'success');
+                        setTimeout(() => window.location.href = 'manage_users.html', 1000);
                     } catch (error) {
-                        alert('Verbindung nicht möglich.');
+                        const msg = (error.body && error.body.error) || error.message || 'Fehler beim Löschen.';
+                        FokusLog.utils.toast(msg, 'error');
                     }
                 });
             }

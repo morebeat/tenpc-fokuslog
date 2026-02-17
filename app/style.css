@@ -2104,3 +2104,35 @@ input:disabled + .toggle-slider {
     .fl-toast--warning { background: #713f12; color: #fef08a; }
     .fl-toast--info    { background: #1e3a5f; color: #bfdbfe; }
 }
+
+/* ─── Gamification Toasts ──────────────────────────────────────────────────── */
+.fl-toast--gamification {
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    color: #9a3412;
+    border-left: 5px solid #f97316;
+    font-weight: bold;
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.25);
+    animation: fl-toast-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.fl-toast--badge {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #1e40af;
+    border-left: 5px solid #3b82f6;
+    border: 1px solid #bfdbfe;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    animation: fl-toast-bounce 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes fl-toast-bounce {
+    0% { transform: translateX(120%); opacity: 0; }
+    60% { transform: translateX(-15px); opacity: 1; }
+    80% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+@media (prefers-color-scheme: dark) {
+    .fl-toast--gamification { background: #431407; color: #fdba74; border-left-color: #fb923c; }
+    .fl-toast--badge { background: #172554; color: #93c5fd; border-left-color: #60a5fa; border-color: #1e3a8a; }
+}

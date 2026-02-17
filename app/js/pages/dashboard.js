@@ -44,8 +44,14 @@
     function toggleAdminSection(user) {
         const adminSection = document.getElementById('admin-section');
         if (!adminSection) return;
-        const canManage = user.role === 'parent' || user.role === 'adult';
-        adminSection.style.display = canManage ? '' : 'none';
+        const role = (user.role || '').toLowerCase().trim();
+        const canManage = role === 'parent' || role === 'adult';
+        if (canManage) {
+            adminSection.style.display = 'block';
+            adminSection.classList.remove('hidden');
+        } else {
+            adminSection.style.display = 'none';
+        }
     }
 
     /**
@@ -157,18 +163,12 @@
         let hasMedications = false;
         let hasEntries = false;
         try {
-            const [medRes, entryRes] = await Promise.all([
-                fetch('/api/medications'),
-                fetch('/api/entries?limit=1')
+            const [medData, entryData] = await Promise.all([
+                utils.apiCall('/api/medications').catch(() => ({ medications: [] })),
+                utils.apiCall('/api/entries?limit=1').catch(() => ({ entries: [] }))
             ]);
-            if (medRes.ok) {
-                const medData = await medRes.json();
-                hasMedications = Array.isArray(medData.medications) && medData.medications.length > 0;
-            }
-            if (entryRes.ok) {
-                const entryData = await entryRes.json();
-                hasEntries = Array.isArray(entryData.entries) && entryData.entries.length > 0;
-            }
+            hasMedications = Array.isArray(medData.medications) && medData.medications.length > 0;
+            hasEntries = Array.isArray(entryData.entries) && entryData.entries.length > 0;
         } catch (error) {
             (window.FokusLog?.utils?.error || (() => {}))('Fehler bei der Aktualisierung der Erste-Schritte-Kacheln:', error);
         }
