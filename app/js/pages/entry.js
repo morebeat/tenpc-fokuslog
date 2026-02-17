@@ -88,6 +88,24 @@
             });
             dateInput.parentNode.insertBefore(todayBtn, dateInput.nextSibling);
 
+            // "Gestern"-Button hinzufügen
+            const yesterdayBtn = document.createElement('button');
+            yesterdayBtn.type = 'button';
+            yesterdayBtn.textContent = 'Gestern';
+            yesterdayBtn.className = 'button button-secondary';
+            yesterdayBtn.style.marginLeft = '5px';
+            yesterdayBtn.style.padding = '0.3rem 0.8rem';
+            yesterdayBtn.style.fontSize = '0.85rem';
+            
+            yesterdayBtn.addEventListener('click', () => {
+                const date = new Date();
+                date.setDate(date.getDate() - 1);
+                const localDate = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                dateInput.value = localDate;
+                dateInput.dispatchEvent(new Event('change'));
+            });
+            dateInput.parentNode.insertBefore(yesterdayBtn, todayBtn.nextSibling);
+
             // Max-Datum auf Heute setzen (keine Zukunftseinträge)
             const now = new Date();
             const maxDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
