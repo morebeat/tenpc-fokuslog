@@ -16,7 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.tree-links a, .nav-list a, .help-grid a').forEach(link => {
             const title = link.textContent.trim();
             const href = link.getAttribute('href');
-            if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+            if (!href) return;
+            const hrefLower = href.trim().toLowerCase();
+            if (
+                hrefLower.startsWith('#') ||
+                hrefLower.startsWith('javascript:') ||
+                hrefLower.startsWith('data:') ||
+                hrefLower.startsWith('vbscript:')
+            ) {
+                return;
+            }
 
             // Kategorie aus übergeordnetem Element ermitteln
             const categoryEl = link.closest('.tree-level, .grid-item, details');
