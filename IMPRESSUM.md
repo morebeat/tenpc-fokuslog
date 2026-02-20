@@ -2,25 +2,27 @@
 
 ## Anbieter
 
-Squirrel Minds  
-Kai Jordan  
+
+Ten Percent Collective GbR  
+Inhaber: Kai Jordan, Mira Teubner  
 42489 Wülfrath  
 Deutschland
 
-E-Mail: kontakt@squirrel-minds.de
+E-Mail: kontakt@tenpercent-collective.de
 
 ---
 
 ## Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)
 
-Kai Jordan  
+Ten Percent Collective GbR  
+Inhaber: Kai Jordan, Mira Teubner  
 (Anschrift wie oben)
 
 ---
 
 ## Urheberrecht
 
-© 2025 Kai Jordan / Squirrel Minds
+© 2026 Ten Percent Collective GbR
 
 Alle Inhalte, Texte und der Quellcode von FokusLog unterliegen dem Urheberrecht.
 Die Nutzung erfolgt gemäß der angegebenen Open-Source-Lizenz.

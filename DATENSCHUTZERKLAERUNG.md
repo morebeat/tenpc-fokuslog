@@ -4,11 +4,11 @@
 
 Verantwortlich für die Datenverarbeitung im Sinne der DSGVO ist:
 
-Squirrel Minds  
-Kai Jordan  
+Ten Percent Collective GbR  
+Inhaber: Kai Jordan, Mira Teubner  
 42489 Wülfrath  
 Deutschland  
-E-Mail: kontakt@squirrel-minds.de
+E-Mail: kontakt@tenpercent-collective.de
 
 ---
 

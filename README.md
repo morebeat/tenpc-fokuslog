@@ -106,7 +106,7 @@ Key flags:
 - **[Contributing Guide](CONTRIBUTING.md)** - How to help
 - **[License](LICENSE.md)** - CC BY-NC-SA 4.0
 - **[Governance](GOVERNANCE.md)** - Decision process
-- **[Impressum](IMPRESSUM.md)** - Legal info (German)
+- **[Impressum](IMPRESSUM.md)** - Legal info (German, Ten Percent Collective GbR)
 
 ---
 
@@ -240,7 +240,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - **Users**: [User Guide](docs/USER_GUIDE.md)
 - **Developers**: [Technical Docs](docs/TECHNICAL_ARCHITECTURE.md)
 - **Contributing**: [Contributing Guide](CONTRIBUTING.md)
-- **Legal/Privacy**: [IMPRESSUM.md](IMPRESSUM.md)
+- **Legal/Privacy**: [IMPRESSUM.md](IMPRESSUM.md) (Ten Percent Collective GbR)
 
 ---
 
@@ -401,6 +401,10 @@ FokusLog follows a **Benevolent Maintainer Model**.
 
 * Consensus is preferred
 * The Maintainer has final decision authority
+
+---
+
+© 2026 Ten Percent Collective GbR
 * Decisions prioritize users over technology
 
 ---
