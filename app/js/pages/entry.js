@@ -9,6 +9,7 @@
 (function (global) {
     const FokusLog = global.FokusLog || (global.FokusLog = {});
     const pages = FokusLog.pages || (FokusLog.pages = {});
+    const components = FokusLog.components || (FokusLog.components = {});
 
     /**
      * Entry-Seiten-Controller
@@ -499,18 +500,8 @@
 
                     utils.toast('Eintrag gespeichert!', 'success');
 
-                    if (resData.gamification && resData.gamification.points_earned > 0) {
-                        const g = resData.gamification;
-                        setTimeout(() => utils.toast(`+${g.points_earned} Punkte! Streak: ${g.streak} Tage 🔥`, 'gamification', 5000), 500);
-                        if (g.new_badges && g.new_badges.length > 0) {
-                            g.new_badges.forEach((badge, idx) => {
-                                setTimeout(() => utils.toast(`🏆 Neues Abzeichen: ${badge.name}`, 'badge', 6000), 1000 + (idx * 500));
-                            });
-                        }
-                        // Konfetti-Effekt falls Bibliothek geladen
-                        if (global.confetti) {
-                            global.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                        }
+                    if (resData.gamification && components.gamification) {
+                        components.gamification.notifyAchievements(resData.gamification, utils);
                     }
                     
                     setTimeout(() => window.location.href = 'dashboard.html', 1500);

@@ -82,7 +82,7 @@
                         });
                     });
                 })
-                .catch(err => (window.FokusLog?.utils?.error || (() => {}))('SW Registration failed:', err));
+                .catch(err => console.error('SW Registration failed:', err));
         });
 
         let refreshing;

@@ -20,6 +20,7 @@
             const missingDaysSetting = document.getElementById('missing-days-setting');
             
             const saveBtn = document.getElementById('save-settings-btn');
+            const messageContainer = document.getElementById('message-container');
             const notificationStatus = document.getElementById('notification-status');
 
             let currentSettings = {};
@@ -56,12 +57,15 @@
             // Load current settings
             const loadSettings = async () => {
                 try {
-                    const data = await utils.apiCall('/api/notifications/settings');
-                    currentSettings = data.settings || {};
-                    applySettings(currentSettings);
+                    const response = await fetch('/api/notifications/settings');
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentSettings = data.settings || {};
+                        applySettings(currentSettings);
+                    }
                 } catch (error) {
-                    utils.error('Fehler beim Laden der Einstellungen:', error);
-                    utils.toast('Fehler beim Laden der Einstellungen.', 'error');
+                    console.error('Fehler beim Laden der Einstellungen:', error);
+                    showMessage('Fehler beim Laden der Einstellungen', 'error');
                 }
             };
 
@@ -119,10 +123,15 @@
             // Load notification status
             const loadStatus = async () => {
                 try {
-                    const data = await utils.apiCall('/api/notifications/status');
-                    displayStatus(data);
+                    const response = await fetch('/api/notifications/status');
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayStatus(data);
+                    } else {
+                        notificationStatus.innerHTML = '<p class="error">Status konnte nicht geladen werden.</p>';
+                    }
                 } catch (error) {
-                    utils.error('Fehler beim Laden des Status:', error);
+                    console.error('Fehler beim Laden des Status:', error);
                     notificationStatus.innerHTML = '<p class="error">Status konnte nicht geladen werden.</p>';
                 }
             };
@@ -215,19 +224,25 @@
                     }
 
                     // Save other settings
-                    const data = await utils.apiCall('/api/notifications/settings', {
+                    const response = await fetch('/api/notifications/settings', {
                         method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newSettings)
                     });
 
-                    currentSettings = data.settings || {};
-                    applySettings(currentSettings);
-                    utils.toast('Einstellungen gespeichert!', 'success');
-                    loadStatus();
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentSettings = data.settings || {};
+                        applySettings(currentSettings);
+                        showMessage('Einstellungen gespeichert!', 'success');
+                        loadStatus();
+                    } else {
+                        const error = await response.json();
+                        showMessage(error.error || 'Fehler beim Speichern', 'error');
+                    }
                 } catch (error) {
-                    utils.error('Fehler beim Speichern:', error);
-                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim Speichern.';
-                    utils.toast(msg, 'error');
+                    console.error('Fehler beim Speichern:', error);
+                    showMessage('Fehler beim Speichern der Einstellungen', 'error');
                 }
             };
 
@@ -239,7 +254,7 @@
                     // Request permission
                     const permission = await Notification.requestPermission();
                     if (permission !== 'granted') {
-                        utils.toast('Push-Benachrichtigungen wurden nicht erlaubt.', 'error');
+                        showMessage('Push-Benachrichtigungen wurden nicht erlaubt', 'error');
                         pushEnabled.checked = false;
                         return;
                     }
@@ -249,7 +264,7 @@
                     const vapidPublicKey = await getVapidPublicKey();
                     
                     if (!vapidPublicKey) {
-                        utils.log('VAPID public key not available');
+                        console.warn('VAPID public key not available');
                         // Still save settings, push might work differently
                     }
 
@@ -259,17 +274,22 @@
                     });
 
                     // Send subscription to server
-                    await utils.apiCall('/api/notifications/push/subscribe', {
+                    const response = await fetch('/api/notifications/push/subscribe', {
                         method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ subscription: subscription.toJSON() })
                     });
 
+                    if (!response.ok) {
+                        throw new Error('Failed to save subscription');
+                    }
+
                     pushSubscription = subscription;
-                    utils.toast('Push-Benachrichtigungen aktiviert!', 'success');
+                    showMessage('Push-Benachrichtigungen aktiviert!', 'success');
                 } catch (error) {
-                    utils.error('Push subscription error:', error);
+                    console.error('Push subscription error:', error);
                     pushEnabled.checked = false;
-                    utils.toast('Aktivierung fehlgeschlagen.', 'error');
+                    showMessage('Push-Benachrichtigungen konnten nicht aktiviert werden', 'error');
                 }
             };
 
@@ -282,24 +302,21 @@
                         await subscription.unsubscribe();
                     }
 
-                    await utils.apiCall('/api/notifications/push/unsubscribe', {
-                        method: 'POST'
+                    await fetch('/api/notifications/push/unsubscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
                     });
 
                     pushSubscription = null;
                 } catch (error) {
-                    utils.error('Push unsubscription error:', error);
+                    console.error('Push unsubscription error:', error);
                 }
             };
 
             const getVapidPublicKey = async () => {
-                try {
-                    const data = await utils.apiCall('/api/notifications/vapid-key');
-                    return data.vapid_public_key || null;
-                } catch (error) {
-                    utils.log('Failed to fetch VAPID key:', error);
-                    return null;
-                }
+                // TODO: Implement endpoint to get VAPID public key
+                // For now, return null (push uses fallback)
+                return null;
             };
 
             const urlBase64ToUint8Array = (base64String) => {
@@ -316,15 +333,32 @@
             // Resend verification email
             const resendVerification = async () => {
                 try {
-                    await utils.apiCall('/api/notifications/email/resend-verification', {
-                        method: 'POST'
+                    const response = await fetch('/api/notifications/email/resend-verification', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
                     });
-                    utils.toast('Verifizierungs-E-Mail wurde gesendet!', 'success');
+
+                    if (response.ok) {
+                        showMessage('Verifizierungs-E-Mail wurde gesendet!', 'success');
+                    } else {
+                        const error = await response.json();
+                        showMessage(error.error || 'Fehler beim Senden', 'error');
+                    }
                 } catch (error) {
-                    utils.error('Resend verification error:', error);
-                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim Senden.';
-                    utils.toast(msg, 'error');
+                    console.error('Resend verification error:', error);
+                    showMessage('Fehler beim Senden der E-Mail', 'error');
                 }
+            };
+
+            // Show message helper
+            const showMessage = (text, type = 'info') => {
+                messageContainer.textContent = text;
+                messageContainer.className = `message-container ${type}`;
+                messageContainer.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageContainer.style.display = 'none';
+                }, 5000);
             };
 
             // Event listeners

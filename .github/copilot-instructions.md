@@ -54,19 +54,7 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 | GlossaryController | /glossary, /glossary/categories, /glossary/export, /glossary/import, /glossary/{slug} | Help lexicon with filters, export & import |
 | **ReportController** | /report/trends, /report/compare, /report/summary, /report/export/excel | **Analytics & Exports** |
 | **NotificationsController** | /notifications/settings, /notifications/push/*, /notifications/email/*, /notifications/status | **Push & Email Notifications** |
-| **EventsController** | /events, /events/cleanup | **Server-Sent Events (SSE) for real-time updates** |
 | AdminController | /admin/migrate, /admin/backup | Admin operations |
-
-4a) Frontend Utilities (`FokusLog.utils`)
-| Utility | Purpose |
-|---------|---------|
-| `utils.apiCall(endpoint, options)` | Fetch wrapper with error handling |
-| `utils.toast(message, type, duration)` | Non-blocking notifications |
-| `utils.log(...args)` / `utils.error(...)` | Debug-only logging |
-| `utils.t(key, params)` | i18n translation lookup |
-| `utils.poll(endpoint, interval, callback)` | Periodic API polling |
-| `utils.lazyLoad(element, callback, options)` | Intersection Observer for lazy loading |
-| `utils.subscribe(endpoint, handlers, options)` | SSE/EventSource wrapper with auto-reconnect |
 
 5) Integration points and external deps
 - Vendor JS libs are under `vendor/` (Chart.js, jsPDF). Frontend expects these files to be present; do not replace them with CDN calls without reviewing privacy implications.

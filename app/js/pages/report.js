@@ -22,7 +22,7 @@
 
             const reportUtils = global.FokusLogReportUtils;
             if (!reportUtils) {
-                utils.error('FokusLogReportUtils wurde nicht geladen.');
+                console.error('FokusLogReportUtils wurde nicht geladen.');
                 return;
             }
 
@@ -47,10 +47,16 @@
 
             const loadUsersForFilter = async () => {
                 try {
-                    const me = await utils.apiCall('/api/me');
+                    const meResponse = await fetch('/api/me');
+                    if (!meResponse.ok) {
+                        if (userFilterContainer) userFilterContainer.style.display = 'none';
+                        return;
+                    }
+                    const me = await meResponse.json();
                     if (me.role === 'parent' && userFilterContainer) {
-                        try {
-                            const data = await utils.apiCall('/api/users');
+                        const usersResponse = await fetch('/api/users');
+                        if (usersResponse.ok) {
+                            const data = await usersResponse.json();
                             if (data.users && userFilter) {
                                 userFilter.innerHTML = '';
                                 let selfOption = document.createElement('option');
@@ -67,14 +73,12 @@
                                 });
                                 userFilterContainer.style.display = 'block';
                             }
-                        } catch (err) {
-                            // Silent fail for users list
                         }
                     } else if (userFilterContainer) {
                         userFilterContainer.style.display = 'none';
                     }
                 } catch (error) {
-                    utils.error('Fehler beim Laden der Benutzer für den Filter:', error);
+                    console.error('Fehler beim Laden der Benutzer für den Filter:', error);
                     if (userFilterContainer) userFilterContainer.style.display = 'none';
                 }
             };
@@ -101,16 +105,21 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const data = await utils.apiCall(url);
-                    if (data.entries && data.entries.length > 0) {
-                        displayEntries(data.entries);
-                        updateChart(data.entries);
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.entries && data.entries.length > 0) {
+                            displayEntries(data.entries);
+                            updateChart(data.entries);
+                        } else {
+                            entriesTable.innerHTML = '<p>Keine Einträge im ausgewählten Zeitraum gefunden.</p>';
+                            updateChart([]);
+                        }
                     } else {
-                        entriesTable.innerHTML = '<p>Keine Einträge im ausgewählten Zeitraum gefunden.</p>';
-                        updateChart([]);
+                        entriesTable.innerHTML = '<p>Fehler beim Laden der Einträge.</p>';
                     }
                 } catch (error) {
-                    utils.error('Fehler beim Laden der Einträge:', error);
+                    console.error('Fehler beim Laden der Einträge:', error);
                     entriesTable.innerHTML = '<p>Verbindung nicht möglich.</p>';
                     if (document.getElementById('weight-history')) loadWeightData();
                 }
@@ -278,7 +287,7 @@
                 const dateTo = dateToInput?.value;
                 const userId = userFilter ? userFilter.value : null;
                 if (!dateFrom || !dateTo) {
-                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
+                    alert('Bitte wählen Sie einen Datumsbereich aus.');
                     return;
                 }
                 try {
@@ -286,8 +295,10 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const data = await utils.apiCall(url);
-                    if (data.entries && data.entries.length > 0) {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.entries && data.entries.length > 0) {
                             let csv = 'Benutzername,Datum,Zeit,Medikament,Dosis,Stimmung,Fokus,Schlaf,Hyperaktivität,Reizbarkeit,Appetit,Notizen\n';
                             data.entries.forEach(entry => {
                                 const timeLabel = labelForTimeSlot(entry.time);
@@ -322,18 +333,21 @@
                             link.click();
                             document.body.removeChild(link);
                         } else {
-                            utils.toast('Keine Einträge zum Exportieren gefunden.', 'info');
+                            alert('Keine Einträge zum Exportieren gefunden.');
                         }
+                    } else {
+                        alert('Fehler beim Laden der Einträge.');
+                    }
                 } catch (error) {
-                    utils.error('Fehler beim Export:', error);
-                    utils.toast('Fehler beim Exportieren der Daten.', 'error');
+                    console.error('Fehler beim Export:', error);
+                    alert('Fehler beim Exportieren der Daten.');
                 }
             };
 
             const exportToPDF = async () => {
                 const { jsPDF } = global.jspdf || {};
                 if (!jsPDF) {
-                    utils.toast('PDF-Export nicht verfügbar.', 'error');
+                    alert('PDF-Export nicht verfügbar.');
                     return;
                 }
                 const dateFrom = dateFromInput?.value;
@@ -341,7 +355,7 @@
                 const userId = userFilter ? userFilter.value : null;
                 const username = userFilter && userFilter.selectedIndex !== -1 ? userFilter.options[userFilter.selectedIndex].text : 'Aktueller Benutzer';
                 if (!dateFrom || !dateTo) {
-                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
+                    alert('Bitte wählen Sie einen Datumsbereich aus.');
                     return;
                 }
                 let entries = [];
@@ -350,14 +364,18 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const data = await utils.apiCall(url);
-                    if (data.entries && data.entries.length > 0) {
-                        entries = data.entries;
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.entries && data.entries.length > 0) {
+                            entries = data.entries;
+                        }
+                    } else {
+                        throw new Error('Fehler beim Laden der Einträge für PDF-Export.');
                     }
                 } catch (error) {
-                    utils.error('PDF Export Fehler:', error);
-                    const msg = (error.body && error.body.error) || error.message || 'Fehler beim PDF-Export.';
-                    utils.toast(msg, 'error');
+                    console.error(error);
+                    alert(error.message);
                     return;
                 }
                 const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
@@ -429,11 +447,16 @@
                     let url = `/api/report/trends?date_from=${dateFrom}&date_to=${dateTo}`;
                     if (userId) url += `&user_id=${userId}`;
                     
-                    const data = await utils.apiCall(url);
-                    displayTrends(data);
-                    trendsSection.style.display = 'block';
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayTrends(data);
+                        trendsSection.style.display = 'block';
+                    } else {
+                        trendsSection.style.display = 'none';
+                    }
                 } catch (error) {
-                    utils.error('Fehler beim Laden der Trends:', error);
+                    console.error('Fehler beim Laden der Trends:', error);
                     trendsSection.style.display = 'none';
                 }
             };
@@ -513,11 +536,16 @@
                     let url = '/api/report/compare?type=week';
                     if (userId) url += `&user_id=${userId}`;
                     
-                    const data = await utils.apiCall(url);
-                    displayComparison(data);
-                    compareSection.style.display = 'block';
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayComparison(data);
+                        compareSection.style.display = 'block';
+                    } else {
+                        compareSection.style.display = 'none';
+                    }
                 } catch (error) {
-                    utils.error('Fehler beim Laden des Vergleichs:', error);
+                    console.error('Fehler beim Laden des Vergleichs:', error);
                     compareSection.style.display = 'none';
                 }
             };
@@ -594,7 +622,7 @@
             // Hilfsfunktion: Server-Export auslösen
             const triggerServerExport = async (url, defaultFilename) => {
                 try {
-                    const response = await fetch(url, { credentials: 'same-origin' });
+                    const response = await fetch(url);
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
                         throw new Error(errorData.error || `Server-Fehler: ${response.status}`);
@@ -610,8 +638,8 @@
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(downloadUrl);
                 } catch (error) {
-                    utils.error('Export fehlgeschlagen:', error);
-                    utils.toast('Export fehlgeschlagen: ' + error.message, 'error');
+                    console.error('Export fehlgeschlagen:', error);
+                    alert('Der Export konnte nicht erstellt werden:\n' + error.message);
                 }
             };
 
@@ -622,7 +650,7 @@
                 const userId = userFilter?.value;
                 
                 if (!dateFrom || !dateTo) {
-                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
+                    alert('Bitte wählen Sie einen Datumsbereich aus.');
                     return;
                 }
                 
@@ -639,7 +667,7 @@
                 const userId = userFilter?.value;
                 
                 if (!dateFrom || !dateTo) {
-                    utils.toast('Bitte wählen Sie einen Datumsbereich aus.', 'warning');
+                    alert('Bitte wählen Sie einen Datumsbereich aus.');
                     return;
                 }
                 
@@ -663,18 +691,24 @@
                     if (userId) {
                         url += `&user_id=${userId}`;
                     }
-                    const data = await utils.apiCall(url);
-                    if (data.weights && data.weights.length > 0) {
-                        weightContainer.style.display = 'block';
-                        updateWeightChart(data.weights);
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.weights && data.weights.length > 0) {
+                            weightContainer.style.display = 'block';
+                            updateWeightChart(data.weights);
+                        } else {
+                            weightContainer.style.display = 'none';
+                            if (weightChart) {
+                                weightChart.destroy();
+                                weightChart = null;
+                            }
+                        }
                     } else {
                         weightContainer.style.display = 'none';
-                        if (weightChart) {
-                            weightChart.destroy();
-                            weightChart = null;
-                        }
                     }
                 } catch (error) {
+                    console.error('Fehler beim Laden der Gewichtsdaten:', error);
                     weightContainer.style.display = 'none';
                 }
             };

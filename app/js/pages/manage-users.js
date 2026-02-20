@@ -17,11 +17,15 @@
 
             const loadUsers = async () => {
                 try {
-                    const data = await utils.apiCall('/api/users');
-                    renderUsers(data.users);
+                    const response = await fetch('/api/users');
+                    if (response.ok) {
+                        const data = await response.json();
+                        renderUsers(data.users);
+                    } else {
+                        usersList.innerHTML = '<p>Fehler beim Laden.</p>';
+                    }
                 } catch (error) {
-                    usersList.innerHTML = '<p>Fehler beim Laden der Benutzer.</p>';
-                    utils.error('Fehler beim Laden:', error);
+                    usersList.innerHTML = '<p>Verbindungsfehler.</p>';
                 }
             };
 
@@ -76,8 +80,10 @@
                         if (modalTitle) modalTitle.textContent = 'Benutzer bearbeiten';
                         if (editErrorMessage) editErrorMessage.textContent = '';
                         try {
-                            const data = await utils.apiCall(`/api/users/${userId}`);
-                            const user = data.user;
+                            const response = await fetch(`/api/users/${userId}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                const user = data.user;
                                 document.getElementById('edit-user-id').value = user.id;
                                 document.getElementById('edit-username').value = user.username;
                                 document.getElementById('edit-role').value = user.role;
@@ -87,9 +93,9 @@
                                 passwordInput.required = false;
                                 passwordInput.value = '';
                                 editModal.style.display = 'block';
+                            }
                         } catch (error) {
-                            utils.toast('Fehler beim Laden des Benutzers.', 'error');
-                            utils.error('Fehler beim Laden:', error);
+                            console.error(error);
                         }
                     }
                 });
@@ -112,16 +118,20 @@
                     const url = isEditMode ? `/api/users/${data.id}` : '/api/users';
                     const method = isEditMode ? 'PUT' : 'POST';
                     try {
-                        await utils.apiCall(url, {
+                        const response = await fetch(url, {
                             method,
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(data)
                         });
-                        editModal.style.display = 'none';
-                        utils.toast('Benutzer erfolgreich gespeichert.', 'success');
-                        loadUsers();
+                        if (response.ok) {
+                            editModal.style.display = 'none';
+                            loadUsers();
+                        } else {
+                            const res = await response.json();
+                            if (editErrorMessage) editErrorMessage.textContent = res.error || 'Fehler';
+                        }
                     } catch (error) {
-                        const msg = (error.body && error.body.error) || error.message || 'Fehler beim Speichern.';
-                        if (editErrorMessage) editErrorMessage.textContent = msg;
+                        if (editErrorMessage) editErrorMessage.textContent = 'Verbindungsfehler';
                     }
                 });
             }

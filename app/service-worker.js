@@ -9,7 +9,7 @@
  * Background Sync wird vorbereitet für spätere Offline-Entry-Erstellung.
  */
 
-const CACHE_NAME = 'fokuslog-cache-v11';
+const CACHE_NAME = 'fokuslog-cache-v9';
 const OFFLINE_URLS = [
   '/app/index.html',
   '/app/style.css',
@@ -206,42 +206,17 @@ self.addEventListener('notificationclick', event => {
  */
 self.addEventListener('pushsubscriptionchange', event => {
   event.waitUntil(
-    // Fetch VAPID public key from API
-    fetch('/api/notifications/vapid-key')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('VAPID key not available');
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (!data.vapid_public_key) {
-          throw new Error('VAPID key missing in response');
-        }
-        // Convert base64 to Uint8Array
-        const padding = '='.repeat((4 - data.vapid_public_key.length % 4) % 4);
-        const base64 = (data.vapid_public_key + padding).replace(/-/g, '+').replace(/_/g, '/');
-        const rawData = atob(base64);
-        const applicationServerKey = new Uint8Array(rawData.length);
-        for (let i = 0; i < rawData.length; ++i) {
-          applicationServerKey[i] = rawData.charCodeAt(i);
-        }
-        return self.registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: applicationServerKey
-        });
-      })
-      .then(subscription => {
-        // Sende neue Subscription an Server
-        return fetch('/api/notifications/push/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subscription: subscription.toJSON() }),
-          credentials: 'include'
-        });
-      })
-      .catch(error => {
-        console.error('pushsubscriptionchange failed:', error);
-      })
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: self.vapidPublicKey
+    }).then(subscription => {
+      // Sende neue Subscription an Server
+      return fetch('/api/notifications/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+        credentials: 'include'
+      });
+    })
   );
 });

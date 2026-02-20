@@ -42,14 +42,12 @@
 fokuslog-app/
 ├── api/
 │   ├── index.php           # API entry point & router config
-│   ├── RateLimiter.php     # Rate limiting (atomic file locking)
+│   ├── RateLimiter.php     # Rate limiting
 │   └── lib/
 │       ├── Router.php      # URL routing with parameter extraction
-│       ├── EnvLoader.php   # .env parser (replaces parse_ini_file)
-│       ├── Validator.php   # Centralized input validation + ValidationException
 │       ├── EntryPayload.php
 │       └── Controller/     # MVC Controllers
-│           ├── BaseController.php        # Auth, caching, audit log helpers
+│           ├── BaseController.php
 │           ├── AuthController.php
 │           ├── UsersController.php
 │           ├── MedicationsController.php
@@ -58,16 +56,15 @@ fokuslog-app/
 │           ├── BadgesController.php
 │           ├── WeightController.php
 │           ├── GlossaryController.php
-│           ├── NotificationsController.php  # Push & E-Mail settings
-│           ├── ReportController.php         # Analytics & Exports
+│           ├── ReportController.php   # Analytics & Exports
 │           └── AdminController.php
 ├── app/
 │   └── js/
-│       ├── app.js          # Main frontend logic (error boundaries, module timeout)
+│       ├── app.js          # Main frontend logic
 │       └── pages/
 │           └── report.js   # Report page with trends & comparisons
 ├── db/
-│   └── schema_v3.sql       # Database definition (incl. notification_settings)
+│   └── schema.sql          # Database definition
 ├── docs/
 │   └── dsgvo.md            # Privacy documentation
 └── scripts/
@@ -146,18 +143,6 @@ All requests should be sent to `/api` (rewritten to `api/index.php`).
 | `GET` | `/badges` | List badges and progress. |
 | `GET` | `/weight` | Get weight history. |
 | `GET` | `/me/latest-weight` | Get most recent weight entry. |
-
-### Notifications
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/notifications/settings` | Get push & e-mail notification settings. |
-| `PUT` | `/notifications/settings` | Update notification settings. |
-| `POST` | `/notifications/push/subscribe` | Save VAPID push subscription. |
-| `POST` | `/notifications/push/unsubscribe` | Disable push notifications. |
-| `POST` | `/notifications/email/verify` | Verify e-mail address with token. |
-| `POST` | `/notifications/email/resend-verification` | Re-send verification e-mail. |
-| `GET` | `/notifications/status` | Dashboard status (missing slots, push/email enabled). |
-| `GET` | `/notifications/vapid-key` | Get VAPID public key for push subscription setup. |
 
 ### Reports & Analytics (NEW)
 | Method | Endpoint | Description |

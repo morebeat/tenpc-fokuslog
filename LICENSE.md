@@ -1,6 +1,6 @@
 # Lizenz – FokusLog
 
-© 2025 Kai Jordan / Squirrel Minds
+© 2026 Ten Percent Collective GbR
 
 FokusLog steht unter der  
 **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License
