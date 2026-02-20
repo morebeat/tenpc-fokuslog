@@ -5,6 +5,7 @@ on:
     branches: [ dev, main, release/* ]
   pull_request:
     branches: [ dev, main ]
+  workflow_dispatch:
   schedule:
     - cron: '0 2 * * *'
 
@@ -235,7 +236,7 @@ jobs:
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: build
     environment: development
     env:
@@ -285,7 +286,7 @@ jobs:
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: (github.ref == 'refs/heads/main' || contains(github.ref, 'refs/tags/')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: build
     environment: production
     env:

@@ -18,11 +18,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 
 // Konfiguration
+// Nutzung des neuen EnvLoaders statt parse_ini_file (Fix für Roadmap P0/4a)
+require_once __DIR__ . '/../api/lib/EnvLoader.php';
 $envFile = __DIR__ . '/../.env';
 if (!is_file($envFile)) {
     die("ERROR: .env file not found\n");
 }
-$env = parse_ini_file($envFile);
+$env = \FokusLog\Lib\EnvLoader::load($envFile);
 if (!$env) {
     die("ERROR: Could not parse .env file\n");
 }
