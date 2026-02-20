@@ -7,8 +7,8 @@
     const PAGE_SCRIPTS = {
         account: { module: 'account' },
         badges: { module: 'badges' },
-        dashboard: { module: 'dashboard' },
-        entry: { module: 'entry' },
+        dashboard: { module: 'dashboard', deps: ['../gamification', '../dashboard-helpers'] },
+        entry: { module: 'entry', deps: ['../gamification'] },
         help: { module: 'help' },
         login: { module: 'auth' },
         register: { module: 'auth' },
@@ -91,6 +91,17 @@
         if (!descriptor) {
             return;
         }
+
+        // Load dependencies if defined
+        if (descriptor.deps && Array.isArray(descriptor.deps)) {
+            for (const dep of descriptor.deps) {
+                if (!loadedModules.has(dep)) {
+                    await injectScript(dep);
+                    loadedModules.add(dep);
+                }
+            }
+        }
+
         const moduleKey = typeof descriptor === 'string' ? descriptor : descriptor.module;
         const namespace = typeof descriptor === 'string' ? page : descriptor.namespace || page;
         try {

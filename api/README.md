@@ -191,6 +191,7 @@ Die Glossar-API ermöglicht die Wiederverwendung von Hilfe-Inhalten in anderen A
 | POST | `/tags` | Tag anlegen |
 | DELETE | `/tags/{id}` | Tag löschen |
 | GET | `/badges` | Badges & Fortschritt |
+| GET | `/badges/rank` | Aktueller Rang und Punkte |
 | GET | `/weight` | Gewichtsverlauf |
 
 ##  Installation & Setup (Lokal)
