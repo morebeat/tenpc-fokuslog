@@ -69,8 +69,8 @@ if (file_exists(__DIR__ . '/lib/logger.php')) {
     }
 }
 
-// Library-Klassen laden (nicht im Namespace)
 require_once __DIR__ . '/lib/EntryPayload.php';
+
 require_once __DIR__ . '/RateLimiter.php';
 
 // Router laden
