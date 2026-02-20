@@ -14,5 +14,6 @@
 - [ ] Datenbankänderung (Migration + `schema_v4.sql`)
 - [ ] Benutzerführung / Texte angepasst (Screenshots anfügen)
 
+
 ## Reviewer-Notizen
 - Risiken, Rollback-Plan oder offene Fragen hier dokumentieren.
