@@ -156,6 +156,14 @@ if [ -f "$DEPLOY_DIR/scripts/update_schema.sql" ]; then
     mysql -h "${DB_HOST%:*}" -P "${DB_HOST#*:}" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$DEPLOY_DIR/scripts/update_schema.sql" 2>/dev/null || true
 fi
 
+# Import help content into glossary table
+log_info "Importing help content into glossary..."
+if [ -f "$DEPLOY_DIR/app/help/import_help.php" ]; then
+    php "$DEPLOY_DIR/app/help/import_help.php" && log_info "Help import completed" || log_warning "Help import failed"
+else
+    log_warning "Help import script not found"
+fi
+
 # Restart services
 log_section "Restarting Services"
 log_info "Starting background services..."

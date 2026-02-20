@@ -15,8 +15,10 @@
 ## 2. Technical Architecture
 
 ### Backend
-- **Language**: PHP 7.4+ (Vanilla, no framework).
-- **Entry Point**: Single entry point architecture via `api/index.php`.
+- **Language**: PHP 8.0+ (Vanilla, no framework).
+- **Architecture**: MVC-style Controller pattern with Router.
+- **Entry Point**: Single entry point via `api/index.php`, routing handled by `lib/Router.php`.
+- **Controllers**: Modular controllers in `api/lib/Controller/` for each domain.
 - **Database Access**: PDO (PHP Data Objects) with prepared statements.
 - **Authentication**: PHP Native Sessions (`HttpOnly`, `Secure`, `SameSite=Strict`).
 - **Logging**: Custom file-based logger (`api/lib/logger.php`) with sensitive data redaction.
@@ -30,7 +32,7 @@
 
 ### Database
 - **System**: MySQL / MariaDB.
-- **Schema**: Relational model defined in `db/schema.sql`.
+- **Schema**: Relational model defined in `db/schema_v3.sql`.
 
 ---
 
@@ -39,18 +41,34 @@
 ```text
 fokuslog-app/
 ├── api/
-│   ├── index.php        # Main REST API controller and router
+│   ├── index.php           # API entry point & router config
+│   ├── RateLimiter.php     # Rate limiting
 │   └── lib/
-│       └── logger.php   # Logging utility
+│       ├── Router.php      # URL routing with parameter extraction
+│       ├── EntryPayload.php
+│       └── Controller/     # MVC Controllers
+│           ├── BaseController.php
+│           ├── AuthController.php
+│           ├── UsersController.php
+│           ├── MedicationsController.php
+│           ├── EntriesController.php
+│           ├── TagsController.php
+│           ├── BadgesController.php
+│           ├── WeightController.php
+│           ├── GlossaryController.php
+│           ├── ReportController.php   # Analytics & Exports
+│           └── AdminController.php
 ├── app/
 │   └── js/
-│       └── app.js       # Main frontend logic
+│       ├── app.js          # Main frontend logic
+│       └── pages/
+│           └── report.js   # Report page with trends & comparisons
 ├── db/
-│   └── schema.sql       # Database definition
+│   └── schema.sql          # Database definition
 ├── docs/
-│   └── dsgvo.md         # Privacy documentation
+│   └── dsgvo.md            # Privacy documentation
 └── scripts/
-    └── update_schema.sql # Database migration scripts
+    └── update_schema.sql   # Database migration scripts
 ```
 
 ---
@@ -72,6 +90,11 @@ fokuslog-app/
 - **`tags`**: Custom tracking tags per family.
 - **`entry_tags`**: Tags attached to specific entries.
 - **`audit_log`**: Security log for critical actions (login, delete, etc.).
+
+### Notifications
+- **`notification_settings`**: Per-user push and e-mail notification preferences.
+  - Push: `push_enabled`, `push_subscription` (VAPID JSON blob), time-slot toggles and times (`push_morning_time`, `push_noon_time`, `push_evening_time`).
+  - E-Mail: `email`, `email_verified`, `email_verification_token`, `email_weekly_digest`, `email_missing_alert`, `email_missing_days`.
 
 ---
 
@@ -121,6 +144,28 @@ All requests should be sent to `/api` (rewritten to `api/index.php`).
 | `GET` | `/weight` | Get weight history. |
 | `GET` | `/me/latest-weight` | Get most recent weight entry. |
 
+### Reports & Analytics (NEW)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/report/trends` | Trend analysis with pattern detection. Returns warnings, insights, and statistics. |
+| `GET` | `/report/compare` | Period or medication comparison. Params: `type` (week/medication/custom). |
+| `GET` | `/report/summary` | Summary data for PDF reports. |
+| `GET` | `/report/export/excel` | Excel/CSV export. Params: `format` (detailed/summary/doctor). |
+
+#### Trend Analysis Response
+The `/report/trends` endpoint automatically detects:
+- **Appetite warnings**: 3+ consecutive days with low appetite (1-2)
+- **Mood trends**: Declining or improving mood patterns
+- **Sleep quality**: Below-average sleep scores
+- **Irritability spikes**: Extended periods of high irritability
+- **Weight loss**: >3% loss over the analysis period
+- **Side effects**: Frequent documentation of side effects
+
+#### Comparison Types
+- `type=week`: Week-over-week comparison (default)
+- `type=medication&med1=X&med2=Y`: Compare two medications
+- `type=custom&period1_from=...&period2_to=...`: Custom period comparison
+
 ---
 
 ## 6. Frontend Logic (`app.js`)
@@ -151,6 +196,8 @@ The script detects the current page via `document.body.dataset.page`.
 
 ### Environment Variables
 The application looks for a `.env` file in the parent directory of `api/`.
+Parsed by `api/lib/EnvLoader.php` — supports special characters (`!`, `@`, …),
+single/double quotes, and inline `#` comments.
 
 ```ini
 DB_HOST=localhost
@@ -159,12 +206,19 @@ DB_USER=root
 DB_PASS=secret
 DEBUG_LOG=1
 LOG_FILE=/path/to/app.log
+VAPID_PUBLIC_KEY=<base64url VAPID public key>   # Required for Web Push
+MIGRATION_TOKEN=<secret>                        # Protects /api/migrate endpoint
+BACKUP_TOKEN=<secret>                           # Protects /api/backup endpoint
+DEPLOY_TOKEN="<token with special chars>"       # Must be quoted if it contains !
 ```
 
 ### Installation
 1.  Configure Web Server (Apache/Nginx) to serve the `app/` directory as public and route `/api` requests to `api/index.php`.
 2.  Import `db/schema.sql` into your MySQL database.
-3.  Ensure `api/php_error.log` or the configured log path is writable by the web server user.
+3.  Ensure the `logs/` directory is writable by the web server user. Log files:
+    - `logs/error.log` - PHP errors
+    - `logs/app.log` - Application logs
+    - `logs/deploy.log` - Deployment logs
 
 ---
 
@@ -179,6 +233,14 @@ LOG_FILE=/path/to/app.log
     -   Users/Medications cannot be deleted if they have associated entries (Referential Integrity & Business Logic).
 4.  **Future Entries**: Entries cannot be created for future dates.
 5.  **Self-Modification**: Parents cannot change their own role or delete themselves via the User Management API (must use Account settings).
+6.  **Input Validation**: `api/lib/Validator.php` provides centralized, typed validation with `ValidationException`. Endpoints call `Validator::string()`, `Validator::int()`, `Validator::enum()`, etc. before processing input.
+7.  **Rate Limiting** (`api/RateLimiter.php`):
+    -   Login: 5 attempts / 60 s per IP.
+    -   Register: 10 attempts / 60 s per IP.
+    -   Change Password: 5 attempts / 60 s per IP.
+    -   Counter is reset after a successful login (`reset()`).
+    -   Implemented with atomic file locking (`flock`) to avoid race conditions.
+8.  **Password Policy**: Minimum 8 characters enforced uniformly via `BaseController::MIN_PASSWORD_LENGTH`.
 
 ---
 

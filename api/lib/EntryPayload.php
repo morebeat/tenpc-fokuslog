@@ -1,8 +1,6 @@
 <?php
-declare(strict_types=1);
 
-use DateTimeImmutable;
-use InvalidArgumentException;
+declare(strict_types=1);
 
 final class EntryPayload
 {

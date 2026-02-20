@@ -11,6 +11,22 @@
         <h1>FokusLog Hilfe &amp; Wissen</h1>
         <p>Willkommen im Hilfebereich. Hier findest du Anleitungen und Hintergründe.</p>
         
+        <!-- ─── Suchfeld ─────────────────────────────────────────────────────────── -->
+        <div class="help-search-container">
+            <div class="help-search-input-wrapper">
+                <input 
+                    type="search" 
+                    id="help-search" 
+                    class="help-search-input" 
+                    placeholder="Suche in Hilfe-Artikeln..." 
+                    autocomplete="off"
+                    aria-label="Hilfe-Artikel durchsuchen"
+                >
+                <span class="help-search-icon" aria-hidden="true">🔍</span>
+            </div>
+            <div id="help-search-results" class="help-search-results hidden" role="listbox" aria-label="Suchergebnisse"></div>
+        </div>
+        
         <section class="help-tree" aria-label="Inhaltsnavigation">
             <div class="help-tree-header">
                 <div>
@@ -56,6 +72,7 @@
                         <details class="tree-branch">
                             <summary>Funktionen &amp; Auswertung</summary>
                             <ul class="tree-links">
+                                <li><a href="auswertung.html">Auswertung &amp; Analyse</a></li>
                                 <li><a href="verstehen.html">Charts verstehen</a></li>
                                 <li><a href="tageszeiten.html">Tageszeiten analysieren</a></li>
                             </ul>

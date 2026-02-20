@@ -4,8 +4,12 @@ Short, actionable guidance to make an AI coding agent immediately productive in 
 
 1) Big picture
 - Frontend: a static Progressive Web App under [app](app) (HTML/CSS/vanilla JS). See [app/manifest.json](app/manifest.json#L1) and [app/service-worker.js](app/service-worker.js#L1) for PWA/offline behavior.
-- Backend: single-file PHP REST API at [api/index.php](api/index.php#L1). It uses PHP sessions for auth, PDO for MySQL, and returns JSON for all endpoints.
-- Data model: families -> users (roles like `parent`), medications, entries and audit_log. Routes live in `api/index.php` (e.g. `/register`, `/login`, `/entries`, `/medications`).
+- Backend: PHP REST API with **Controller-based architecture**:
+  - Entry point: [api/index.php](api/index.php#L1) - Router configuration only
+  - Router: [api/lib/Router.php](api/lib/Router.php#L1) - URL routing with `{param}` extraction
+  - Controllers: [api/lib/Controller/](api/lib/Controller/) - One controller per domain
+  - Base: [api/lib/Controller/BaseController.php](api/lib/Controller/BaseController.php#L1) - Shared methods (requireAuth, respond, logAction)
+- Data model: families -> users (roles like `parent`), medications, entries and audit_log.
 - Tests: lightweight HTTP API tests in [api/ApiTest.php](api/ApiTest.php#L1) driven by [api/run_tests.php](api/run_tests.php#L1) and `SimpleTestRunner.php`.
 
 2) How to run and test locally (exact, reproducible steps)
@@ -27,30 +31,56 @@ $env:API_URL='http://localhost:8000/api'; php api/run_tests.php
 - Note: `api/index.php` will also read database credentials from `../.env` if present. Use that for safe local DB config. See [api/index.php](api/index.php#L1).
 
 3) Project-specific conventions and patterns
-- Minimalist, explicit code: prefer small, readable functions over complex frameworks. Follow existing style in `api/index.php` (explicit `respond()`, `getJsonBody()`, `requireAuth()` helpers).
-- Authentication: session-based (PHP sessions). Tests rely on cookie/session behavior in `ApiTest.php` (the test client stores cookies). When changing auth, update tests accordingly.
-- Error handling: API always returns JSON and installs a shutdown handler for fatal errors — keep responses JSON and use `respond(code, data)`.
-- DB access: use prepared statements via PDO. Avoid ORM rewrites; maintain row-level SQL in `api/index.php`.
+- **Controller Architecture**: Each domain has its own controller extending `BaseController`. Routes are defined declaratively in `index.php` using the Router class.
+- **Adding a new endpoint**: 
+  1. Create or update a Controller in `api/lib/Controller/`
+  2. Add route in `api/index.php` using `$router->get()` or `$router->post()`
+  3. Use `$this->requireAuth()`, `$this->respond()`, `$this->logAction()` from BaseController
+- Authentication: session-based (PHP sessions). Tests rely on cookie/session behavior in `ApiTest.php`.
+- Error handling: API always returns JSON. Use `$this->respond(code, data)` in controllers.
+- DB access: use prepared statements via `$this->pdo`. Controllers inherit PDO from BaseController.
 
-4) Integration points and external deps
+4) Controller Reference
+| Controller | Routes | Purpose |
+|------------|--------|---------|
+| HealthController | /health | CI/CD health check |
+| AuthController | /register, /login, /logout, /me | Authentication |
+| UsersController | /users, /users/{id} | User CRUD |
+| MedicationsController | /medications, /medications/{id} | Medications |
+| EntriesController | /entries, /entries/{id} | Diary entries + gamification |
+| TagsController | /tags, /tags/{id} | Custom tags |
+| BadgesController | /badges | Gamification badges |
+| WeightController | /weight, /me/latest-weight | Weight tracking |
+| GlossaryController | /glossary, /glossary/categories, /glossary/export, /glossary/import, /glossary/{slug} | Help lexicon with filters, export & import |
+| **ReportController** | /report/trends, /report/compare, /report/summary, /report/export/excel | **Analytics & Exports** |
+| **NotificationsController** | /notifications/settings, /notifications/push/*, /notifications/email/*, /notifications/status | **Push & Email Notifications** |
+| AdminController | /admin/migrate, /admin/backup | Admin operations |
+
+5) Integration points and external deps
 - Vendor JS libs are under `vendor/` (Chart.js, jsPDF). Frontend expects these files to be present; do not replace them with CDN calls without reviewing privacy implications.
-- OpenAPI spec: [docs/openapi.yaml](docs/openapi.yaml#L1) describes the API surface — keep it updated when adding/removing endpoints.
 
-5) Example PR tasks an agent can perform (with entry points)
-- Add a new API endpoint: update [api/index.php](api/index.php#L1), follow routing pattern and use `respond()` and `logAction()`.
+6) Example PR tasks an agent can perform (with entry points)
+- Add a new API endpoint: Create/update controller in [api/lib/Controller/](api/lib/Controller/), add route in [api/index.php](api/index.php#L1).
+- Add analytics feature: Update [ReportController.php](api/lib/Controller/ReportController.php#L1) and [app/js/pages/report.js](app/js/pages/report.js#L1).
 - Add offline assets or change caching: edit [app/service-worker.js](app/service-worker.js#L1) and `manifest.json`.
-- Update API contract: edit [docs/openapi.yaml](docs/openapi.yaml#L1) and run `api/run_tests.php` to validate behavior.
 
-6) Safety & policy notes for contributors
+7) Safety & policy notes for contributors
 - This project prioritizes privacy and non-commercial licensing (see [README.md](README.md#L1) and `LICENSE.md`). Avoid introducing third-party analytics or hosted services.
 - Sensitive domain: UX and copy affect children and families. Keep wording and flows conservative and reviewed by humans.
 
-7) Helpful files to inspect when working on features or bugs
+8) Helpful files to inspect when working on features or bugs
 - App entry and UI: [app/index.html](app/index.html#L1)
 - PWA hooks: [app/service-worker.js](app/service-worker.js#L1), [app/manifest.json](app/manifest.json#L1)
-- API server: [api/index.php](api/index.php#L1)
+- API entry: [api/index.php](api/index.php#L1)
+- Router: [api/lib/Router.php](api/lib/Router.php#L1)
+- Base Controller: [api/lib/Controller/BaseController.php](api/lib/Controller/BaseController.php#L1)
+- Report Controller: [api/lib/Controller/ReportController.php](api/lib/Controller/ReportController.php#L1)
+- Report Frontend: [app/js/pages/report.js](app/js/pages/report.js#L1)
+- Notifications Controller: [api/lib/Controller/NotificationsController.php](api/lib/Controller/NotificationsController.php#L1)
+- Notifications Frontend: [app/notifications.html](app/notifications.html#L1), [app/js/pages/notifications.js](app/js/pages/notifications.js#L1)
+- Notification Worker (Cron): [scripts/notification-worker.php](scripts/notification-worker.php#L1)
 - API tests: [api/ApiTest.php](api/ApiTest.php#L1), [api/run_tests.php](api/run_tests.php#L1)
-- DB schema and migrations: [db/schema.sql](db/schema.sql#L1), [scripts/update_schema.sql](scripts/update_schema.sql#L1)
-- Documentation and legal: [docs](docs)
+- DB schema and migrations: [db/schema.sql](db/schema.sql#L1), [db/migrations/](db/migrations/)
+- Help import script: [app/help/import_help.php](app/help/import_help.php#L1) - Scans HTML files, extracts structured content
 
 If any area is unclear or you want the file to include more details (e.g., exact test output interpretation or CI/deploy steps), tell me which section to expand.

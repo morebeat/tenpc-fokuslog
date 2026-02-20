@@ -2,9 +2,9 @@ name: CodeQL Analysis
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   schedule:
     - cron: '0 0 * * 1'
 
@@ -18,20 +18,23 @@ jobs:
       security-events: write
     strategy:
       matrix:
-        language: [ 'php', 'javascript' ]
+        # Note: PHP is not supported by CodeQL. PHP security analysis is handled
+        # by PHPStan (static analysis) in the ci-cd.yml workflow instead.
+        # See: https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/
+        language: [ 'javascript-typescript' ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: '/language:${{ matrix.language }}'

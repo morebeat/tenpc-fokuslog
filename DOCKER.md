@@ -288,7 +288,7 @@ docker-compose exec mysql tail -f /var/log/mysql/error.log
 
 ```bash
 # PHP error log
-docker-compose exec app tail -f /var/www/html/logs/php_error.log
+docker-compose exec app tail -f /var/www/html/logs/error.log
 
 # Apache error log
 docker-compose exec app tail -f /var/www/html/logs/apache_error.log
@@ -296,8 +296,11 @@ docker-compose exec app tail -f /var/www/html/logs/apache_error.log
 # Apache access log
 docker-compose exec app tail -f /var/www/html/logs/apache_access.log
 
-# Application log (if implemented)
+# Application log
 docker-compose exec app tail -f /var/www/html/logs/app.log
+
+# Deployment log
+docker-compose exec app tail -f /var/www/html/logs/deploy.log
 ```
 
 ### Xdebug Setup (Optional)

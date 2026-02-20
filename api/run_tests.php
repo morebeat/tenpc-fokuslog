@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/ApiTest.php';
 
 // Konfiguration: URL deiner lokalen API

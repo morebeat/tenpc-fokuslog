@@ -1,13 +1,15 @@
 /*
- * Einfacher Service Worker für FokusLog
+ * Service Worker für FokusLog — Stale-While-Revalidate
  *
- * Cacht statische Assets (App Shell) während der Installation und versucht bei
- * Anfragen zuerst aus dem Netz zu laden. Bei Offline‑Status wird der Cache
- * zurückgegeben. API‑Aufrufe werden nicht gecacht, damit immer aktuelle
- * Daten verwendet werden.
+ * Strategie:
+ * - Statische Assets: Stale-while-revalidate (sofort aus Cache, Update im Hintergrund)
+ * - API-Calls: Network-only (immer aktuelle Daten)
+ * - Offline: Fallback auf Cache
+ *
+ * Background Sync wird vorbereitet für spätere Offline-Entry-Erstellung.
  */
 
-const CACHE_NAME = 'fokuslog-cache-v6';
+const CACHE_NAME = 'fokuslog-cache-v9';
 const OFFLINE_URLS = [
   '/app/index.html',
   '/app/style.css',
@@ -17,13 +19,16 @@ const OFFLINE_URLS = [
   '/app/dashboard.html',
   '/app/entry.html',
   '/app/report.html',
+  '/app/notifications.html',
   '/app/manage_users.html',
   '/app/manage_meds.html',
   '/app/privacy.html',
   '/app/manifest.json',
   '/app/icons/icon-192.png',
   '/app/icons/icon-512.png',
-  '/app/help/help.html',
+  '/app/help/index.html',
+  '/app/help/assets/help.css',
+  '/app/help/assets/help.js',
   '/app/help/css/guide.css',
   '/app/help/js/guide.js',
   '/app/help/guide/README.md',
@@ -45,37 +50,70 @@ const OFFLINE_URLS = [
   '/app/help/guide/zielgruppen/anhang/glossar.md'
 ];
 
+// ─── Installation: Pre-Cache App Shell ────────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Versuche URLs einzeln zu cachen, damit ein fehlendes File nicht die gesamte Installation blockiert
+      // Versuche URLs einzeln zu cachen, damit ein fehlendes File nicht blockiert
       return Promise.all(
-        OFFLINE_URLS.map(url => {
-          return cache.add(url).catch(err => console.warn('⚠️ Cache-Fehler (übersprungen):', url, err));
-        })
+        OFFLINE_URLS.map(url =>
+          cache.add(url).catch(err => console.warn('⚠️ Cache-Fehler (übersprungen):', url, err))
+        )
       );
     })
   );
+  // Sofort aktivieren ohne auf andere Tabs zu warten
+  self.skipWaiting();
 });
 
+// ─── Aktivierung: Alte Caches löschen ─────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
+    caches.keys().then(keys =>
+      Promise.all(
         keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      );
-    })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
+// ─── Fetch: Stale-While-Revalidate für statische Assets ───────────────────────
 self.addEventListener('fetch', event => {
   const { request } = event;
-  // API nicht cachen
-  if (request.url.includes('/api/')) {
+  const url = new URL(request.url);
+
+  // API-Calls: Network-only (keine Cache-Interferenz)
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
+
+  // Nur GET-Requests cachen
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Stale-While-Revalidate Strategie
   event.respondWith(
-    fetch(request).catch(() => caches.match(request))
+    caches.open(CACHE_NAME).then(cache =>
+      cache.match(request).then(cachedResponse => {
+        // Immer im Hintergrund aktualisieren
+        const fetchPromise = fetch(request)
+          .then(networkResponse => {
+            // Nur gültige Responses cachen (status 200, same-origin)
+            if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            // Network-Fehler: nichts tun, cached Response wird verwendet
+            return null;
+          });
+
+        // Sofort aus Cache antworten (falls vorhanden), sonst auf Network warten
+        return cachedResponse || fetchPromise;
+      })
+    )
   );
 });
 
@@ -83,4 +121,102 @@ self.addEventListener('message', event => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
+});
+
+/*
+ * Push Notification Handler
+ * Wird aufgerufen wenn eine Push-Nachricht vom Server empfangen wird
+ */
+self.addEventListener('push', event => {
+  let data = {
+    title: 'FokusLog',
+    body: 'Zeit für deinen Eintrag!',
+    icon: '/app/icons/icon-192.png',
+    badge: '/app/icons/icon-192.png',
+    tag: 'fokuslog-reminder',
+    data: { url: '/app/entry.html' }
+  };
+
+  // Versuche Push-Daten zu parsen
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    } catch (e) {
+      // Falls kein JSON, nutze Text als Body
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/app/icons/icon-192.png',
+    badge: data.badge || '/app/icons/icon-192.png',
+    tag: data.tag || 'fokuslog-notification',
+    vibrate: [200, 100, 200],
+    requireInteraction: false,
+    data: data.data || { url: '/app/entry.html' },
+    actions: [
+      { action: 'open', title: 'Öffnen' },
+      { action: 'dismiss', title: 'Später' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+/*
+ * Notification Click Handler
+ * Wird aufgerufen wenn der Benutzer auf eine Notification klickt
+ */
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+
+  // Bei "dismiss" nichts tun
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  // URL aus Notification-Daten holen
+  const urlToOpen = event.notification.data?.url || '/app/entry.html';
+  const fullUrl = new URL(urlToOpen, self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        // Versuche ein existierendes Fenster zu finden und zu fokussieren
+        for (const client of windowClients) {
+          if (client.url === fullUrl && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Sonst neues Fenster öffnen
+        if (clients.openWindow) {
+          return clients.openWindow(fullUrl);
+        }
+      })
+  );
+});
+
+/*
+ * Push Subscription Change Handler
+ * Wird aufgerufen wenn sich das Push-Abonnement ändert
+ */
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil(
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: self.vapidPublicKey
+    }).then(subscription => {
+      // Sende neue Subscription an Server
+      return fetch('/api/notifications/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+        credentials: 'include'
+      });
+    })
+  );
 });

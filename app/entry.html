@@ -63,7 +63,7 @@
             <div class="form-card">
                 <h3>Wie war es?</h3>
                 <div class="rating-grid">
-                    <div class="rating-section">
+                    <div class="rating-section" data-scale="sleep" data-help-url="help/schlaf.html" data-help-label="Schlafqualität">
                         <label>Schlafqualität (1=Schlecht, 5=Super)<a href="help/schlaf.html" target="_blank" class="help-link" title="Hilfe zum Thema Schlaf">?</a></label>
                         <div class="rating-group">
                             <input type="radio" name="sleep" value="1" id="sleep-1"><label for="sleep-1">😫</label>
@@ -72,8 +72,9 @@
                             <input type="radio" name="sleep" value="4" id="sleep-4"><label for="sleep-4">🙂</label>
                             <input type="radio" name="sleep" value="5" id="sleep-5"><label for="sleep-5">🤩</label>
                         </div>
+                        <p class="help-hint hidden" aria-live="polite"></p>
                     </div>
-                    <div class="rating-section">
+                    <div class="rating-section" data-scale="mood" data-help-url="help/stimmung.html" data-help-label="Stimmung">
                         <label>Stimmung<a href="help/stimmung.html" target="_blank" class="help-link" title="Hilfe zum Thema Stimmung">?</a></label>
                         <div class="rating-group">
                             <input type="radio" name="mood" value="1" id="mood-1"><label for="mood-1">😭</label>
@@ -82,8 +83,9 @@
                             <input type="radio" name="mood" value="4" id="mood-4"><label for="mood-4">🙂</label>
                             <input type="radio" name="mood" value="5" id="mood-5"><label for="mood-5">😁</label>
                         </div>
+                        <p class="help-hint hidden" aria-live="polite"></p>
                     </div>
-                    <div class="rating-section">
+                    <div class="rating-section" data-scale="focus" data-help-url="help/fokus.html" data-help-label="Konzentration &amp; Fokus">
                         <label>Konzentration / Fokus<a href="help/fokus.html" target="_blank" class="help-link" title="Hilfe zum Thema Fokus">?</a></label>
                         <div class="rating-group">
                             <input type="radio" name="focus" value="1" id="focus-1"><label for="focus-1">💨</label>
@@ -92,8 +94,9 @@
                             <input type="radio" name="focus" value="4" id="focus-4"><label for="focus-4">💡</label>
                             <input type="radio" name="focus" value="5" id="focus-5"><label for="focus-5">🎯</label>
                         </div>
+                        <p class="help-hint hidden" aria-live="polite"></p>
                     </div>
-                    <div class="rating-section">
+                    <div class="rating-section" data-scale="hyperactivity" data-help-url="help/hyperaktivitaet.html" data-help-label="Innere Unruhe &amp; Hyperaktivität">
                         <label>Innere Unruhe / Hyperaktivität<a href="help/hyperaktivitaet.html" target="_blank" class="help-link" title="Hilfe zum Thema Hyperaktivität">?</a></label>
                         <div class="rating-group">
                             <input type="radio" name="hyperactivity" value="1" id="hyp-1"><label for="hyp-1">🌪️</label>
@@ -102,8 +105,9 @@
                             <input type="radio" name="hyperactivity" value="4" id="hyp-4"><label for="hyp-4">😌</label>
                             <input type="radio" name="hyperactivity" value="5" id="hyp-5"><label for="hyp-5">🧘</label>
                         </div>
+                        <p class="help-hint hidden" aria-live="polite"></p>
                     </div>
-                    <div class="rating-section">
+                    <div class="rating-section" data-scale="irritability" data-help-url="help/reizbarkeit.html" data-help-label="Reizbarkeit">
                         <label>Reizbarkeit<a href="help/reizbarkeit.html" target="_blank" class="help-link" title="Hilfe zum Thema Reizbarkeit">?</a></label>
                         <div class="rating-group">
                             <input type="radio" name="irritability" value="1" id="irr-1"><label for="irr-1">😡</label>
@@ -112,8 +116,9 @@
                             <input type="radio" name="irritability" value="4" id="irr-4"><label for="irr-4">🙂</label>
                             <input type="radio" name="irritability" value="5" id="irr-5"><label for="irr-5">🕊️</label>
                         </div>
+                        <p class="help-hint hidden" aria-live="polite"></p>
                     </div>
-                    <div class="rating-section">
+                    <div class="rating-section" data-scale="appetite" data-help-url="help/appetit.html" data-help-label="Appetit">
                         <label>Appetit<a href="help/appetit.html" target="_blank" class="help-link" title="Hilfe zum Thema Appetit">?</a></label>
                         <div class="rating-group">
                             <input type="radio" name="appetite" value="1" id="app-1"><label for="app-1">🤢</label>
@@ -122,6 +127,7 @@
                             <input type="radio" name="appetite" value="4" id="app-4"><label for="app-4">😋</label>
                             <input type="radio" name="appetite" value="5" id="app-5"><label for="app-5">🍽️</label>
                         </div>
+                        <p class="help-hint hidden" aria-live="polite"></p>
                     </div>
                 </div>
             </div>
@@ -169,6 +175,7 @@
             </div>
         </form>
     </main>
+    <script src="js/utils/common.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

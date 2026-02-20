@@ -28,7 +28,16 @@ FokusLog ist eine vollständig clientseitige Progressive Web App mit einem kompa
   - `tags` & `entry_tags` bieten konfigurierbare Klassifizierungen.
   - `badges`, `user_badges` treiben Gamification inklusive streaklosen Spezial-Badges.
   - `consents` dokumentieren Datenschutz-Einwilligungen, `audit_log` hält JSON-basierte Trails.
-  - `glossary` speichert Hilfetexte inkl. `full_content` für Detailseiten. Inhalte werden über [app/help/import_help.php](app/help/import_help.php) aus den HTML-Dateien synchronisiert.
+  - `glossary` speichert Hilfetexte in mehreren Formaten für flexible Wiederverwendung:
+    - `content` – Kurztext/Lead für Vorschau
+    - `content_plain` – Reiner Text ohne HTML für externe Systeme
+    - `content_sections` – JSON mit strukturierten Abschnitten (alltag/wissen)
+    - `full_content` – Vollständiger HTML-Inhalt
+    - `keywords` – Automatisch extrahierte Stichwörter
+    - `target_audience` – Zielgruppen (eltern, kinder, erwachsene, lehrer, aerzte)
+    - `reading_time_min` – Geschätzte Lesezeit
+    - `file_hash` – MD5-Hash für Change-Detection
+  - Inhalte werden über [app/help/import_help.php](app/help/import_help.php) aus HTML-Dateien synchronisiert (CLI mit `--force` und `--dry-run` Optionen).
 - **Seed-Daten**: Standard-Badges (inkl. „Wochenend-Warrior“, „Früher Vogel“, „Nachteule“) werden im Schema verteilt.
 
 ## API-Oberfläche
@@ -44,14 +53,17 @@ Alle Endpunkte laufen über `/api` (siehe [api/index.php](api/index.php)). Respo
 | Tags | GET/POST `/tags`, DELETE `/tags/{id}` | Haushalts-Tags pflegen |
 | Badges | GET `/badges` | Alle verfügbaren Badges mit Earned-Flag |
 | Gewicht | GET `/weight` | Gewichtshistorie je Benutzer (Teacher ausgeschlossen) |
-| Glossar | GET `/glossary` | Liefert strukturierte Hilfseinträge aus `glossary` |
+| Glossar | GET `/glossary` | Liefert Hilfseinträge mit Filtern (category, audience, search, format) |
+| Glossar | GET `/glossary/categories` | Alle verfügbaren Kategorien mit Anzahl |
+| Glossar | GET `/glossary/export` | Export als JSON oder CSV für externe Nutzung |
+| Glossar | POST `/glossary/import` | Triggert HTML-Import (Admin) |
 | Admin | POST `/admin/migrate`, `/admin/backup` | Migrationen/Backups via Token |
 
 Fehlerfälle liefern strukturierte JSON-Meldungen; alle sicherheitskritischen Aktionen landen im `audit_log`.
 
 ## Inhalte & Nutzung
 - **Help Hub**: Die Startseite gruppiert Inhalte in „Über die App“, „Alltag“ und „Wissen“, ergänzt durch Zielgruppenpfade (Ärzt:innen, Lehrkräfte, Eltern, Kinder).
-- **Lexikon/Glossar**: `/api/glossary` beliefert den Suchindex in [app/help/assets/help.js](app/help/assets/help.js) und [app/help/lexikon.html](app/help/lexikon.html); clientseitige Filter ermöglichen Zielgruppen-spezifische Recherchen.
+- **Lexikon/Glossar**: `/api/glossary` beliefert den Suchindex in [app/help/assets/help.js](app/help/assets/help.js) und [app/help/lexikon.html](app/help/lexikon.html). Die API unterstützt serverseitige Filter (Kategorie, Zielgruppe, Volltext) und drei Ausgabeformate (list, full, plain). Export als JSON/CSV ermöglicht die Nachnutzung in externen Anwendungen.
 - **Gamification**: Dashboard, Entry-Formulare und Badge-Widgets werden über [app/js/app.js](app/js/app.js) befüllt und motivieren zu täglichen Einträgen.
 - **Berichte & Export**: Chart-Ansichten und PDF/CSV-Exports helfen Familien und Ärzten, Entscheidungen anhand realer Verlaufsdaten zu treffen.
 
@@ -82,6 +94,6 @@ Fehlerfälle liefern strukturierte JSON-Meldungen; alle sicherheitskritischen Ak
 - **Migrationen**: Für neue Tabellen/Indizes liegen Skripte unter [db/migrations/](db/migrations). `/admin/migrate` führt sie kontrolliert aus.
 - **Backups**: `/admin/backup` erzeugt SQL-Dumps unter `backups/` und rotiert ältere Artefakte.
 - **Monitoring**: `app_log()` sammelt strukturierte Events; Audit-Log dient als Compliance-Anker.
-- **Weiteres**: Neue Inhalte sollten in `app/help/` entstehen und anschließend via Importskript in `glossary` landen, damit PWA-Suche und API synchron bleiben.
+- **Weiteres**: Neue Inhalte sollten in `app/help/` entstehen und anschließend via `php app/help/import_help.php` in `glossary` landen. Das Skript erkennt Änderungen via File-Hash und aktualisiert nur modifizierte Dateien. Externe Anwendungen können Inhalte via `/api/glossary/export` abrufen.
 
 Mit diesem Paket (Schema v4 + Zielgruppenleitfaden) liegen technische und inhaltliche Grundlagen konsistent vor und können als Referenz für Planung, Schulung oder externe Reviews dienen.

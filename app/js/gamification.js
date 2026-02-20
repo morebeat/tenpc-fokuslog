@@ -1,117 +1,114 @@
-/**
- * Gamification-Logik für FokusLog
- * 
- * Integration:
- * 1. Library einbinden: <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
- * 2. Dieses Script einbinden: <script src="gamification.js"></script>
- * 3. Aufruf nach Fetch: handleGamification(response.gamification);
- */
+(function (global) {
+    const FokusLog = global.FokusLog || (global.FokusLog = {});
+    const components = FokusLog.components || (FokusLog.components = {});
 
-/**
- * Feuert den Konfetti-Effekt ab (3 Sekunden lang).
- */
-function triggerConfetti() {
-    if (typeof confetti === 'undefined') {
-        console.warn('Konfetti-Library nicht geladen.');
-        return;
-    }
+    components.gamification = {
+        render: async (container, user, utils) => {
+            if (!container || !user) return;
 
-    const duration = 3000;
-    const end = Date.now() + duration;
+            // Responsive container styling
+            container.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            container.style.color = 'white';
+            container.style.padding = '20px';
+            container.style.borderRadius = '10px';
+            container.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            container.style.textAlign = 'center';
+            container.setAttribute('role', 'region');
+            container.setAttribute('aria-label', 'Gamification Status');
 
-    (function frame() {
-        // Konfetti von links und rechts einfliegen lassen
-        confetti({
-            particleCount: 5,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-            colors: ['#2563eb', '#fbbf24', '#ef4444'] // Blau, Gelb, Rot
-        });
-        confetti({
-            particleCount: 5,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-            colors: ['#2563eb', '#fbbf24', '#ef4444']
-        });
+            // Fetch badge data for progress calculation
+            let nextBadge = null;
+            let progressPercent = 0;
+            try {
+                const response = await fetch('/api/badges');
+                if (response.ok) {
+                    const data = await response.json();
+                    const badges = data.badges || [];
+                    nextBadge = badges.find(b => !b.earned);
+                    if (nextBadge) {
+                        progressPercent = Math.min(100, Math.max(0, (data.current_streak / nextBadge.required_streak) * 100));
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load badge progress', e);
+            }
 
-        if (Date.now() < end) {
-            requestAnimationFrame(frame);
+            const points = user.points || 0;
+            const streak = user.streak_current || 0;
+            const badges = user.badges || [];
+            const rank = user.rank_info ? user.rank_info.rank : null;
+
+            // Badges HTML
+            let badgesHtml = '<div class="badges-container" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
+            if (badges.length > 0) {
+                badges.forEach(badge => {
+                    const badgeIcons = { 'badge-bronze': '🥉', 'badge-silver': '🥈', 'badge-gold': '🥇', 'badge-platinum': '🏆' };
+                    const icon = badgeIcons[badge.icon_class] || '🏅';
+                    badgesHtml += `<div class="badge" title="${utils.escapeHtml(badge.name)}: ${utils.escapeHtml(badge.description)}" tabindex="0" aria-label="Abzeichen: ${utils.escapeHtml(badge.name)}" style="font-size: 2.5em; cursor: help;">${icon}</div>`;
+                });
+            } else {
+                badgesHtml += '<p style="font-size: 0.9em; opacity: 0.8;">Sammle weiter Einträge, um Abzeichen zu verdienen!</p>';
+            }
+            badgesHtml += '</div>';
+
+            // Progress Bar HTML
+            let progressHtml = '';
+            if (nextBadge) {
+                progressHtml = `
+                    <div style="margin-top: 15px; text-align: left;">
+                        <div style="font-size: 0.85rem; margin-bottom: 5px; display: flex; justify-content: space-between;">
+                            <span>Nächstes Ziel: <strong>${utils.escapeHtml(nextBadge.name)}</strong></span>
+                            <span>${streak} / ${nextBadge.required_streak} Tage</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; overflow: hidden;" role="progressbar" aria-valuenow="${progressPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="Fortschritt zum nächsten Abzeichen">
+                            <div style="background: #ffd700; width: ${progressPercent}%; height: 100%; transition: width 1s ease-in-out;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <h3 style="margin: 0 0 15px 0; font-size: 1.3rem;">Dein Fortschritt</h3>
+                <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 1.2em; font-weight: bold;" title="Gesamtpunkte">⭐ ${points} Punkte</div>
+                    <div style="font-size: 1.2em; font-weight: bold;" title="Aktueller Streak">🔥 ${streak} Tage Streak</div>
+                    ${rank ? `<div style="font-size: 1.2em; font-weight: bold;" title="Aktueller Rang">🏆 Platz ${rank}</div>` : ''}
+                </div>
+                ${progressHtml}
+                ${badgesHtml}
+                <a href="badges.html" class="button" style="margin-top: 20px; display: inline-block; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);">Alle Abzeichen ansehen</a>
+            `;
+
+            // Trigger confetti if a new badge was just earned (simple check logic could be added here)
+            if (global.confetti && user.new_badges && user.new_badges.length > 0) {
+                global.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        },
+
+        notifyAchievements: (gamificationData, utils) => {
+            if (!gamificationData || !gamificationData.points_earned || gamificationData.points_earned <= 0) return;
+
+            const g = gamificationData;
+            setTimeout(() => utils.toast(`+${g.points_earned} Punkte! Streak: ${g.streak} Tage 🔥`, 'gamification', 5000), 500);
+            
+            if (g.new_badges && g.new_badges.length > 0) {
+                g.new_badges.forEach((badge, idx) => {
+                    setTimeout(() => utils.toast(`🏆 Neues Abzeichen: ${badge.name}`, 'badge', 6000), 1000 + (idx * 500));
+                });
+            }
+
+            if (global.confetti) {
+                global.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        },
+
+        fetchRank: async (utils) => {
+            try {
+                return await utils.apiCall('/api/badges/rank');
+            } catch (error) {
+                console.error('Failed to fetch rank', error);
+                return null;
+            }
         }
-    }());
-}
-
-/**
- * Zeigt ein Modal mit den gewonnenen Badges an.
- */
-function showBadgeModal(badges) {
-    let modal = document.getElementById('gamification-modal');
-    
-    // Modal dynamisch erstellen, falls noch nicht vorhanden
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'gamification-modal';
-        modal.className = 'modal';
-        modal.style.display = 'none';
-        document.body.appendChild(modal);
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.style.display = 'none';
-        });
-    }
-
-    const badgesHtml = badges.map(b => `
-        <div class="badge-item">
-            <div class="badge-icon animated">${b.icon_class || '🏆'}</div>
-            <h2 style="color: #ea580c; margin: 0.5rem 0;">${b.name}</h2>
-            <p>${b.description}</p>
-        </div>
-    `).join('<hr style="margin: 1rem 0; opacity: 0.3;">');
-
-    modal.innerHTML = `
-        <div class="modal-content gamification-badge-earned">
-            <span class="close-button" onclick="document.getElementById('gamification-modal').style.display='none'">&times;</span>
-            <h3 style="margin-top:0;">Herzlichen Glückwunsch!</h3>
-            ${badgesHtml}
-            <button class="button" style="margin-top:1rem;" onclick="document.getElementById('gamification-modal').style.display='none'">Weiter so!</button>
-        </div>
-    `;
-
-    modal.style.display = 'flex';
-}
-
-/**
- * Hauptfunktion: Verarbeitet die API-Antwort
- */
-function handleGamification(data) {
-    if (!data) return;
-
-    if (data.new_badges && data.new_badges.length > 0) {
-        triggerConfetti();
-        showBadgeModal(data.new_badges);
-    }
-    
-    // Optional: Streak und Progress Bar aktualisieren
-    if (data.streak !== undefined) {
-        const streakEl = document.querySelector('.streak-counter');
-        if (streakEl) {
-            streakEl.innerHTML = `<span class="streak-fire">🔥</span> ${data.streak} Tage`;
-            streakEl.classList.add('updated');
-        }
-    }
-
-    if (data.next_badge && data.streak) {
-        const progressEl = document.querySelector('.badge-progress-bar');
-        const progressText = document.querySelector('.badge-progress-text');
-        
-        if (progressEl) {
-            const percent = Math.min(100, (data.streak / data.next_badge.required_streak) * 100);
-            progressEl.style.width = `${percent}%`;
-        }
-        
-        if (progressText) {
-            progressText.innerHTML = `Noch <strong>${data.next_badge.days_left} Tage</strong> bis zum <strong>${data.next_badge.name}</strong>!`;
-        }
-    }
-}
+    };
+})(window);
