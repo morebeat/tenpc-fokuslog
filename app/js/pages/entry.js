@@ -452,6 +452,15 @@
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
+                // FIX: Explizites Auslesen der Radio-Buttons für Skalenwerte
+                // Stellt sicher, dass Werte auch bei Custom-UI-Interaktionen korrekt übernommen werden
+                ['mood', 'focus', 'energy', 'sleep', 'irritability', 'appetite', 'hyperactivity'].forEach(key => {
+                    const checked = form.querySelector(`input[name="${key}"]:checked`);
+                    if (checked) {
+                        data[key] = checked.value;
+                    }
+                });
+
                 // Validierung: Keine Zukunft
                 const now = new Date();
                 const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');

@@ -10,17 +10,17 @@
 ini_set('error_log', __DIR__ . '/../logs/deploy.log');
 header('Content-Type: application/json');
 
-// Lade .env Datei
+// EnvLoader einbinden
+require_once __DIR__ . '/lib/EnvLoader.php';
 
+// Lade .env Datei
 $envFile = __DIR__ . '/../.env';
 $env = [];
 if (is_file($envFile)) {
-    $env = parse_ini_file($envFile) ?: [];
-    error_log("[Deploy] ENV geladen: " . print_r($env, true));
+    $env = \FokusLog\Lib\EnvLoader::load($envFile);
 } else {
     http_response_code(403);
     error_log("[Deploy] Warnung: .env Datei nicht gefunden. " . $envFile);
-    echo json_encode("[Deploy] Warnung: .env Datei nicht gefunden. " . $envFile);
 }
 
 // Input lesen (JSON oder POST)
@@ -144,7 +144,7 @@ if (is_file($helpImportScript)) {
     require_once $helpImportScript;
 
     // .env neu laden falls aktualisiert
-    $env = parse_ini_file($envFile) ?: [];
+    $env = \FokusLog\Lib\EnvLoader::load($envFile);
 
     try {
         $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";

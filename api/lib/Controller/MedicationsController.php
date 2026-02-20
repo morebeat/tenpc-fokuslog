@@ -50,8 +50,27 @@ class MedicationsController extends BaseController
                 $this->respond(400, ['error' => 'name ist erforderlich']);
             }
 
+            // Prüfen auf Duplikate (Name + Dosis)
+            // Wir erlauben gleichen Namen, solange die Dosis unterschiedlich ist.
+            $doseVal = $defaultDose !== '' ? $defaultDose : null;
+            $checkSql = 'SELECT id FROM medications WHERE family_id = ? AND name = ? AND ';
+            $checkParams = [$user['family_id'], $name];
+            
+            if ($doseVal === null) {
+                $checkSql .= 'default_dose IS NULL';
+            } else {
+                $checkSql .= 'default_dose = ?';
+                $checkParams[] = $doseVal;
+            }
+            
+            $stmt = $this->pdo->prepare($checkSql);
+            $stmt->execute($checkParams);
+            if ($stmt->fetch()) {
+                $this->respond(409, ['error' => 'Ein Medikament mit diesem Namen und dieser Dosis existiert bereits.']);
+            }
+
             $stmt = $this->pdo->prepare('INSERT INTO medications (family_id, name, default_dose) VALUES (?, ?, ?)');
-            $stmt->execute([$user['family_id'], $name, $defaultDose !== '' ? $defaultDose : null]);
+            $stmt->execute([$user['family_id'], $name, $doseVal]);
             $newId = (int)$this->pdo->lastInsertId();
 
             app_log('INFO', 'med_create_success', ['creator_id' => $user['id'], 'med_id' => $newId, 'med_name' => $name]);
@@ -92,8 +111,26 @@ class MedicationsController extends BaseController
                 $this->respond(404, ['error' => 'Medikament nicht gefunden oder Zugriff verweigert']);
             }
 
+            // Prüfen auf Duplikate bei Update (Name + Dosis, aber nicht das eigene Medikament)
+            $doseVal = $defaultDose !== '' ? $defaultDose : null;
+            $checkSql = 'SELECT id FROM medications WHERE family_id = ? AND name = ? AND id != ? AND ';
+            $checkParams = [$user['family_id'], $name, $medId];
+            
+            if ($doseVal === null) {
+                $checkSql .= 'default_dose IS NULL';
+            } else {
+                $checkSql .= 'default_dose = ?';
+                $checkParams[] = $doseVal;
+            }
+            
+            $stmt = $this->pdo->prepare($checkSql);
+            $stmt->execute($checkParams);
+            if ($stmt->fetch()) {
+                $this->respond(409, ['error' => 'Ein Medikament mit diesem Namen und dieser Dosis existiert bereits.']);
+            }
+
             $stmt = $this->pdo->prepare('UPDATE medications SET name = ?, default_dose = ? WHERE id = ?');
-            $stmt->execute([$name, $defaultDose !== '' ? $defaultDose : null, $medId]);
+            $stmt->execute([$name, $doseVal, $medId]);
 
             app_log('INFO', 'med_update_success', ['user_id' => $user['id'], 'med_id' => $medId, 'new_name' => $name]);
             $this->logAction($user['id'], 'med_update', 'medication ' . $medId);

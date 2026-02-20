@@ -319,4 +319,22 @@ class ApiTest
             'Import als Parent sollte 200, 400 oder 500 sein (nicht 401/403), war: ' . $response['code']
         );
     }
+
+    public function testMedicationUniqueness()
+    {
+        $client = $this->getAuthenticatedClient();
+        $name = 'Med_' . bin2hex(random_bytes(3));
+
+        // 1. Anlegen
+        $r1 = $client->post('/medications', ['name' => $name, 'default_dose' => '10mg']);
+        Assert::equals(201, $r1['code'], 'Erstes Medikament anlegen');
+
+        // 2. Gleicher Name, andere Dosis -> Sollte klappen
+        $r2 = $client->post('/medications', ['name' => $name, 'default_dose' => '20mg']);
+        Assert::equals(201, $r2['code'], 'Gleicher Name mit anderer Dosis sollte erlaubt sein');
+
+        // 3. Exaktes Duplikat -> Fehler
+        $r3 = $client->post('/medications', ['name' => $name, 'default_dose' => '10mg']);
+        Assert::true($r3['code'] >= 400, 'Exaktes Duplikat sollte Fehler werfen');
+    }
 }

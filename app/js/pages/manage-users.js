@@ -15,6 +15,11 @@
 
             if (!usersList) return;
 
+            // Fix: Modal initial ausblenden, damit es nicht beim Laden sichtbar ist
+            if (editModal) {
+                editModal.style.display = 'none';
+            }
+
             const loadUsers = async () => {
                 try {
                     const response = await fetch('/api/users');
@@ -67,8 +72,10 @@
                     document.getElementById('label-password').textContent = 'Passwort (erforderlich):';
                     document.getElementById('edit-password').placeholder = '';
                     document.getElementById('edit-password').required = true;
+                    const genderInput = document.getElementById('edit-gender');
+                    if (genderInput) genderInput.value = 'diverse';
                     if (editErrorMessage) editErrorMessage.textContent = '';
-                    editModal.style.display = 'block';
+                    editModal.style.display = 'flex';
                 });
             }
 
@@ -87,12 +94,14 @@
                                 document.getElementById('edit-user-id').value = user.id;
                                 document.getElementById('edit-username').value = user.username;
                                 document.getElementById('edit-role').value = user.role;
+                                const genderInput = document.getElementById('edit-gender');
+                                if (genderInput) genderInput.value = user.gender || '';
                                 document.getElementById('label-password').textContent = 'Neues Passwort (optional):';
                                 const passwordInput = document.getElementById('edit-password');
                                 passwordInput.placeholder = 'Leer lassen, um nicht zu ändern';
                                 passwordInput.required = false;
                                 passwordInput.value = '';
-                                editModal.style.display = 'block';
+                                editModal.style.display = 'flex';
                             }
                         } catch (error) {
                             console.error(error);
